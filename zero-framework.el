@@ -75,10 +75,10 @@ if item is not in lst, return nil"
 
 (ert-deftest zero-cycle-list ()
   (should (= (zero-cycle-list '(1 2 3) 1) 2))
-  (should (= (zero-cycle-list '(a b c) 'a) 'b))
-  (should (= (zero-cycle-list '(a b c) 'b) 'c))
-  (should (= (zero-cycle-list '(a b c) 'c) 'a))
-  (should (= (zero-cycle-list '(a b c) 'd) nil)))
+  (should (eq (zero-cycle-list '(a b c) 'a) 'b))
+  (should (eq (zero-cycle-list '(a b c) 'b) 'c))
+  (should (eq (zero-cycle-list '(a b c) 'c) 'a))
+  (should (eq (zero-cycle-list '(a b c) 'd) nil)))
 
 ;;=====================
 ;; key logic functions
@@ -137,7 +137,9 @@ if nil, next single quote insert open quote.
 otherwise, next single quote insert close quote")
 (defvar zero-preedit-str "")
 (defvar zero-candidates nil)
-(defvar zero-candidates-per-page 10 "how many candidates to show on each page")
+(defcustom zero-candidates-per-page 10
+  "how many candidates to show on each page"
+  :group 'zero)
 (defvar zero-current-page 0 "current page number. count from 0")
 (defvar zero-previous-page-key ?\- "previous page key")
 (defvar zero-next-page-key ?\= "next page key")
@@ -252,12 +254,6 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
   (if (functionp zero-can-start-sequence-func)
       (funcall zero-can-start-sequence-func ch)
     (error "`zero-can-start-sequence-func' is not a function")))
-
-(ert-deftest zero-can-start-sequence ()
-  (should (zero-can-start-sequence ?a))
-  (should (zero-can-start-sequence ?m))
-  (should-not (zero-can-start-sequence ?1))
-  (should-not (zero-can-start-sequence ?b)))
 
 (defun zero-page-up ()
   "if not at first page, show candidates on previous page."
