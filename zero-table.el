@@ -1,5 +1,13 @@
 ;; a simple input method written as an emacs minor mode
+;; (load-file "~/lisp/elisp/zero/zero-panel.elc")
 ;; (load-file "~/lisp/elisp/zero/zero-table.elc")
+
+;;==============
+;; dependencies
+;;==============
+
+(require 's)
+(require 'zero-panel)
 
 ;;=======
 ;; utils
@@ -48,6 +56,12 @@ respectively."
 			 (frame-char-height frame)))))))
     (list ax ay height)))
 
+(defun zero-get-point-position ()
+  "return current point's position (x y) based on origin of top left corner"
+  (destructuring-bind (x y h) (ibus-compute-pixel-position)
+    (list (+ (frame-parameter nil 'left) x)
+	  (+ (frame-parameter nil 'top) h y))))
+
 ;;===============================
 ;; basic data and emacs facility
 ;;===============================
@@ -85,8 +99,10 @@ respectively."
 
 (defun zero-table-show-candidates (candidates)
   "show candidates using zero-panel via IPC/RPC"
-  ;; TODO
-  (zero-table-debug "candidates: %s\n  " (s-join "\n  " candidates)))
+  (zero-panel-show-candidates zero-table-preedit-str (length candidates) candidates)
+  (zero-table-debug "candidates: %s\n  " (s-join "\n  " candidates))
+  (destructuring-bind (x y) (zero-get-point-position)
+    (zero-panel-move x y)))
 
 (defun zero-table-sort-key (lhs rhs)
   "a predicate function to sort candidates. return t if lhs
@@ -155,7 +171,11 @@ should sort before rhs."
      ((eq zero-table-state *zero-table-state-im-preediting*)
       (zero-table-debug "still preediting\n")
       (if (and (>= ch ?0) (<= ch ?9))
-	  (unless (zero-table-commit-nth-candidate (- ch ?0))
+	  ;; 1 commit the 0th candidate
+	  ;; 2 commit the 1st candidate
+	  ;; ...
+	  ;; 0 commit the 9th candidate
+	  (unless (zero-table-commit-nth-candidate (mod (- (- ch ?0) 1) 10))
 	    (zero-table-append-char-to-preedit-str ch))
 	(zero-table-append-char-to-preedit-str ch)))
      (t
@@ -223,9 +243,8 @@ should sort before rhs."
     (self-insert-command n)))
 
 (defun zero-table-hide-candidate-list ()
-  ;; TODO do IPC/RPC call to hide candidate
-  (zero-table-debug "hide candidate list\n")
-  )
+  (zero-panel-hide)
+  (zero-table-debug "hide candidate list\n"))
 
 (defun zero-table-reset ()
   (zero-table-debug "reset\n")
