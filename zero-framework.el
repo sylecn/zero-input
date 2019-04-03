@@ -137,6 +137,10 @@ if nil, next single quote insert open quote.
 otherwise, next single quote insert close quote")
 (defvar zero-preedit-str "")
 (defvar zero-candidates nil)
+(defvar zero-candidates-per-page 10 "how many candidates to show on each page")
+(defvar zero-current-page 0 "current page number. count from 0")
+(defvar zero-previous-page-key ?\- "previous page key")
+(defvar zero-next-page-key ?\= "next page key")
 
 (defvar zero-enable-debug t
   "whether to enable debug.
@@ -159,12 +163,20 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
   (zero-debug "set state to %s\n" state)
   (setq zero-state state))
 
-(defun zero-show-candidates (candidates)
+(defun zero-candidates-on-page (candidates)
+  "return candidates on current page for given candidates list"
+  (take zero-candidates-per-page
+	(drop (* zero-candidates-per-page zero-current-page) candidates)))
+
+(defun zero-show-candidates (&optional candidates)
   "show candidates using zero-panel via IPC/RPC"
-  (zero-panel-show-candidates zero-preedit-str (length candidates) candidates)
-  (zero-debug "candidates: %s\n  " (s-join "\n  " candidates))
-  (destructuring-bind (x y) (zero-get-point-position)
-    (zero-panel-move x y)))
+  (let ((candidates-on-page (zero-candidates-on-page (or candidates
+							 zero-candidates))))
+    (zero-panel-show-candidates
+     zero-preedit-str (length candidates-on-page) candidates-on-page)
+    (zero-debug "candidates: %s\n  " (s-join "\n  " candidates-on-page))
+    (destructuring-bind (x y) (zero-get-point-position)
+      (zero-panel-move x y))))
 
 (defun zero-build-candidates (preedit-str)
   "build candidates list synchronously"
@@ -178,6 +190,7 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
   (let ((candidates (zero-build-candidates preedit-str)))
     ;; update cache to make SPC and digit key selection possible.
     (setq zero-candidates candidates)
+    (setq zero-current-page 0)
     (zero-show-candidates candidates)))
 
 (defun zero-convert-punctuation-basic (ch)
@@ -246,6 +259,19 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
   (should-not (zero-can-start-sequence ?1))
   (should-not (zero-can-start-sequence ?b)))
 
+(defun zero-page-up ()
+  "if not at first page, show candidates on previous page."
+  (when (> zero-current-page 0)
+    (setq zero-current-page (1- zero-current-page))
+    (zero-show-candidates)))
+
+(defun zero-page-down ()
+  "if there is still candidates to be displayed, show candidates on next page."
+  (let ((len (length zero-candidates)))
+	(when (> len (* zero-candidates-per-page (1+ zero-current-page)))
+	  (setq zero-current-page (1+ zero-current-page))
+	  (zero-show-candidates))))
+
 (defun zero-self-insert-command (n)
   "handle character self-insert-command. This includes characters and digits"
   (interactive "p")
@@ -271,6 +297,10 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 	;; 0 commit the 9th candidate
 	(unless (zero-commit-nth-candidate (mod (- (- ch ?0) 1) 10))
 	  (zero-append-char-to-preedit-str ch)))
+       ((= ch zero-previous-page-key)
+	(zero-page-up))
+       ((= ch zero-next-page-key)
+	(zero-page-down))
        (t (let ((str (zero-convert-punctuation ch)))
 	    (if str
 		(progn
@@ -308,6 +338,7 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
   (insert text)
   (setq zero-preedit-str "")
   (setq zero-candidates nil)
+  (setq zero-current-page 0)
   (zero-hide-candidate-list))
 
 (defun zero-return ()
@@ -321,7 +352,7 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 
 (defun zero-commit-nth-candidate (n)
   "commit nth candidate and return true if it exists, otherwise, return false"
-  (let ((candidate (nth n zero-candidates)))
+  (let ((candidate (nth n (zero-candidates-on-page zero-candidates))))
     (if candidate
 	(progn
 	  (zero-set-state *zero-state-im-waiting-input*)
@@ -352,6 +383,8 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 (defun zero-reset ()
   (zero-debug "reset\n")
   (setq zero-preedit-str "")
+  (setq zero-candidates nil)
+  (setq zero-current-page 0)
   (zero-hide-candidate-list))
 
 (defun zero-focus-in ()
@@ -404,6 +437,8 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
   (make-local-variable 'zero-single-quote-flag)
   (set (make-local-variable 'zero-preedit-str) "")
   (set (make-local-variable 'zero-candidates) nil)
+  (make-local-variable 'zero-candidates-per-page)
+  (make-local-variable 'zero-current-page)
   (make-local-variable 'zero-im)
   (make-local-variable 'zero-build-candidates-func)
   (make-local-variable 'zero-can-start-sequence-func)
