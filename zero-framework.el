@@ -63,6 +63,23 @@ respectively."
     (list (+ (frame-parameter nil 'left) x)
 	  (+ (frame-parameter nil 'top) h y))))
 
+(defun zero-cycle-list (lst item)
+  "return the object next to given item in lst, if item is the last object, return the first object in lst.
+
+if item is not in lst, return nil"
+  (let ((r (member item lst)))
+    (cond
+     ((null r) nil)
+     (t (or (cadr r)
+	    (car lst))))))
+
+(ert-deftest zero-cycle-list ()
+  (should (= (zero-cycle-list '(1 2 3) 1) 2))
+  (should (= (zero-cycle-list '(a b c) 'a) 'b))
+  (should (= (zero-cycle-list '(a b c) 'b) 'c))
+  (should (= (zero-cycle-list '(a b c) 'c) 'a))
+  (should (= (zero-cycle-list '(a b c) 'd) nil)))
+
 ;;=====================
 ;; key logic functions
 ;;=====================
@@ -71,6 +88,10 @@ respectively."
 (defconst *zero-state-im-off* 'IM-OFF)
 (defconst *zero-state-im-waiting-input* 'IM-WAITING-INPUT)
 (defconst *zero-state-im-preediting* 'IM-PREEDITING)
+
+(defconst *zero-punctuation-level-basic* 'BASIC)
+(defconst *zero-punctuation-level-full* 'FULL)
+(defconst *zero-punctuation-level-none* 'NONE)
 
 ;;; concrete input method should define these functions and set them in the
 ;;; corresponding *-func variable.
@@ -97,6 +118,23 @@ in the empty input method, only punctuation is handled. Other keys are pass thro
 this is used to help with buffer focus in/out events")
 
 (defvar zero-state *zero-state-im-off*)
+(defvar zero-punctuation-level *zero-punctuation-level-basic*
+  "punctuation level. should be one of
+*zero-punctuation-level-basic*
+*zero-punctuation-level-full*
+*zero-punctuation-level-none*")
+(defvar zero-punctuation-levels (list *zero-punctuation-level-basic*
+				      *zero-punctuation-level-full*
+				      *zero-punctuation-level-none*)
+  "punctuation levels to use when `zero-cycle-punctuation-level'")
+(defvar zero-double-quote-flag nil
+  "used when converting double quote to Chinese quote.
+if nil, next double quote insert open quote.
+otherwise, next double quote insert close quote")
+(defvar zero-single-quote-flag nil
+  "used when converting single quote to Chinese quote.
+if nil, next single quote insert open quote.
+otherwise, next single quote insert close quote")
 (defvar zero-preedit-str "")
 (defvar zero-candidates nil)
 
@@ -142,15 +180,52 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
     (setq zero-candidates candidates)
     (zero-show-candidates candidates)))
 
-(defun zero-handle-punctuation (n)
-  "if n is a punctuation character, insert Chinese punctuation for it and return true, otherwise, return false."
-  (case n
-    (?, (insert "，") t)
-    (?. (insert "。") t)
-    (?? (insert "？") t)
-    (?! (insert "！") t)
-    (?\ (insert "、") t)
+(defun zero-convert-punctuation-basic (ch)
+  "convert punctuation for *zero-punctuation-level-basic*
+return ch's Chinese punctuation if ch is converted. return nil otherwise"
+  (case ch
+    (?, "，")
+    (?. "。")
+    (?? "？")
+    (?! "！")
+    (?\\ "、")
     (otherwise nil)))
+
+(defun zero-convert-punctuation-full (ch)
+  "convert punctuation for *zero-punctuation-level-full*
+return ch's Chinese punctuation if ch is converted. return nil otherwise"
+  (case ch
+    (?_ "——")
+    (?< "《")
+    (?> "》")
+    (?\( "（")
+    (?\) "）")
+    (?\[ "【")
+    (?\] "】")
+    (?^ "……")
+    (?\" (setq zero-double-quote-flag (not zero-double-quote-flag))
+	 (if zero-double-quote-flag "“" "”"))
+    (?\' (setq zero-single-quote-flag (not zero-single-quote-flag))
+	 (if zero-single-quote-flag "‘" "’"))
+    (?~ "～")
+    (t (zero-convert-punctuation-basic ch))))
+
+(defun zero-convert-punctuation (ch)
+  "convert punctuation based on `zero-punctuation-level'
+return ch's Chinese punctuation if ch is converted. return nil otherwise"
+  (cond
+   ((eq zero-punctuation-level *zero-punctuation-level-basic*)
+    (zero-convert-punctuation-basic ch))
+   ((eq zero-punctuation-level *zero-punctuation-level-full*)
+    (zero-convert-punctuation-full ch))
+   (t nil)))
+
+(defun zero-handle-punctuation (ch)
+  "if n is a punctuation character, insert mapped Chinese punctuation and return true; otherwise, return false."
+  (let ((str (zero-convert-punctuation ch)))
+    (when str
+      (insert str)
+      t)))
 
 (defun zero-append-char-to-preedit-str (ch)
   "append char ch to preedit str, update and show candidate list"
@@ -188,14 +263,21 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
 	  (self-insert-command n))))
      ((eq zero-state *zero-state-im-preediting*)
       (zero-debug "still preediting\n")
-      (if (and (>= ch ?0) (<= ch ?9))
-	  ;; 1 commit the 0th candidate
-	  ;; 2 commit the 1st candidate
-	  ;; ...
-	  ;; 0 commit the 9th candidate
-	  (unless (zero-commit-nth-candidate (mod (- (- ch ?0) 1) 10))
-	    (zero-append-char-to-preedit-str ch))
-	(zero-append-char-to-preedit-str ch)))
+      (cond
+       ((and (>= ch ?0) (<= ch ?9))
+	;; 1 commit the 0th candidate
+	;; 2 commit the 1st candidate
+	;; ...
+	;; 0 commit the 9th candidate
+	(unless (zero-commit-nth-candidate (mod (- (- ch ?0) 1) 10))
+	  (zero-append-char-to-preedit-str ch)))
+       (t (let ((str (zero-convert-punctuation ch)))
+	    (if str
+		(progn
+		  (zero-set-state *zero-state-im-waiting-input*)
+		  (zero-commit-first-candidate-or-preedit-str)
+		  (insert str))
+	      (zero-append-char-to-preedit-str ch))))))
      (t
       (zero-debug "unexpected state: %s\n" zero-state)
       (self-insert-command n)))))
@@ -251,13 +333,16 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
   (zero-set-state *zero-state-im-waiting-input*)
   (zero-commit-text zero-preedit-str))
 
+(defun zero-commit-first-candidate-or-preedit-str ()
+  "commit first candidate if there is one, otherwise commit preedit str"
+  (unless (zero-commit-nth-candidate 0)
+    (zero-commit-preedit-str)))
+
 (defun zero-space (n)
   "handle SPC key press"
   (interactive "p")
   (if (eq zero-state *zero-state-im-preediting*)
-      ;; commit first candidate if there is one, otherwise commit preedit str
-      (unless (zero-commit-nth-candidate 0)
-	(zero-commit-preedit-str))
+      (zero-commit-first-candidate-or-preedit-str)
     (self-insert-command n)))
 
 (defun zero-hide-candidate-list ()
@@ -292,31 +377,38 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
 ;; this will allow user to customize the keymap.
 (defvar zero-mode-map nil "zero-mode keymap")
 (setq zero-mode-map
-      (list 'keymap
-	    '(13 . zero-return)
-	    '(32 . zero-space)
-	    '(remap keymap
-		    (self-insert-command . zero-self-insert-command)
-		    ;; (forward-char . zero-forward-char)
-		    ;; (backward-char . zero-backward-char)
-		    ;; (forward-word . zero-forward-word)
-		    ;; (backward-word . zero-backward-word)
-		    (delete-backward-char . zero-delete-backward-char)
-		    ;; (delete-char . zero-delete-char)
-		    )))
+      '(keymap
+	(13 . zero-return)
+	(32 . zero-space)
+	;; C-.
+	(67108910 . zero-cycle-punctuation-level)
+	(remap keymap
+	       (self-insert-command . zero-self-insert-command)
+	       ;; (forward-char . zero-forward-char)
+	       ;; (backward-char . zero-backward-char)
+	       ;; (forward-word . zero-forward-word)
+	       ;; (backward-word . zero-backward-word)
+	       (delete-backward-char . zero-delete-backward-char)
+	       ;; (delete-char . zero-delete-char)
+	       )))
 
 (define-minor-mode zero-mode
   "a simple input method written as an emacs minor mode"
   nil
   " Zero"
   zero-mode-map
+  ;; local variables and variable init
   (set (make-local-variable 'zero-state) *zero-state-im-off*)
+  (make-local-variable 'zero-punctuation-level)
+  (make-local-variable 'zero-double-quote-flag)
+  (make-local-variable 'zero-single-quote-flag)
   (set (make-local-variable 'zero-preedit-str) "")
   (set (make-local-variable 'zero-candidates) nil)
   (make-local-variable 'zero-im)
   (make-local-variable 'zero-build-candidates-func)
   (make-local-variable 'zero-can-start-sequence-func)
   (zero-set-im zero-im)
+  ;; hooks
   (add-hook 'focus-in-hook 'zero-focus-in)
   (add-hook 'focus-out-hook 'zero-focus-out)
   (set (make-local-variable 'zero-buffer) (current-buffer))
@@ -344,6 +436,31 @@ registered input method is saved in `zero-ims'"
 ;;============
 ;; public API
 ;;============
+
+(defun zero-set-punctuation-level (level)
+  "set `zero-punctuation-level'"
+  (interactive)
+  (if (not (member level (list *zero-punctuation-level-basic*
+			       *zero-punctuation-level-full*
+			       *zero-punctuation-level-none*)))
+      (error "level not supported: %s" level)
+    (setq zero-punctuation-level level)))
+
+(defun zero-set-punctuation-levels (levels)
+  "set `zero-punctuation-levels'. `zero-cycle-punctuation-level' will cycle current `zero-punctuation-level' among defined levels"
+  (dolist (level levels)
+    (if (not (member level (list *zero-punctuation-level-basic*
+				 *zero-punctuation-level-full*
+				 *zero-punctuation-level-none*)))
+	(error "level not supported: %s" level)))
+  (setq zero-punctuation-levels levels))
+
+(defun zero-cycle-punctuation-level ()
+  "cycle `zero-punctuation-level' among `zero-punctuation-levels'"
+  (interactive)
+  (setq zero-punctuation-level
+	(zero-cycle-list zero-punctuation-levels zero-punctuation-level))
+  (message "punctuation level set to %s" zero-punctuation-level))
 
 (defun zero-set-im (im-name)
   "select zero input method for current buffer.
