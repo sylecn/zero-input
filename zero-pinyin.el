@@ -127,37 +127,28 @@ otherwise, just return nil"
        (t (error "unexpected zero-pinyin-state: %s" zero-pinyin-state))))))
 
 (defun zero-pinyin-handle-preedit-char (ch)
-  "handle IM-PREEDITING state char insert. return t if char is handled."
+  "handle IM-PREEDITING state char insert. overrides `zero-handle-preedit-char-default'"
   (cond
-   ((or (= ch zero-previous-page-key)
-	(= ch zero-next-page-key))
-    nil)
    ((= ch ?\s)
-    (zero-pinyin-commit-first-candidate-or-preedit-str)
-    t)
+    (zero-pinyin-commit-first-candidate-or-preedit-str))
    ((and (>= ch ?0) (<= ch ?9))
     ;; 1 commit the 0th candidate
     ;; 2 commit the 1st candidate
     ;; ...
     ;; 0 commit the 9th candidate
-    (if (zero-pinyin-commit-nth-candidate (mod (- (- ch ?0) 1) 10))
-	t
-      (progn
-	(zero-append-char-to-preedit-str ch)
-	(setq zero-pinyin-state nil)
-	t)))
+    (unless (zero-pinyin-commit-nth-candidate (mod (- (- ch ?0) 1) 10))
+      (zero-append-char-to-preedit-str ch)
+      (setq zero-pinyin-state nil)))
+   ((or (= ch zero-previous-page-key)
+	(= ch zero-next-page-key))
+    (zero-handle-preedit-char-default ch))
    (t (let ((str (zero-convert-punctuation ch)))
 	(if str
-	    (if (zero-pinyin-commit-first-candidate-in-full)
-		(progn
-		  (zero-set-state *zero-state-im-waiting-input*)
-		  (insert str)
-		  t)
-	      ;; can't commit in full, punctuation key is no-op
-	      t)
+	    (when (zero-pinyin-commit-first-candidate-in-full)
+	      (zero-set-state *zero-state-im-waiting-input*)
+	      (insert str))
 	  (setq zero-pinyin-state nil)
-	  (zero-append-char-to-preedit-str ch)
-	  t)))))
+	  (zero-append-char-to-preedit-str ch))))))
 
 (defun zero-pinyin-get-preedit-str-for-panel ()
   (if (eq zero-pinyin-state *zero-pinyin-state-im-partial-commit*)

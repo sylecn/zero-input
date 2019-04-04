@@ -97,7 +97,6 @@ if item is not in lst, return nil"
 ;;; corresponding *-func variable.
 (defun zero-build-candidates-default (preedit-str) nil)
 (defun zero-can-start-sequence-default (ch) nil)
-(defun zero-handle-preedit-char-default (ch) nil)
 (defun zero-get-preedit-str-for-panel-default () zero-preedit-str)
 (defvar zero-build-candidates-func 'zero-build-candidates-default
   "contains a function to build candidates from preedit-str")
@@ -111,6 +110,8 @@ This allow input method to override default logic.")
   "contains a function that return preedit-str to show in zero-panel")
 (defvar zero-backspace-func 'zero-backspace-default
   "contains a function to handle <backward> char")
+(defvar zero-handle-preedit-char-func 'zero-handle-preedit-char-default
+  "hanlde character insert in `*zero-state-im-preediting*' mode")
 
 (defvar zero-im nil
   "current input method. if nil, the empty input method will be used.
@@ -274,6 +275,30 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 	  (setq zero-current-page (1+ zero-current-page))
 	  (zero-show-candidates))))
 
+(defun zero-handle-preedit-char-default (ch)
+  "hanlde character insert in `*zero-state-im-preediting*' mode"
+  (cond
+   ((= ch ?\s)
+    (zero-commit-first-candidate-or-preedit-str))
+   ((and (>= ch ?0) (<= ch ?9))
+    ;; 1 commit the 0th candidate
+    ;; 2 commit the 1st candidate
+    ;; ...
+    ;; 0 commit the 9th candidate
+    (unless (zero-commit-nth-candidate (mod (- (- ch ?0) 1) 10))
+      (zero-append-char-to-preedit-str ch)))
+   ((= ch zero-previous-page-key)
+    (zero-page-up))
+   ((= ch zero-next-page-key)
+    (zero-page-down))
+   (t (let ((str (zero-convert-punctuation ch)))
+	(if str
+	    (progn
+	      (zero-set-state *zero-state-im-waiting-input*)
+	      (zero-commit-first-candidate-or-preedit-str)
+	      (insert str))
+	  (zero-append-char-to-preedit-str ch))))))
+
 (defun zero-self-insert-command (n)
   "handle character self-insert-command. This includes characters and digits"
   (interactive "p")
@@ -291,28 +316,7 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 	  (self-insert-command n))))
      ((eq zero-state *zero-state-im-preediting*)
       (zero-debug "still preediting\n")
-      (unless (funcall zero-handle-preedit-char-func ch)
-	(cond
-	 ((= ch ?\s)
-	  (zero-commit-first-candidate-or-preedit-str))
-	 ((and (>= ch ?0) (<= ch ?9))
-	  ;; 1 commit the 0th candidate
-	  ;; 2 commit the 1st candidate
-	  ;; ...
-	  ;; 0 commit the 9th candidate
-	  (unless (zero-commit-nth-candidate (mod (- (- ch ?0) 1) 10))
-	    (zero-append-char-to-preedit-str ch)))
-	 ((= ch zero-previous-page-key)
-	  (zero-page-up))
-	 ((= ch zero-next-page-key)
-	  (zero-page-down))
-	 (t (let ((str (zero-convert-punctuation ch)))
-	      (if str
-		  (progn
-		    (zero-set-state *zero-state-im-waiting-input*)
-		    (zero-commit-first-candidate-or-preedit-str)
-		    (insert str))
-		(zero-append-char-to-preedit-str ch)))))))
+      (funcall zero-handle-preedit-char-func ch))
      (t
       (zero-debug "unexpected state: %s\n" zero-state)
       (self-insert-command n)))))
