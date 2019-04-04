@@ -127,7 +127,7 @@ otherwise, just return nil"
        (t (error "unexpected zero-pinyin-state: %s" zero-pinyin-state))))))
 
 (defun zero-pinyin-handle-preedit-char (ch)
-  "handle IM-PREEDITING state char insert. overrides `zero-handle-preedit-char-default'"
+  "hanlde character insert in `*zero-state-im-preediting*' state. overrides `zero-handle-preedit-char-default'"
   (cond
    ((= ch ?\s)
     (zero-pinyin-commit-first-candidate-or-preedit-str))

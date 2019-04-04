@@ -276,7 +276,7 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 	  (zero-show-candidates))))
 
 (defun zero-handle-preedit-char-default (ch)
-  "hanlde character insert in `*zero-state-im-preediting*' mode"
+  "hanlde character insert in `*zero-state-im-preediting*' state"
   (cond
    ((= ch ?\s)
     (zero-commit-first-candidate-or-preedit-str))
