@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t -*-
 ;; a simple input method written as an emacs minor mode
 
 (defun zero-quickdial-insert-one ()

@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t -*-
 ;; a pinyin input method for zero-framework
 
 ;;==============
@@ -33,16 +34,26 @@
   (make-local-variable 'zero-pinyin-state)
   (zero-pinyin-reset))
 
-(defun zero-pinyin-build-candidates (preedit-str)
-  (zero-pinyin-build-candidates-test preedit-str))
+(defvar zero-pinyin--build-candidates-use-test-data nil
+  "if t, `zero-pinyin-build-candidates' will use `zero-pinyin-build-candidates-test'")
 
-;; (defun zero-pinyin-build-candidates-async (preedit-str)
-;;   "build candidate list, when done show it via `zero-pinyin-show-candidates'"
-;;   (zero-pinyin-debug "building candidate list\n")
-;;   (let ((candidates (zero-pinyin-build-candidates preedit-str)))
-;;     ;; update cache to make SPC and digit key selection possible.
-;;     (setq zero-pinyin-candidates candidates)
-;;     (zero-pinyin-show-candidates candidates)))
+(defun zero-pinyin-build-candidates (preedit-str)
+  (if zero-pinyin--build-candidates-use-test-data
+      (zero-pinyin-build-candidates-test preedit-str)
+    (let ((result (zero-pinyin-service-get-candidates preedit-str)))
+      (setq zero-pinyin-used-preedit-str-lengths (second result))
+      (first result))))
+
+(defun zero-pinyin-build-candidates-async (preedit-str complete-func)
+  "build candidate list, when done call complete-func on it"
+  (zero-debug "building candidate list async\n")
+  (zero-pinyin-service-get-candidates-async
+   preedit-str
+   (lambda (candidates matched_preedit_str_lengths)
+     (setq zero-pinyin-used-preedit-str-lengths matched_preedit_str_lengths)
+     ;; Note: with dynamic binding, this command result in (void-variable
+     ;; complete-func) error.
+     (funcall complete-func candidates))))
 
 (defun zero-pinyin-can-start-sequence (ch)
   "return t if char ch can start a preedit sequence."
@@ -100,7 +111,7 @@
 	  (setq zero-pinyin-pending-preedit-str (substring zero-pinyin-pending-preedit-str used-len))
 	  (zero-pinyin-pending-preedit-str-changed)
 	  t))
-       (t (error "unexpected zero-pinyin-state: %s" zero-pinyin-state))))))
+       (t (error "Unexpected zero-pinyin-state: %s" zero-pinyin-state))))))
 
 (defun zero-pinyin-commit-first-candidate-or-preedit-str ()
   (unless (zero-pinyin-commit-nth-candidate 0)
@@ -124,7 +135,7 @@ otherwise, just return nil"
 	  (zero-set-state *zero-state-im-waiting-input*)
 	  (zero-commit-text (concat zero-pinyin-pending-str candidate))
 	  t))
-       (t (error "unexpected zero-pinyin-state: %s" zero-pinyin-state))))))
+       (t (error "Unexpected zero-pinyin-state: %s" zero-pinyin-state))))))
 
 (defun zero-pinyin-handle-preedit-char (ch)
   "hanlde character insert in `*zero-state-im-preediting*' state. overrides `zero-handle-preedit-char-default'"
@@ -171,6 +182,7 @@ otherwise, just return nil"
 (zero-register-im
  'pinyin
  '((:build-candidates . zero-pinyin-build-candidates)
+   (:build-candidates-async . zero-pinyin-build-candidates-async)
    (:can-start-sequence . zero-pinyin-can-start-sequence)
    (:handle-preedit-char . zero-pinyin-handle-preedit-char)
    (:get-preedit-str-for-panel . zero-pinyin-get-preedit-str-for-panel)

@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t -*-
 ;; the zero Chinese input method framework for emacs.
 ;; implemented as a minor mode.
 ;; (load-file "~/lisp/elisp/zero/zero-panel.elc")
@@ -95,11 +96,13 @@ if item is not in lst, return nil"
 
 ;;; concrete input method should define these functions and set them in the
 ;;; corresponding *-func variable.
-(defun zero-build-candidates-default (preedit-str) nil)
-(defun zero-can-start-sequence-default (ch) nil)
+(defun zero-build-candidates-default (_preedit-str) nil)
+(defun zero-can-start-sequence-default (_ch) nil)
 (defun zero-get-preedit-str-for-panel-default () zero-preedit-str)
 (defvar zero-build-candidates-func 'zero-build-candidates-default
-  "contains a function to build candidates from preedit-str")
+  "contains a function to build candidates from preedit-str. The function accepts param preedit-str, returns candidate list.")
+(defvar zero-build-candidates-async-func 'zero-build-candidates-async-default
+  "contains a function to build candidates from preedit-str. The function accepts param preedit-str, and a complete-func that should be called on returned candidate list.")
 (defvar zero-can-start-sequence-func 'zero-can-start-sequence-default
   "contains a function to decide whether a char can start a preedit sequence")
 (defvar zero-handle-preedit-char-func 'zero-handle-preedit-char-default
@@ -189,18 +192,23 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
 
 (defun zero-build-candidates (preedit-str)
   "build candidates list synchronously"
+  (zero-debug "build candidates list synchronously")
   (if (functionp zero-build-candidates-func)
       (funcall zero-build-candidates-func preedit-str)
     (error "`zero-build-candidates-func' is not a function")))
 
-(defun zero-build-candidates-async (preedit-str)
+(defun zero-build-candidates-complete (candidates)
+  "called when `zero-build-candidates-async' returns"
+  (setq zero-candidates candidates)
+  (setq zero-current-page 0)
+  (zero-show-candidates candidates))
+
+(defun zero-build-candidates-async-default (preedit-str complete-func)
   "build candidate list, when done show it via `zero-show-candidates'"
-  (zero-debug "building candidate list\n")
+  (zero-debug "building candidate list asynchronously\n")
   (let ((candidates (zero-build-candidates preedit-str)))
     ;; update cache to make SPC and digit key selection possible.
-    (setq zero-candidates candidates)
-    (setq zero-current-page 0)
-    (zero-show-candidates candidates)))
+    (funcall complete-func candidates)))
 
 (defun zero-convert-punctuation-basic (ch)
   "convert punctuation for *zero-punctuation-level-basic*
@@ -323,7 +331,7 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 
 (defun zero-preedit-str-changed ()
   "called when preedit str is changed and not empty. update and show candidate list"
-  (zero-build-candidates-async zero-preedit-str))
+  (funcall zero-build-candidates-async-func zero-preedit-str 'zero-build-candidates-complete))
 
 (defun zero-backspace-default ()
   "handle backspace key in `*zero-state-im-preediting*' state"
@@ -488,7 +496,7 @@ registered input method is saved in `zero-ims'"
   (if (not (member level (list *zero-punctuation-level-basic*
 			       *zero-punctuation-level-full*
 			       *zero-punctuation-level-none*)))
-      (error "level not supported: %s" level)
+      (error "Level not supported: %s" level)
     (setq zero-punctuation-level level)))
 
 (defun zero-set-punctuation-levels (levels)
@@ -497,7 +505,7 @@ registered input method is saved in `zero-ims'"
     (if (not (member level (list *zero-punctuation-level-basic*
 				 *zero-punctuation-level-full*
 				 *zero-punctuation-level-none*)))
-	(error "level not supported: %s" level)))
+	(error "Level not supported: %s" level)))
   (setq zero-punctuation-levels levels))
 
 (defun zero-cycle-punctuation-level ()
@@ -521,6 +529,9 @@ if im-name is nil, use default empty input method"
 	      (setq zero-build-candidates-func
 		    (or (cdr (assq :build-candidates im-functions))
 			'zero-build-candidates-default))
+	      (setq zero-build-candidates-async-func
+		    (or (cdr (assq :build-candidates-async im-functions))
+			'zero-build-candidates-async-default))
 	      (setq zero-can-start-sequence-func
 		    (or (cdr (assq :can-start-sequence im-functions))
 			'zero-can-start-sequence-default))
@@ -537,9 +548,10 @@ if im-name is nil, use default empty input method"
 		(if (functionp init-func)
 		    (funcall init-func)))
 	      (set (make-local-variable 'zero-im) im-name))
-	  (error "input method %s not registered in zero" im-name)))
+	  (error "Input method %s not registered in zero" im-name)))
     (zero-debug "using default empty input method")
     (setq zero-build-candidates-func 'zero-build-candidates-default)
+    (setq zero-build-candidates-async-func 'zero-build-candidates-async-default)
     (setq zero-can-start-sequence-func 'zero-can-start-sequence-default)
     (setq zero-handle-preedit-char-func 'zero-handle-preedit-char-default)
     (setq zero-get-preedit-str-for-panel-func 'zero-get-preedit-str-for-panel-default)

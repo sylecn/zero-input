@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t -*-
 ;; a simple input method written as an emacs minor mode
 ;; (load-file "~/lisp/elisp/zero/zero-panel.elc")
 ;; (load-file "~/lisp/elisp/zero/zero-framework.elc")

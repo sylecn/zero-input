@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t -*-
 ;; provide emacs interface for zero-panel dbus service.
 
 ;;================
@@ -6,13 +7,22 @@
 
 (require 'dbus)
 
-(defun zero-panel-async-call (method handler &rest args)
+(defun zero-panel-error-handler (event error)
+  "handle dbus errors"
+  (when (or (string-equal "com.emacsos.zero.Panel"
+			  (dbus-event-interface-name event))
+	    (s-contains-p "com.emacsos.zero.Panel" (cadr error)))
+    (error "zero-panel dbus failed: %S" (cadr error))))
+
+(add-hook 'dbus-event-error-functions 'zero-panel-error-handler)
+
+(defun zero-panel-async-call (method _handler &rest args)
   "call Method on zero-panel service asynchronously. This is a wrapper around `dbus-call-method-asynchronously'"
   (apply 'dbus-call-method-asynchronously
 	 :session "com.emacsos.zero.Panel"
 	 "/com/emacsos/zero/Panel"
 	 "com.emacsos.zero.Panel"
-	 method nil args))
+	 method nil :timeout 500 args))
 
 ;;============
 ;; public API
