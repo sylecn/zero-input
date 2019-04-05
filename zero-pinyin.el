@@ -7,6 +7,7 @@
 
 (require 's)
 (require 'zero-framework)
+(require 'zero-pinyin-service)
 
 ;;===============================
 ;; basic data and emacs facility
@@ -19,6 +20,8 @@
   "accompany `zero-candidates', marks how many preedit-str chars are used for each candidate")
 (defvar zero-pinyin-pending-str "")
 (defvar zero-pinyin-pending-preedit-str "")
+(defvar zero-pinyin-initial-fetch-size 20
+  "how many candidates to fetch for the first call to GetCandidates")
 
 ;;=====================
 ;; key logic functions
@@ -40,7 +43,7 @@
 (defun zero-pinyin-build-candidates (preedit-str)
   (if zero-pinyin--build-candidates-use-test-data
       (zero-pinyin-build-candidates-test preedit-str)
-    (let ((result (zero-pinyin-service-get-candidates preedit-str)))
+    (let ((result (zero-pinyin-service-get-candidates preedit-str zero-pinyin-initial-fetch-size)))
       (setq zero-pinyin-used-preedit-str-lengths (second result))
       (first result))))
 
@@ -49,6 +52,7 @@
   (zero-debug "building candidate list async\n")
   (zero-pinyin-service-get-candidates-async
    preedit-str
+   zero-pinyin-initial-fetch-size
    (lambda (candidates matched_preedit_str_lengths)
      (setq zero-pinyin-used-preedit-str-lengths matched_preedit_str_lengths)
      ;; Note: with dynamic binding, this command result in (void-variable
@@ -73,7 +77,7 @@
   (should-not (zero-pinyin-can-start-sequence ?v)))
 
 (defun zero-pinyin-pending-preedit-str-changed ()
-  (zero-build-candidates-async zero-pinyin-pending-preedit-str))
+  (zero-pinyin-build-candidates-async zero-pinyin-pending-preedit-str 'zero-build-candidates-complete))
 
 (defun zero-pinyin-commit-nth-candidate (n)
   "commit nth candidate and return true if it exists, otherwise, return false"

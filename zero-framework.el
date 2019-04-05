@@ -186,7 +186,7 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
     (zero-panel-show-candidates
      (funcall zero-get-preedit-str-for-panel-func)
      (length candidates-on-page) candidates-on-page)
-    (zero-debug "candidates: %s\n  " (s-join "\n  " candidates-on-page))
+    (zero-debug "candidates:\n  %s\n  " (s-join "\n  " candidates-on-page))
     (destructuring-bind (x y) (zero-get-point-position)
       (zero-panel-move x y))))
 
