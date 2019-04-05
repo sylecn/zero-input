@@ -191,7 +191,13 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
 							 zero-candidates))))
     (zero-panel-show-candidates
      (funcall zero-get-preedit-str-for-panel-func)
-     (length candidates-on-page) candidates-on-page)
+     (length candidates-on-page)
+     candidates-on-page
+     `(("in_emacs" t)
+       ("filename" ,(or (buffer-file-name) ""))
+       ("page_number" ,zero-current-page)
+       ("has_next_page" ,(or (> (length (or candidates zero-candidates)) (* zero-candidates-per-page (1+ zero-current-page))) (< zero-fetch-size (* zero-candidates-per-page (+ 2 zero-current-page)))))
+       ("has_previous_page" ,(> zero-current-page 0))))
     (zero-debug "candidates:\n  %s\n  " (s-join "\n  " candidates-on-page))
     (destructuring-bind (x y) (zero-get-point-position)
       (zero-panel-move x y))))
@@ -202,7 +208,7 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
   (unless (functionp zero-build-candidates-func)
     (signal 'wrong-type-argument (list 'functionp zero-build-candidates-func)))
   (prog1 (funcall zero-build-candidates-func preedit-str fetch-size)
-    (setq zero-fetch-size fetch-size)))
+    (setq zero-fetch-size (max fetch-size (length zero-candidates)))))
 
 (defun zero-build-candidates-complete (candidates)
   "called when `zero-build-candidates-async' returns"
@@ -300,7 +306,8 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 		 new-fetch-size
 		 (lambda (candidates)
 		   (zero-build-candidates-complete candidates)
-		   (setq zero-fetch-size new-fetch-size)
+		   (setq zero-fetch-size (max new-fetch-size
+					      (length candidates)))
 		   (zero-just-page-down)))
       (zero-just-page-down))))
 

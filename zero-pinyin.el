@@ -47,10 +47,10 @@
   (if zero-pinyin--build-candidates-use-test-data
       (progn
 	(zero-pinyin-build-candidates-test preedit-str)
-	(setq zero-fetch-size fetch-size))
+	(setq zero-fetch-size (max fetch-size (length zero-candidates))))
     (zero-debug "zero-pinyin building candidate list synchronously\n")
     (let ((result (zero-pinyin-service-get-candidates preedit-str fetch-size)))
-      (setq zero-fetch-size fetch-size)
+      (setq zero-fetch-size (max fetch-size (length (first result))))
       (setq zero-pinyin-used-preedit-str-lengths (second result))
       (first result))))
 
@@ -62,7 +62,7 @@
    fetch-size
    (lambda (candidates matched_preedit_str_lengths)
      (setq zero-pinyin-used-preedit-str-lengths matched_preedit_str_lengths)
-     (setq zero-fetch-size fetch-size)
+     (setq zero-fetch-size (max fetch-size (length candidates)))
      ;; Note: with dynamic binding, this command result in (void-variable
      ;; complete-func) error.
      (funcall complete-func candidates))))
