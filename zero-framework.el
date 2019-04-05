@@ -111,6 +111,8 @@ The function should return t if char is handled.
 This allow input method to override default logic.")
 (defvar zero-get-preedit-str-for-panel-func 'zero-get-preedit-str-for-panel-default
   "contains a function that return preedit-str to show in zero-panel")
+(defvar zero-backspace-original-func nil
+  "store major mode's original <backspace> bound function")
 (defvar zero-backspace-func 'zero-backspace-default
   "contains a function to handle <backward> char")
 (defvar zero-handle-preedit-char-func 'zero-handle-preedit-char-default
@@ -344,14 +346,14 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
       (zero-set-state *zero-state-im-waiting-input*)
       (zero-reset))))
 
-(defun zero-delete-backward-char (n)
+(defun zero-backspace (&rest args)
   "handle backspace key"
-  (interactive "p")
-  (unless (integerp n)
-    (signal 'wrong-type-argument (list 'integerp n)))
+  (interactive "p")			; backward-delete-char requires "p"
   (if (eq zero-state *zero-state-im-preediting*)
       (funcall zero-backspace-func)
-    (delete-char (- n))))
+    (if (and (functionp zero-backspace-original-func)
+	     (not (function-equal zero-backspace-original-func 'zero-backspace)))
+	(apply zero-backspace-original-func args))))
 
 (defun zero-commit-text (text)
   "commit given text, reset preedit str, hide candidate list"
@@ -437,7 +439,6 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 	       ;; (backward-char . zero-backward-char)
 	       ;; (forward-word . zero-forward-word)
 	       ;; (backward-word . zero-backward-word)
-	       (delete-backward-char . zero-delete-backward-char)
 	       ;; (delete-char . zero-delete-char)
 	       )))
 
@@ -449,6 +450,14 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
   " Zero"
   zero-mode-map
   ;; local variables and variable init
+  (make-local-variable 'zero-backspace-original-func)
+  (unless zero-backspace-original-func
+    (let ((func (key-binding (kbd "DEL"))))
+      (unless (function-equal func 'zero-backspace)
+	(setq zero-backspace-original-func func))))
+  ;; DEL can't be put in zero-mode-map because I need to save the original
+  ;; binding in this function.
+  (define-key zero-mode-map (kbd "DEL") 'zero-backspace)
   (set (make-local-variable 'zero-state) *zero-state-im-off*)
   (make-local-variable 'zero-punctuation-level)
   (make-local-variable 'zero-double-quote-flag)
