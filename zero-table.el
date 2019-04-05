@@ -1,8 +1,14 @@
 ;; -*- lexical-binding: t -*-
-;; a simple input method written as an emacs minor mode
-;; (load-file "~/lisp/elisp/zero/zero-panel.elc")
-;; (load-file "~/lisp/elisp/zero/zero-framework.elc")
-;; (load-file "~/lisp/elisp/zero/zero-table.elc")
+;; a demo table based input method based on zero-framework.el
+;;
+;; when you type the key in `zero-table-table', IM will insert the
+;; corresponding value.
+;;
+;; To use this demo IM,
+;;   (add-to-list 'load-path "~/lisp/elisp/zero")
+;;   (require 'zero-table)
+;;   (zero-set-default-im 'zero-table) ; set as default IM
+;;   or (zero-set-im 'zero-table)      ; set as current buffer's IM
 
 ;;==============
 ;; dependencies

@@ -1,5 +1,9 @@
 ;; -*- lexical-binding: t -*-
 ;; a pinyin input method for zero-framework
+;; use use this input method, add in emacs init file:
+;; (add-to-list 'load-path "~/lisp/elisp/zero")
+;; (require 'zero-pinyin)
+;; (zero-set-default-im 'pinyin)
 
 ;;==============
 ;; dependencies

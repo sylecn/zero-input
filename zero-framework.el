@@ -1,8 +1,6 @@
 ;; -*- lexical-binding: t -*-
 ;; the zero Chinese input method framework for emacs.
 ;; implemented as a minor mode.
-;; (load-file "~/lisp/elisp/zero/zero-panel.elc")
-;; (load-file "~/lisp/elisp/zero/zero-framework.elc")
 
 ;;==============
 ;; dependencies
