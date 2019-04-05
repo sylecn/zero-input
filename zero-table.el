@@ -27,7 +27,7 @@
 should sort before rhs."
   (string< (car lhs) (car rhs)))
 
-(defun zero-table-build-candidates (preedit-str)
+(defun zero-table-build-candidates (preedit-str &optional _fetch-size)
   (mapcar 'cdr (sort (cl-remove-if-not (lambda (pair) (string-prefix-p preedit-str (car pair))) zero-table-table) 'zero-table-sort-key)))
 
 (ert-deftest zero-table-build-candidates ()

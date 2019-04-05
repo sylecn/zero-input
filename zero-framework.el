@@ -96,13 +96,13 @@ if item is not in lst, return nil"
 
 ;;; concrete input method should define these functions and set them in the
 ;;; corresponding *-func variable.
-(defun zero-build-candidates-default (_preedit-str) nil)
+(defun zero-build-candidates-default (_preedit-str _fetch-size) nil)
 (defun zero-can-start-sequence-default (_ch) nil)
 (defun zero-get-preedit-str-for-panel-default () zero-preedit-str)
 (defvar zero-build-candidates-func 'zero-build-candidates-default
-  "contains a function to build candidates from preedit-str. The function accepts param preedit-str, returns candidate list.")
+  "contains a function to build candidates from preedit-str. The function accepts param preedit-str, fetch-size, returns candidate list.")
 (defvar zero-build-candidates-async-func 'zero-build-candidates-async-default
-  "contains a function to build candidates from preedit-str. The function accepts param preedit-str, and a complete-func that should be called on returned candidate list.")
+  "contains a function to build candidates from preedit-str. The function accepts param preedit-str, fetch-size, and a complete-func that should be called on returned candidate list.")
 (defvar zero-can-start-sequence-func 'zero-can-start-sequence-default
   "contains a function to decide whether a char can start a preedit sequence")
 (defvar zero-handle-preedit-char-func 'zero-handle-preedit-char-default
@@ -152,6 +152,12 @@ otherwise, next single quote insert close quote")
   "how many candidates to show on each page"
   :group 'zero)
 (defvar zero-current-page 0 "current page number. count from 0")
+(defvar zero-initial-fetch-size 20
+  "how many candidates to fetch for the first call to GetCandidates")
+;; zero-fetch-size is reset to 0 when preedit-str changes.
+;; zero-fetch-size is set to fetch-size in build-candidates-async complete-func
+;; lambda.
+(defvar zero-fetch-size 0 "last GetCandidates call's fetch-size")
 (defvar zero-previous-page-key ?\- "previous page key")
 (defvar zero-next-page-key ?\= "next page key")
 
@@ -192,23 +198,23 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
     (destructuring-bind (x y) (zero-get-point-position)
       (zero-panel-move x y))))
 
-(defun zero-build-candidates (preedit-str)
+(defun zero-build-candidates (preedit-str fetch-size)
   "build candidates list synchronously"
-  (zero-debug "build candidates list synchronously")
-  (if (functionp zero-build-candidates-func)
-      (funcall zero-build-candidates-func preedit-str)
-    (error "`zero-build-candidates-func' is not a function")))
+  ;; (zero-debug "zero-build-candidates\n")
+  (unless (functionp zero-build-candidates-func)
+    (signal 'wrong-type-argument (list 'functionp zero-build-candidates-func)))
+  (prog1 (funcall zero-build-candidates-func preedit-str fetch-size)
+    (setq zero-fetch-size fetch-size)))
 
 (defun zero-build-candidates-complete (candidates)
   "called when `zero-build-candidates-async' returns"
   (setq zero-candidates candidates)
-  (setq zero-current-page 0)
   (zero-show-candidates candidates))
 
-(defun zero-build-candidates-async-default (preedit-str complete-func)
+(defun zero-build-candidates-async-default (preedit-str fetch-size complete-func)
   "build candidate list, when done show it via `zero-show-candidates'"
-  (zero-debug "building candidate list asynchronously\n")
-  (let ((candidates (zero-build-candidates preedit-str)))
+  ;; (zero-debug "zero-build-candidates-async-default\n")
+  (let ((candidates (zero-build-candidates preedit-str fetch-size)))
     ;; update cache to make SPC and digit key selection possible.
     (funcall complete-func candidates)))
 
@@ -278,12 +284,27 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
     (setq zero-current-page (1- zero-current-page))
     (zero-show-candidates)))
 
+(defun zero-just-page-down ()
+  "just page down using existing candidates"
+  (let ((len (length zero-candidates)))
+    (when (> len (* zero-candidates-per-page (1+ zero-current-page)))
+      (setq zero-current-page (1+ zero-current-page))
+      (zero-show-candidates))))
+
 (defun zero-page-down ()
   "if there is still candidates to be displayed, show candidates on next page."
-  (let ((len (length zero-candidates)))
-	(when (> len (* zero-candidates-per-page (1+ zero-current-page)))
-	  (setq zero-current-page (1+ zero-current-page))
-	  (zero-show-candidates))))
+  (let ((len (length zero-candidates))
+	(new-fetch-size (* zero-candidates-per-page (+ 2 zero-current-page))))
+    (if (and (< len new-fetch-size)
+	     (< zero-fetch-size new-fetch-size))
+	(funcall zero-build-candidates-async-func
+		 zero-preedit-str
+		 new-fetch-size
+		 (lambda (candidates)
+		   (zero-build-candidates-complete candidates)
+		   (setq zero-fetch-size new-fetch-size)
+		   (zero-just-page-down)))
+      (zero-just-page-down))))
 
 (defun zero-handle-preedit-char-default (ch)
   "hanlde character insert in `*zero-state-im-preediting*' state"
@@ -333,7 +354,9 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 
 (defun zero-preedit-str-changed ()
   "called when preedit str is changed and not empty. update and show candidate list"
-  (funcall zero-build-candidates-async-func zero-preedit-str 'zero-build-candidates-complete))
+  (setq zero-fetch-size 0)
+  (setq zero-current-page 0)
+  (funcall zero-build-candidates-async-func zero-preedit-str zero-initial-fetch-size 'zero-build-candidates-complete))
 
 (defun zero-backspace-default ()
   "handle backspace key in `*zero-state-im-preediting*' state"
@@ -424,23 +447,21 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 ;; minor mode
 ;;============
 
-;; TODO when zero-framework is stable, move default value to defvar.
-;; this will allow user to customize the keymap.
-(defvar zero-mode-map nil "zero-mode keymap")
-(setq zero-mode-map
-      '(keymap
-	(escape . zero-reset)
-	(13 . zero-return)
-	;; C-.
-	(67108910 . zero-cycle-punctuation-level)
-	(remap keymap
-	       (self-insert-command . zero-self-insert-command)
-	       ;; (forward-char . zero-forward-char)
-	       ;; (backward-char . zero-backward-char)
-	       ;; (forward-word . zero-forward-word)
-	       ;; (backward-word . zero-backward-word)
-	       ;; (delete-char . zero-delete-char)
-	       )))
+(defvar zero-mode-map
+  '(keymap
+    (escape . zero-reset)
+    (13 . zero-return)
+    ;; C-.
+    (67108910 . zero-cycle-punctuation-level)
+    (remap keymap
+	   (self-insert-command . zero-self-insert-command)
+	   ;; (forward-char . zero-forward-char)
+	   ;; (backward-char . zero-backward-char)
+	   ;; (forward-word . zero-forward-word)
+	   ;; (backward-word . zero-backward-word)
+	   ;; (delete-char . zero-delete-char)
+	   ))
+  "zero-mode keymap")
 
 (define-minor-mode zero-mode
   "a Chinese input method framework written as an emacs minor mode.
@@ -466,6 +487,7 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
   (set (make-local-variable 'zero-candidates) nil)
   (make-local-variable 'zero-candidates-per-page)
   (make-local-variable 'zero-current-page)
+  (make-local-variable 'zero-fetch-size)
   (make-local-variable 'zero-im)
   (make-local-variable 'zero-build-candidates-func)
   (make-local-variable 'zero-can-start-sequence-func)

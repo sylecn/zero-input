@@ -20,8 +20,6 @@
   "accompany `zero-candidates', marks how many preedit-str chars are used for each candidate")
 (defvar zero-pinyin-pending-str "")
 (defvar zero-pinyin-pending-preedit-str "")
-(defvar zero-pinyin-initial-fetch-size 20
-  "how many candidates to fetch for the first call to GetCandidates")
 
 ;;=====================
 ;; key logic functions
@@ -40,21 +38,27 @@
 (defvar zero-pinyin--build-candidates-use-test-data nil
   "if t, `zero-pinyin-build-candidates' will use `zero-pinyin-build-candidates-test'")
 
-(defun zero-pinyin-build-candidates (preedit-str)
+(defun zero-pinyin-build-candidates (preedit-str fetch-size)
+  "zero-pinyin-build-candidates synchronous version"
   (if zero-pinyin--build-candidates-use-test-data
-      (zero-pinyin-build-candidates-test preedit-str)
-    (let ((result (zero-pinyin-service-get-candidates preedit-str zero-pinyin-initial-fetch-size)))
+      (progn
+	(zero-pinyin-build-candidates-test preedit-str)
+	(setq zero-fetch-size fetch-size))
+    (zero-debug "zero-pinyin building candidate list synchronously\n")
+    (let ((result (zero-pinyin-service-get-candidates preedit-str fetch-size)))
+      (setq zero-fetch-size fetch-size)
       (setq zero-pinyin-used-preedit-str-lengths (second result))
       (first result))))
 
-(defun zero-pinyin-build-candidates-async (preedit-str complete-func)
+(defun zero-pinyin-build-candidates-async (preedit-str fetch-size complete-func)
   "build candidate list, when done call complete-func on it"
-  (zero-debug "building candidate list async\n")
+  (zero-debug "zero-pinyin building candidate list asynchronously\n")
   (zero-pinyin-service-get-candidates-async
    preedit-str
-   zero-pinyin-initial-fetch-size
+   fetch-size
    (lambda (candidates matched_preedit_str_lengths)
      (setq zero-pinyin-used-preedit-str-lengths matched_preedit_str_lengths)
+     (setq zero-fetch-size fetch-size)
      ;; Note: with dynamic binding, this command result in (void-variable
      ;; complete-func) error.
      (funcall complete-func candidates))))
@@ -77,7 +81,9 @@
   (should-not (zero-pinyin-can-start-sequence ?v)))
 
 (defun zero-pinyin-pending-preedit-str-changed ()
-  (zero-pinyin-build-candidates-async zero-pinyin-pending-preedit-str 'zero-build-candidates-complete))
+  (setq zero-fetch-size 0)
+  (setq zero-current-page 0)
+  (zero-pinyin-build-candidates-async zero-pinyin-pending-preedit-str zero-initial-fetch-size 'zero-build-candidates-complete))
 
 (defun zero-pinyin-commit-nth-candidate (n)
   "commit nth candidate and return true if it exists, otherwise, return false"
@@ -141,6 +147,23 @@ otherwise, just return nil"
 	  t))
        (t (error "Unexpected zero-pinyin-state: %s" zero-pinyin-state))))))
 
+(defun zero-pinyin-page-down ()
+  "handle page down for zero-pinyin.
+
+This is different from zero-framework because I need to support partial commit"
+  (let ((len (length zero-candidates))
+	(new-fetch-size (* zero-candidates-per-page (+ 2 zero-current-page))))
+    (if (and (< len new-fetch-size)
+	     (< zero-fetch-size new-fetch-size))
+	(let ((preedit-str (if (eq zero-pinyin-state *zero-pinyin-state-im-partial-commit*) zero-pinyin-pending-preedit-str zero-preedit-str)))
+	  (zero-pinyin-build-candidates-async
+	   preedit-str
+	   new-fetch-size
+	   (lambda (candidates)
+	     (zero-build-candidates-complete candidates)
+	     (zero-just-page-down))))
+      (zero-just-page-down))))
+
 (defun zero-pinyin-handle-preedit-char (ch)
   "hanlde character insert in `*zero-state-im-preediting*' state. overrides `zero-handle-preedit-char-default'"
   (cond
@@ -154,9 +177,10 @@ otherwise, just return nil"
     (unless (zero-pinyin-commit-nth-candidate (mod (- (- ch ?0) 1) 10))
       (zero-append-char-to-preedit-str ch)
       (setq zero-pinyin-state nil)))
-   ((or (= ch zero-previous-page-key)
-	(= ch zero-next-page-key))
+   ((= ch zero-previous-page-key)
     (zero-handle-preedit-char-default ch))
+   ((= ch zero-next-page-key)
+    (zero-pinyin-page-down))
    (t (let ((str (zero-convert-punctuation ch)))
 	(if str
 	    (when (zero-pinyin-commit-first-candidate-in-full)
@@ -186,7 +210,8 @@ otherwise, just return nil"
 (zero-register-im
  'pinyin
  '((:build-candidates . zero-pinyin-build-candidates)
-   (:build-candidates-async . zero-pinyin-build-candidates-async)
+   ;; comment to use sync version, uncomment to use async version.
+   ;; (:build-candidates-async . zero-pinyin-build-candidates-async)
    (:can-start-sequence . zero-pinyin-can-start-sequence)
    (:handle-preedit-char . zero-pinyin-handle-preedit-char)
    (:get-preedit-str-for-panel . zero-pinyin-get-preedit-str-for-panel)
