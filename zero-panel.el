@@ -71,7 +71,7 @@ For example,
   "show candidates"
   (zero-panel-async-call "ShowCandidates" nil
 			 :string preedit_str
-			 :int32 candidate_length
+			 :uint32 candidate_length
 			 (or candidates '(:array))
 			 (zero-alist-to-asv hints)))
 

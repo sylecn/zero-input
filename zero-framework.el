@@ -195,7 +195,7 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
      candidates-on-page
      `(("in_emacs" t)
        ("filename" ,(or (buffer-file-name) ""))
-       ("page_number" ,zero-current-page)
+       ("page_number" ,(1+ zero-current-page))
        ("has_next_page" ,(or (> (length (or candidates zero-candidates)) (* zero-candidates-per-page (1+ zero-current-page))) (< zero-fetch-size (* zero-candidates-per-page (+ 2 zero-current-page)))))
        ("has_previous_page" ,(> zero-current-page 0))))
     (zero-debug "candidates:\n  %s\n  " (s-join "\n  " candidates-on-page))
