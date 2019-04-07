@@ -479,7 +479,9 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
   (make-local-variable 'zero-backspace-original-func)
   (unless zero-backspace-original-func
     (let ((func (key-binding (kbd "DEL"))))
-      (unless (function-equal func 'zero-backspace)
+      (when (and (functionp func)
+		 (not (function-equal func 'zero-backspace)))
+	(zero-debug "set zero-backspace-original-func to %s" func)
 	(setq zero-backspace-original-func func))))
   ;; DEL can't be put in zero-mode-map because I need to save the original
   ;; binding in this function.
@@ -557,11 +559,16 @@ registered input method is saved in `zero-ims'"
 if im-name is nil, use default empty input method"
   ;; TODO provide auto completion for im-name
   (interactive "SSet input method to: ")
-  ;; TODO create a macro to reduce code duplication and human error.
+  ;; when switch away from an IM, run last IM's :shutdown function.
+  (if zero-im
+      (let ((shutdown-func (cdr (assq :shutdown (cdr (assq zero-im zero-ims))))))
+	(if (functionp shutdown-func)
+	    (funcall shutdown-func))))
   (if im-name
       (let ((im-functions (cdr (assq im-name zero-ims))))
 	(if im-functions
 	    (progn
+	      ;; TODO create a macro to reduce code duplication and human error.
 	      (setq zero-build-candidates-func
 		    (or (cdr (assq :build-candidates im-functions))
 			'zero-build-candidates-default))
@@ -580,6 +587,7 @@ if im-name is nil, use default empty input method"
 	      (setq zero-backspace-func
 		    (or (cdr (assq :handle-backspace im-functions))
 			'zero-backspace-default))
+	      ;; when switch to a IM, run its :init function
 	      (let ((init-func (cdr (assq :init im-functions))))
 		(if (functionp init-func)
 		    (funcall init-func)))
@@ -591,8 +599,7 @@ if im-name is nil, use default empty input method"
     (setq zero-can-start-sequence-func 'zero-can-start-sequence-default)
     (setq zero-handle-preedit-char-func 'zero-handle-preedit-char-default)
     (setq zero-get-preedit-str-for-panel-func 'zero-get-preedit-str-for-panel-default)
-    (setq zero-backspace-func 'zero-backspace-default)
-    ))
+    (setq zero-backspace-func 'zero-backspace-default)))
 
 (defun zero-set-default-im (im-name)
   "set given im as default zero input method"

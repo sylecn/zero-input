@@ -36,8 +36,14 @@
   (setq zero-pinyin-pending-preedit-str ""))
 
 (defun zero-pinyin-init ()
+  "called when this im is turned on"
+  (define-key zero-mode-map [remap digit-argument] 'zero-digit-argument)
   (make-local-variable 'zero-pinyin-state)
   (zero-pinyin-reset))
+
+(defun zero-pinyin-shutdown ()
+  "called when this im is turned off"
+  (define-key zero-mode-map [remap digit-argument] nil))
 
 (defvar zero-pinyin--build-candidates-use-test-data nil
   "if t, `zero-pinyin-build-candidates' will use `zero-pinyin-build-candidates-test'")
@@ -198,14 +204,40 @@ This is different from zero-framework because I need to support partial commit"
       (concat zero-pinyin-pending-str zero-pinyin-pending-preedit-str)
     zero-preedit-str))
 
+(defun zero-pinyin-preedit-str-changed ()
+  "start over for candidate selection process."
+  (setq zero-pinyin-state nil)
+  (zero-preedit-str-changed))
+
 (defun zero-pinyin-backspace ()
   "handle backspace key in `*zero-state-im-preediting*' state"
   (if (eq zero-pinyin-state *zero-pinyin-state-im-partial-commit*)
-      (progn
-	;; start over for candidate selection process.
-	(setq zero-pinyin-state nil)
-	(zero-preedit-str-changed))
+      (zero-pinyin-preedit-str-changed)
     (zero-backspace-default)))
+
+(defun zero-pinyin-delete-candidate (digit)
+  "tell backend to delete nth candidate.
+
+n is the digit selection number.
+1 means delete 1st candidate.
+2 means delete 2st candidate.
+0 means delete 10th candidate."
+  (let ((candidate (nth (mod (- digit 1) 10)
+			(zero-candidates-on-page zero-candidates))))
+    (when candidate
+      (zero-pinyin-service-delete-candidates-async
+       candidate 'zero-pinyin-preedit-str-changed))))
+
+(defun zero-digit-argument (arg)
+  "wrapper around `digit-argument' to allow C-<digit> to DeleteCandidate in `*zero-state-im-preediting*' state"
+  (interactive "P")
+  (if (eq zero-state *zero-state-im-preediting*)
+      (let* ((char (if (integerp last-command-event)
+		       last-command-event
+		     (get last-command-event 'ascii-character)))
+	     (digit (- (logand char ?\177) ?0)))
+	(zero-pinyin-delete-candidate digit))
+    (digit-argument arg)))
 
 ;;===============================
 ;; register IM to zero framework
@@ -220,7 +252,8 @@ This is different from zero-framework because I need to support partial commit"
    (:handle-preedit-char . zero-pinyin-handle-preedit-char)
    (:get-preedit-str-for-panel . zero-pinyin-get-preedit-str-for-panel)
    (:handle-backspace . zero-pinyin-backspace)
-   (:init . zero-pinyin-init)))
+   (:init . zero-pinyin-init)
+   (:shutdown . zero-pinyin-shutdown)))
 
 ;;============
 ;; public API

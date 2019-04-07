@@ -9,9 +9,9 @@
 
 (defun zero-pinyin-service-error-handler (event error)
   "handle dbus errors"
-  (when (or (string-equal "com.emacsos.zero.ZeroPinyinService"
+  (when (or (string-equal "com.emacsos.zero.ZeroPinyinService1"
 			  (dbus-event-interface-name event))
-	    (s-contains-p "com.emacsos.zero.ZeroPinyinService" (cadr error)))
+	    (s-contains-p "com.emacsos.zero.ZeroPinyinService1" (cadr error)))
     (error "zero-pinyin-service dbus failed: %S" (cadr error))))
 
 (add-hook 'dbus-event-error-functions 'zero-pinyin-service-error-handler)
@@ -19,17 +19,17 @@
 (defun zero-pinyin-service-async-call (method handler &rest args)
   "call Method on zero-pinin-service asynchronously. This is a wrapper around `dbus-call-method-asynchronously'"
   (apply 'dbus-call-method-asynchronously
-	 :session "com.emacsos.zero.ZeroPinyinService"
-	 "/com/emacsos/zero/ZeroPinyinService"
-	 "com.emacsos.zero.ZeroPinyinService"
+	 :session "com.emacsos.zero.ZeroPinyinService1"
+	 "/com/emacsos/zero/ZeroPinyinService1"
+	 "com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface"
 	 method handler :timeout 1000 args))
 
 (defun zero-pinyin-service-call (method &rest args)
   "call Method on zero-pinin-service synchronously. This is a wrapper around `dbus-call-method'"
   (apply 'dbus-call-method
-	 :session "com.emacsos.zero.ZeroPinyinService"
-	 "/com/emacsos/zero/ZeroPinyinService"
-	 "com.emacsos.zero.ZeroPinyinService"
+	 :session "com.emacsos.zero.ZeroPinyinService1"
+	 "/com/emacsos/zero/ZeroPinyinService1"
+	 "com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface"
 	 method :timeout 1000 args))
 
 ;;============
@@ -50,6 +50,11 @@ preedit-str the preedit-str, should be pure pinyin string
 fetch-size try to fetch this many candidates or more"
   (zero-pinyin-service-async-call
    "GetCandidates" get-candidates-complete :string preedit-str :uint32 fetch-size))
+
+(defun zero-pinyin-service-delete-candidates-async (candidate delete-candidate-complete)
+  "delete candidate asynchronously"
+  (zero-pinyin-service-async-call
+   "DeleteCandidate" delete-candidate-complete :string candidate))
 
 (defun zero-pinyin-service-quit ()
   "quit panel application"
