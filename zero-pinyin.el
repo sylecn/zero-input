@@ -22,8 +22,12 @@
 
 (defvar zero-pinyin-used-preedit-str-lengths nil
   "accompany `zero-candidates', marks how many preedit-str chars are used for each candidate")
+(defvar zero-pinyin-candidates-pinyin-indices nil
+  "store GetCandidates dbus method candidates_pinyin_indices field")
 (defvar zero-pinyin-pending-str "")
 (defvar zero-pinyin-pending-preedit-str "")
+(defvar zero-pinyin-pending-pinyin-indices nil
+  "stores `zero-pinyin-pending-str' corresponds pinyin indices")
 
 ;;=====================
 ;; key logic functions
@@ -65,6 +69,7 @@
     (let ((result (zero-pinyin-service-get-candidates preedit-str fetch-size)))
       (setq zero-fetch-size (max fetch-size (length (first result))))
       (setq zero-pinyin-used-preedit-str-lengths (second result))
+      (setq zero-pinyin-candidates-pinyin-indices (third result))
       (first result))))
 
 (defun zero-pinyin-build-candidates-async (preedit-str fetch-size complete-func)
@@ -73,8 +78,9 @@
   (zero-pinyin-service-get-candidates-async
    preedit-str
    fetch-size
-   (lambda (candidates matched_preedit_str_lengths)
+   (lambda (candidates matched_preedit_str_lengths candidates_pinyin_indices)
      (setq zero-pinyin-used-preedit-str-lengths matched_preedit_str_lengths)
+     (setq zero-pinyin-candidates-pinyin-indices candidates_pinyin_indices)
      (setq zero-fetch-size (max fetch-size (length candidates)))
      ;; Note: with dynamic binding, this command result in (void-variable
      ;; complete-func) error.
@@ -104,12 +110,13 @@
 
 (defun zero-pinyin-commit-nth-candidate (n)
   "commit nth candidate and return true if it exists, otherwise, return false"
-  (let* ((candidate (nth n (zero-candidates-on-page zero-candidates)))
+  (let* ((n-prime (+ n (* zero-candidates-per-page zero-current-page)))
+	 (candidate (nth n-prime zero-candidates))
 	 (used-len (when candidate
-		     (nth (+ n (* zero-candidates-per-page zero-current-page)) zero-pinyin-used-preedit-str-lengths))))
+		     (nth n-prime zero-pinyin-used-preedit-str-lengths))))
     (when candidate
       (zero-debug
-       "zero-pinyin-commit-nth-candidate n=%s candidate=%s used-len=%s zero-pinyin-pending-preedit-str=%S\n"
+       "zero-pinyin-commit-nth-candidate\n    n=%s candidate=%s used-len=%s zero-pinyin-pending-preedit-str=%S\n"
        n candidate used-len zero-pinyin-pending-preedit-str)
       (cond
        ((null zero-pinyin-state)
@@ -118,11 +125,16 @@
 	      (zero-debug "commit in full\n")
 	      (zero-set-state *zero-state-im-waiting-input*)
 	      (zero-commit-text candidate)
+	      (zero-pinyin-service-commit-candidate-async
+	       candidate
+	       (nth n-prime zero-pinyin-candidates-pinyin-indices))
 	      t)
 	  (zero-debug "partial commit, in partial commit mode now.\n")
 	  (setq zero-pinyin-state *zero-pinyin-state-im-partial-commit*)
 	  (setq zero-pinyin-pending-str candidate)
 	  (setq zero-pinyin-pending-preedit-str (substring zero-preedit-str used-len))
+	  (setq zero-pinyin-pending-pinyin-indices
+		(nth n-prime zero-pinyin-candidates-pinyin-indices))
 	  (zero-pinyin-pending-preedit-str-changed)
 	  t))
        ((eq zero-pinyin-state *zero-pinyin-state-im-partial-commit*)
@@ -132,10 +144,20 @@
 	      (setq zero-pinyin-state nil)
 	      (zero-set-state *zero-state-im-waiting-input*)
 	      (zero-commit-text (concat zero-pinyin-pending-str candidate))
+	      (zero-pinyin-service-commit-candidate-async
+	       (concat zero-pinyin-pending-str candidate)
+	       (append zero-pinyin-pending-pinyin-indices
+		       (nth n-prime zero-pinyin-candidates-pinyin-indices)))
 	      t)
 	  (zero-debug "continue partial commit\n")
 	  (setq zero-pinyin-pending-str (concat zero-pinyin-pending-str candidate))
 	  (setq zero-pinyin-pending-preedit-str (substring zero-pinyin-pending-preedit-str used-len))
+	  (setq zero-pinyin-pending-pinyin-indices
+		(append zero-pinyin-pending-pinyin-indices
+			(nth n-prime zero-pinyin-candidates-pinyin-indices)))
+	  (zero-pinyin-service-commit-candidate-async
+	   zero-pinyin-pending-str
+	   zero-pinyin-pending-pinyin-indices)
 	  (zero-pinyin-pending-preedit-str-changed)
 	  t))
        (t (error "Unexpected zero-pinyin-state: %s" zero-pinyin-state))))))
