@@ -109,12 +109,14 @@ The function should return t if char is handled.
 This allow input method to override default logic.")
 (defvar zero-get-preedit-str-for-panel-func 'zero-get-preedit-str-for-panel-default
   "contains a function that return preedit-str to show in zero-panel")
-(defvar zero-backspace-original-func nil
-  "store major mode's original <backspace> bound function")
 (defvar zero-backspace-func 'zero-backspace-default
   "contains a function to handle <backward> char")
 (defvar zero-handle-preedit-char-func 'zero-handle-preedit-char-default
   "hanlde character insert in `*zero-state-im-preediting*' mode")
+(defvar zero-preedit-start-func 'nil
+  "called when enter `*zero-state-im-preediting*' state")
+(defvar zero-preedit-end-func 'nil
+  "called when leave `*zero-state-im-preediting*' state")
 
 (defvar zero-im nil
   "current input method. if nil, the empty input method will be used.
@@ -175,10 +177,25 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
 ;; (zero-debug "msg3: %s\n" 24)
 ;; (zero-debug "msg4: %s %s\n" 24 1)
 
+(defun zero-enter-preedit-state ()
+  "config keymap when enter preedit state"
+  (zero-enable-preediting-map)
+  (if (functionp zero-preedit-start-func)
+      (funcall zero-preedit-start-func)))
+
+(defun zero-leave-preedit-state ()
+  "config keymap when leave preedit state"
+  (zero-disable-preediting-map)
+  (if (functionp zero-preedit-end-func)
+      (funcall zero-preedit-end-func)))
+
 (defun zero-set-state (state)
   "set state to given state"
   (zero-debug "set state to %s\n" state)
-  (setq zero-state state))
+  (setq zero-state state)
+  (if (eq state *zero-state-im-preediting*)
+      (zero-enter-preedit-state)
+    (zero-leave-preedit-state)))
 
 (defun zero-candidates-on-page (candidates)
   "return candidates on current page for given candidates list"
@@ -374,14 +391,13 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
       (zero-set-state *zero-state-im-waiting-input*)
       (zero-reset))))
 
-(defun zero-backspace (&rest args)
-  "handle backspace key"
-  (interactive "p")			; backward-delete-char requires "p"
-  (if (eq zero-state *zero-state-im-preediting*)
-      (funcall zero-backspace-func)
-    (if (and (functionp zero-backspace-original-func)
-	     (not (function-equal zero-backspace-original-func 'zero-backspace)))
-	(apply zero-backspace-original-func args))))
+(defun zero-backspace ()
+  "handle backspace key in `*zero-state-im-preediting*' state"
+  (interactive)
+  (unless (eq zero-state *zero-state-im-preediting*)
+    (error "zero-backspace called in non preediting state"))
+  (zero-debug "zero-backspace\n")
+  (funcall zero-backspace-func))
 
 (defun zero-commit-text (text)
   "commit given text, reset preedit str, hide candidate list"
@@ -393,13 +409,13 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
   (zero-hide-candidate-list))
 
 (defun zero-return ()
-  "handle RET key press"
+  "handle RET key press in `*zero-state-im-preediting*' state"
   (interactive)
-  (if (eq zero-state *zero-state-im-preediting*)
-      (progn
-	(zero-set-state *zero-state-im-waiting-input*)
-	(zero-commit-text zero-preedit-str))
-    (newline-and-indent)))
+  (unless (eq zero-state *zero-state-im-preediting*)
+    (error "zero-return called in non preediting state"))
+  (zero-debug "zero-return\n")
+  (zero-set-state *zero-state-im-waiting-input*)
+  (zero-commit-text zero-preedit-str))
 
 (defun zero-commit-nth-candidate (n)
   "commit nth candidate and return true if it exists, otherwise, return false"
@@ -426,8 +442,8 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 
 (defun zero-reset ()
   (interactive)
-  (zero-debug "reset\n")
-  (setq zero-state *zero-state-im-waiting-input*)
+  (zero-debug "zero-reset\n")
+  (zero-set-state *zero-state-im-waiting-input*)
   (setq zero-preedit-str "")
   (setq zero-candidates nil)
   (setq zero-current-page 0)
@@ -435,13 +451,15 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 
 (defun zero-focus-in ()
   "a hook function. run when focus in a zero-mode buffer"
-  (if (eq zero-state *zero-state-im-preediting*)
-      (zero-show-candidates zero-candidates)))
+  (when (eq zero-state *zero-state-im-preediting*)
+    (zero-show-candidates zero-candidates)
+    (zero-enter-preedit-state)))
 
 (defun zero-focus-out ()
   "a hook function. run when focus out a zero-mode buffer"
-  (if (eq zero-state *zero-state-im-preediting*)
-      (zero-hide-candidate-list)))
+  (when (eq zero-state *zero-state-im-preediting*)
+    (zero-hide-candidate-list)
+    (zero-leave-preedit-state)))
 
 (defun zero-buffer-list-changed ()
   "a hook function, run when buffer list has changed. This includes user has switched buffer"
@@ -454,19 +472,25 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 
 (defvar zero-mode-map
   '(keymap
-    (escape . zero-reset)
-    (13 . zero-return)
     ;; C-.
     (67108910 . zero-cycle-punctuation-level)
     (remap keymap
-	   (self-insert-command . zero-self-insert-command)
-	   ;; (forward-char . zero-forward-char)
-	   ;; (backward-char . zero-backward-char)
-	   ;; (forward-word . zero-forward-word)
-	   ;; (backward-word . zero-backward-word)
-	   ;; (delete-char . zero-delete-char)
-	   ))
-  "zero-mode keymap")
+	   (self-insert-command . zero-self-insert-command)))
+  "`zero-mode' keymap")
+
+(defun zero-enable-preediting-map ()
+  "enable preediting keymap in `zero-mode-map'"
+  (zero-debug "zero-enable-preediting-map\n")
+  (define-key zero-mode-map (kbd "<backspace>") 'zero-backspace)
+  (define-key zero-mode-map (kbd "RET") 'zero-return)
+  (define-key zero-mode-map (kbd "<escape>") 'zero-reset))
+
+(defun zero-disable-preediting-map ()
+  "disable preediting keymap in `zero-mode-map'"
+  (zero-debug "zero-disable-preediting-map\n")
+  (define-key zero-mode-map (kbd "<backspace>") nil)
+  (define-key zero-mode-map (kbd "RET") nil)
+  (define-key zero-mode-map (kbd "<escape>") nil))
 
 (define-minor-mode zero-mode
   "a Chinese input method framework written as an emacs minor mode.
@@ -476,17 +500,8 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
   " Zero"
   zero-mode-map
   ;; local variables and variable init
-  (make-local-variable 'zero-backspace-original-func)
-  (unless zero-backspace-original-func
-    (let ((func (key-binding (kbd "DEL"))))
-      (when (and (functionp func)
-		 (not (function-equal func 'zero-backspace)))
-	(zero-debug "set zero-backspace-original-func to %s" func)
-	(setq zero-backspace-original-func func))))
-  ;; DEL can't be put in zero-mode-map because I need to save the original
-  ;; binding in this function.
-  (define-key zero-mode-map (kbd "DEL") 'zero-backspace)
-  (set (make-local-variable 'zero-state) *zero-state-im-off*)
+  (make-local-variable 'zero-state)
+  (zero-set-state  *zero-state-im-off*)
   (make-local-variable 'zero-punctuation-level)
   (make-local-variable 'zero-double-quote-flag)
   (make-local-variable 'zero-single-quote-flag)
@@ -568,7 +583,11 @@ if im-name is nil, use default empty input method"
       (let ((im-functions (cdr (assq im-name zero-ims))))
 	(if im-functions
 	    (progn
-	      ;; TODO create a macro to reduce code duplication and human error.
+	      ;; TODO create a macro to reduce code duplication and human
+	      ;; error.
+	      ;;
+	      ;; TODO do some functionp check for the slot functions. if check
+	      ;; fail, keep (or revert to) the old IM.
 	      (setq zero-build-candidates-func
 		    (or (cdr (assq :build-candidates im-functions))
 			'zero-build-candidates-default))
@@ -587,6 +606,13 @@ if im-name is nil, use default empty input method"
 	      (setq zero-backspace-func
 		    (or (cdr (assq :handle-backspace im-functions))
 			'zero-backspace-default))
+	      (setq zero-preedit-start-func
+		    (cdr (assq :preedit-start im-functions)))
+	      (setq zero-preedit-end-func
+		    (cdr (assq :preedit-end im-functions)))
+	      (unless (functionp zero-backspace-func)
+		(signal 'wrong-type-argument
+			(list 'functionp zero-backspace-func)))
 	      ;; when switch to a IM, run its :init function
 	      (let ((init-func (cdr (assq :init im-functions))))
 		(if (functionp init-func)
@@ -599,7 +625,9 @@ if im-name is nil, use default empty input method"
     (setq zero-can-start-sequence-func 'zero-can-start-sequence-default)
     (setq zero-handle-preedit-char-func 'zero-handle-preedit-char-default)
     (setq zero-get-preedit-str-for-panel-func 'zero-get-preedit-str-for-panel-default)
-    (setq zero-backspace-func 'zero-backspace-default)))
+    (setq zero-backspace-func 'zero-backspace-default)
+    (setq zero-preedit-start-func nil)
+    (setq zero-preedit-end-func nil)))
 
 (defun zero-set-default-im (im-name)
   "set given im as default zero input method"

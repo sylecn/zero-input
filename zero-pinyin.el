@@ -37,9 +37,16 @@
 
 (defun zero-pinyin-init ()
   "called when this im is turned on"
-  (define-key zero-mode-map [remap digit-argument] 'zero-digit-argument)
   (make-local-variable 'zero-pinyin-state)
   (zero-pinyin-reset))
+
+(defun zero-pinyin-preedit-start ()
+  "called when enter `*zero-state-im-preediting*' state"
+  (define-key zero-mode-map [remap digit-argument] 'zero-digit-argument))
+
+(defun zero-pinyin-preedit-end ()
+  "called when leave `*zero-state-im-preediting*' state"
+  (define-key zero-mode-map [remap digit-argument] nil))
 
 (defun zero-pinyin-shutdown ()
   "called when this im is turned off"
@@ -228,16 +235,17 @@ n is the digit selection number.
       (zero-pinyin-service-delete-candidates-async
        candidate 'zero-pinyin-preedit-str-changed))))
 
-(defun zero-digit-argument (arg)
-  "wrapper around `digit-argument' to allow C-<digit> to DeleteCandidate in `*zero-state-im-preediting*' state"
-  (interactive "P")
-  (if (eq zero-state *zero-state-im-preediting*)
+(defun zero-digit-argument ()
+  "allow C-<digit> to DeleteCandidate in `*zero-state-im-preediting*' state"
+  (interactive)
+  (unless (eq zero-state *zero-state-im-preediting*)
+    (error "zero-digit-argument called in non preediting state"))
+  (if (memq 'control (event-modifiers last-command-event))
       (let* ((char (if (integerp last-command-event)
 		       last-command-event
 		     (get last-command-event 'ascii-character)))
 	     (digit (- (logand char ?\177) ?0)))
-	(zero-pinyin-delete-candidate digit))
-    (digit-argument arg)))
+	(zero-pinyin-delete-candidate digit))))
 
 ;;===============================
 ;; register IM to zero framework
@@ -253,7 +261,9 @@ n is the digit selection number.
    (:get-preedit-str-for-panel . zero-pinyin-get-preedit-str-for-panel)
    (:handle-backspace . zero-pinyin-backspace)
    (:init . zero-pinyin-init)
-   (:shutdown . zero-pinyin-shutdown)))
+   (:shutdown . zero-pinyin-shutdown)
+   (:preedit-start . zero-pinyin-preedit-start)
+   (:preedit-end . zero-pinyin-preedit-end)))
 
 ;;============
 ;; public API
