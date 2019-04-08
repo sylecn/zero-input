@@ -164,13 +164,18 @@ otherwise, next single quote insert close quote")
 (defvar zero-enable-debug t
   "whether to enable debug.
 if t, `zero-debug' will output debug msg in *zero-debug* buffer")
+(defvar zero-debug-buffer-max-size 30000
+  "max characters in *zero-debug* buffer. if reached, first half data will be deleted")
 
 (defun zero-debug (string &rest objects)
   "log debug message in *zero-debug* buffer"
   (if zero-enable-debug
       (with-current-buffer (get-buffer-create "*zero-debug*")
+	(goto-char (point-max))
 	(insert (apply 'format string objects))
-	(goto-char (point-max)))))
+	(when (> (point) zero-debug-buffer-max-size)
+	  (insert "removing old data\n")
+	  (delete-region (point-min) (/ zero-debug-buffer-max-size 2))))))
 
 ;; (zero-debug "msg1\n")
 ;; (zero-debug "msg2: %s\n" "some obj")
@@ -215,7 +220,7 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
        ("page_number" ,(1+ zero-current-page))
        ("has_next_page" ,(or (> (length (or candidates zero-candidates)) (* zero-candidates-per-page (1+ zero-current-page))) (< zero-fetch-size (* zero-candidates-per-page (+ 2 zero-current-page)))))
        ("has_previous_page" ,(> zero-current-page 0))))
-    (zero-debug "candidates:\n  %s\n  " (s-join "\n  " candidates-on-page))
+    (zero-debug "candidates: %s\n" (s-join ", " candidates-on-page))
     (destructuring-bind (x y) (zero-get-point-position)
       (zero-panel-move x y))))
 

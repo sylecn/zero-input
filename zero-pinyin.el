@@ -109,7 +109,7 @@
 		     (nth (+ n (* zero-candidates-per-page zero-current-page)) zero-pinyin-used-preedit-str-lengths))))
     (when candidate
       (zero-debug
-       "zero-pinyin-commit-nth-candidate n=%s candidate=%s used-len=%s zero-pinyin-pending-preedit-str=%s\n"
+       "zero-pinyin-commit-nth-candidate n=%s candidate=%s used-len=%s zero-pinyin-pending-preedit-str=%S\n"
        n candidate used-len zero-pinyin-pending-preedit-str)
       (cond
        ((null zero-pinyin-state)
