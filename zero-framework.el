@@ -211,18 +211,19 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
   "show candidates using zero-panel via IPC/RPC"
   (let ((candidates-on-page (zero-candidates-on-page (or candidates
 							 zero-candidates))))
-    (zero-panel-show-candidates
-     (funcall zero-get-preedit-str-for-panel-func)
-     (length candidates-on-page)
-     candidates-on-page
-     `(("in_emacs" t)
-       ("filename" ,(or (buffer-file-name) ""))
-       ("page_number" ,(1+ zero-current-page))
-       ("has_next_page" ,(or (> (length (or candidates zero-candidates)) (* zero-candidates-per-page (1+ zero-current-page))) (< zero-fetch-size (* zero-candidates-per-page (+ 2 zero-current-page)))))
-       ("has_previous_page" ,(> zero-current-page 0))))
-    (zero-debug "candidates: %s\n" (s-join ", " candidates-on-page))
     (destructuring-bind (x y) (zero-get-point-position)
-      (zero-panel-move x y))))
+      (zero-panel-show-candidates
+       (funcall zero-get-preedit-str-for-panel-func)
+       (length candidates-on-page)
+       candidates-on-page
+       `(("in_emacs" t)
+	 ("filename" ,(or (buffer-file-name) ""))
+	 ("page_number" ,(1+ zero-current-page))
+	 ("has_next_page" ,(or (> (length (or candidates zero-candidates)) (* zero-candidates-per-page (1+ zero-current-page))) (< zero-fetch-size (* zero-candidates-per-page (+ 2 zero-current-page)))))
+	 ("has_previous_page" ,(> zero-current-page 0))
+	 ("move_x" :int32 ,x)
+	 ("move_y" :int32 ,y)))
+      (zero-debug "candidates: %s\n" (s-join ", " candidates-on-page)))))
 
 (defun zero-build-candidates (preedit-str fetch-size)
   "build candidates list synchronously"
