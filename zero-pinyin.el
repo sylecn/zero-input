@@ -90,6 +90,7 @@
   "return t if char ch can start a preedit sequence."
   (and (>= ch ?a)
        (<= ch ?z)
+       (not (= ch ?i))
        (not (= ch ?u))
        (not (= ch ?v))))
 
@@ -100,6 +101,7 @@
   (should (zero-pinyin-can-start-sequence ?z))
   (should-not (zero-pinyin-can-start-sequence ?1))
   (should-not (zero-pinyin-can-start-sequence ?.))
+  (should-not (zero-pinyin-can-start-sequence ?i))
   (should-not (zero-pinyin-can-start-sequence ?u))
   (should-not (zero-pinyin-can-start-sequence ?v)))
 
