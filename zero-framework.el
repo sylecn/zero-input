@@ -535,8 +535,19 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 
 im-name should be a symbol.
 im-functions-alist should be a list of form
-  '((:build-candidates . build-candidates-func)
-    (:can-start-sequence . can-start-sequence-func))
+  '((:virtual-function-name . implementation-function-name))
+
+virtual functions                       corresponding variable
+===========================================================================
+:build-candidates                       zero-build-candidates-func
+:can-start-sequence                     zero-can-start-sequence-func
+:handle-preedit-char                    zero-handle-preedit-char-func
+:get-preedit-str-for-panel              zero-get-preedit-str-for-panel-func
+:handle-backspace                       zero-backspace-func
+:init                                   nil
+:shutdown                               nil
+:preedit-start                          zero-preedit-start-func
+:preedit-end                            zero-preedit-end-func
 
 registered input method is saved in `zero-ims'"
   ;; add or replace entry in `zero-ims'
