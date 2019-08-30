@@ -254,6 +254,7 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
     (?? "？")
     (?! "！")
     (?\\ "、")
+    (?: "：")
     (otherwise nil)))
 
 (defun zero-convert-punctuation-full (ch)
@@ -273,6 +274,7 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
     (?\' (setq zero-single-quote-flag (not zero-single-quote-flag))
 	 (if zero-single-quote-flag "‘" "’"))
     (?~ "～")
+    (?\; "；")
     (t (zero-convert-punctuation-basic ch))))
 
 (defun zero-convert-punctuation (ch)
