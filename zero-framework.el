@@ -59,9 +59,32 @@ respectively."
 
 (defun zero-get-point-position ()
   "return current point's position (x y) based on origin of screen top left corner"
-  (destructuring-bind (x y h) (ibus-compute-pixel-position)
-    (list (+ (frame-parameter nil 'left) x)
-	  (+ (frame-parameter nil 'top) h y))))
+  (destructuring-bind (x y line-height) (ibus-compute-pixel-position)
+    (cond
+     ((functionp 'window-absolute-pixel-position)
+      ;; introduced in emacs 26
+      (destructuring-bind (x . y) (window-absolute-pixel-position)
+	(list x (+ y line-height))))
+     ((functionp 'frame-edges)
+      ;; introduced in emacs 25
+      (destructuring-bind (frame-x frame-y &rest _)
+	  (frame-edges nil 'inner-edges)
+	(list (+ frame-x x) (+ frame-y y line-height))))
+     (t
+      ;; <= emacs 24, used guessed pixel size for tool-bar, menu-bar, WM title
+      ;; bar. Since I can't get that from elisp.
+      (list (+ (frame-parameter nil 'left)
+	       (if (and (> (frame-parameter nil 'tool-bar-lines) 0)
+			(eq (frame-parameter nil 'tool-bar-position) 'left))
+		   96 0)
+	       x)
+	    (+ (frame-parameter nil 'top)
+	       (if (and (> (frame-parameter nil 'tool-bar-lines) 0)
+			(eq (frame-parameter nil 'tool-bar-position) 'top))
+		   42 0)
+	       (if (> (frame-parameter nil 'menu-bar-lines) 0) (+ 30 30) 0)
+	       line-height
+	       y))))))
 
 (defun zero-cycle-list (lst item)
   "return the object next to given item in lst, if item is the last object, return the first object in lst.
