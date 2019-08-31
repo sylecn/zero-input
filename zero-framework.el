@@ -6,6 +6,7 @@
 ;; dependencies
 ;;==============
 
+(require 'cl)
 (require 's)
 (require 'zero-panel)
 
@@ -204,8 +205,23 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
 
 (defun zero-candidates-on-page (candidates)
   "return candidates on current page for given candidates list"
-  (take zero-candidates-per-page
-	(drop (* zero-candidates-per-page zero-current-page) candidates)))
+  (flet ((take (n lst)
+          "take the first n element from lst. if there is not enough
+elements, return lst as it is."
+          (loop
+	   for lst* = lst then (cdr lst*)
+	   for n* = n then (1- n*)
+	   until (or (zerop n*) (null lst*))
+	   collect (car lst*)))
+	 (drop (n lst)
+          "drop the first n elements from lst"
+          (loop
+	   for lst* = lst then (cdr lst*)
+	   for n* = n then (1- n*)
+	   until (or (zerop n*) (null lst*))
+	   finally (return lst*))))
+    (take zero-candidates-per-page
+	  (drop (* zero-candidates-per-page zero-current-page) candidates))))
 
 (defun zero-show-candidates (&optional candidates)
   "show candidates using zero-panel via IPC/RPC"
