@@ -1,14 +1,32 @@
-;; -*- lexical-binding: t -*-
-;; a demo table based input method based on zero-framework.el
+;;; -*- no-byte-compile: t; -*-
+;;; zero-table.el --- a demo table based input method based on zero-framework.el
+
+;; Copyright 2019 Yuanle Song <sylecn@gmail.com>
 ;;
+;; Licensed under the Apache License, Version 2.0 (the "License");
+;; you may not use this file except in compliance with the License.
+;; You may obtain a copy of the License at
+;;
+;;     http://www.apache.org/licenses/LICENSE-2.0
+;;
+;; Unless required by applicable law or agreed to in writing, software
+;; distributed under the License is distributed on an "AS IS" BASIS,
+;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;; See the License for the specific language governing permissions and
+;; limitations under the License.
+
+;;; Commentary:
+
 ;; when you type the key in `zero-table-table', IM will insert the
 ;; corresponding value.
 ;;
 ;; To use this demo IM,
-;;   (add-to-list 'load-path "~/lisp/elisp/zero")
+;;   (add-to-list 'load-path "~/fromsource/zero")
 ;;   (require 'zero-table)
 ;;   (zero-set-default-im 'zero-table) ; set as default IM
 ;;   or (zero-set-im 'zero-table)      ; set as current buffer's IM
+
+;;; Code:
 
 ;;==============
 ;; dependencies
@@ -126,3 +144,5 @@ e.g.
      ("now" . "__now__"))))
 
 (provide 'zero-table)
+
+;;; zero-table.el ends here

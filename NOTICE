@@ -1,0 +1,6 @@
+zero-el
+Copyright (C) 2019 Yuanle Song <sylecn@gmail.com>
+
+ibus-compute-pixel-position function in zero-framework.el is copied from
+ibus.el. This function is under GPLv3 license.
+Copyright (C) 2010-2012 S. Irie

@@ -1,7 +1,23 @@
-;; -*- lexical-binding: t -*-
-;; zero-quickdial input method written as an emacs minor mode.
+;;; -*- lexical-binding: t -*-
+;;; zero-quickdial --- quickdial input method written as an emacs minor mode.
+
+;; Copyright 2019 Yuanle Song <sylecn@gmail.com>
 ;;
-;; to use this input method,
+;; Licensed under the Apache License, Version 2.0 (the "License");
+;; you may not use this file except in compliance with the License.
+;; You may obtain a copy of the License at
+;;
+;;     http://www.apache.org/licenses/LICENSE-2.0
+;;
+;; Unless required by applicable law or agreed to in writing, software
+;; distributed under the License is distributed on an "AS IS" BASIS,
+;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;; See the License for the specific language governing permissions and
+;; limitations under the License.
+
+;;; Commentary:
+
+;; To use this input method,
 ;; M-x zero-quickdial-mode    ; turn on IM
 ;; type 1 will insert one
 ;; type 2 will insert two
@@ -9,6 +25,8 @@
 ;; M-x zero-quickdial-mode    ; turn off IM
 ;;
 ;; This is just a demo of how emacs minor mode can work as input method.
+
+;;; Code:
 
 (defun zero-quickdial-insert-one ()
   (interactive)
@@ -36,3 +54,5 @@
   zero-quickdial-mode-map)
 
 (provide 'zero-quickdial)
+
+;;; zero-quickdial.el ends here

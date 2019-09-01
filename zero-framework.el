@@ -1,6 +1,26 @@
-;; -*- lexical-binding: t -*-
-;; the zero Chinese input method framework for emacs.
-;; implemented as a minor mode.
+;;; -*- lexical-binding: t -*-
+;;; zero-framework.el --- zero Chinese input method framework
+
+;; Copyright 2019 Yuanle Song <sylecn@gmail.com>
+;;
+;; Licensed under the Apache License, Version 2.0 (the "License");
+;; you may not use this file except in compliance with the License.
+;; You may obtain a copy of the License at
+;;
+;;     http://www.apache.org/licenses/LICENSE-2.0
+;;
+;; Unless required by applicable law or agreed to in writing, software
+;; distributed under the License is distributed on an "AS IS" BASIS,
+;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;; See the License for the specific language governing permissions and
+;; limitations under the License.
+
+;;; Commentary:
+
+;; zero-framework is a Chinese input method framework for emacs, implemented
+;; as an emacs minor mode.
+
+;;; Code:
 
 ;;==============
 ;; dependencies
@@ -106,6 +126,10 @@ if item is not in lst, return nil"
 ;;=====================
 ;; key logic functions
 ;;=====================
+
+;; zero-el version
+(defvar zero-version nil "zero-el package version")
+(setq zero-version "1.0.0")
 
 ;; FSM state
 (defconst *zero-state-im-off* 'IM-OFF)
@@ -714,3 +738,5 @@ if im-name is nil, use default empty input method"
     (zero-on)))
 
 (provide 'zero-framework)
+
+;;; zero-framework.el ends here
