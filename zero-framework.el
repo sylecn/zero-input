@@ -129,7 +129,7 @@ if item is not in lst, return nil"
 
 ;; zero-el version
 (defvar zero-version nil "zero-el package version")
-(setq zero-version "1.0.1")
+(setq zero-version "1.0.2")
 
 ;; FSM state
 (defconst *zero-state-im-off* 'IM-OFF)
@@ -209,7 +209,7 @@ This allow input method to override default logic.")
 (defvar zero-preedit-end-func 'nil
   "called when leave `*zero-state-im-preediting*' state")
 
-(defvar zero-enable-debug t
+(defvar zero-enable-debug nil
   "whether to enable debug.
 if t, `zero-debug' will output debug msg in *zero-debug* buffer")
 (defvar zero-debug-buffer-max-size 30000

@@ -4,7 +4,7 @@ Time-stamp: <2019-09-01>
 
 * zero-el
 
-zero-el provides zero-pinyin, a pinyin input method for Chinese and
+zero-el provides zero-pinyin, an emacs pinyin input method for Chinese and
 zero-framework, which is an emacs Chinese input method framework.
 
 * File list
