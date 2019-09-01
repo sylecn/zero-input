@@ -19,13 +19,26 @@
 
 ;;; Code:
 
+(defun zero-rebuild (&optional source-dir)
+  "rebuild zero-el"
+  (interactive)
+  ;; for loading s
+  (package-initialize)
+  (let ((source-dir (or source-dir "~/lisp/elisp/zero/")))
+    (dolist (f '("zero-quickdial.el"
+		 "zero-panel.el"
+		 "zero-framework.el"
+		 "zero-pinyin-service.el"
+		 "zero-pinyin.el"))
+      (byte-compile-file (concat source-dir f) t))))
+
 (defun zero-reload-all ()
   (interactive)
   (byte-recompile-directory "~/lisp/elisp/zero/" 0)
   (dolist (f '("zero-quickdial.elc"
 	       "zero-panel.elc"
 	       "zero-framework.elc"
-	       "zero-table.elc"
+	       "zero-table.el"
 	       "zero-pinyin-service.elc"
 	       "zero-pinyin.elc"))
     (load-file f)))

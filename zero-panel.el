@@ -24,6 +24,7 @@
 ;;================
 
 (require 'dbus)
+(require 's)
 
 (defun zero-panel-error-handler (event error)
   "handle dbus errors"

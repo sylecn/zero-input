@@ -32,6 +32,7 @@
 (require 's)
 (require 'zero-framework)
 (require 'zero-pinyin-service)
+(require 'cl-lib)
 
 ;;===============================
 ;; basic data and emacs facility
@@ -87,10 +88,10 @@
 	(setq zero-fetch-size (max fetch-size (length zero-candidates))))
     (zero-debug "zero-pinyin building candidate list synchronously\n")
     (let ((result (zero-pinyin-service-get-candidates preedit-str fetch-size)))
-      (setq zero-fetch-size (max fetch-size (length (first result))))
-      (setq zero-pinyin-used-preedit-str-lengths (second result))
-      (setq zero-pinyin-candidates-pinyin-indices (third result))
-      (first result))))
+      (setq zero-fetch-size (max fetch-size (length (cl-first result))))
+      (setq zero-pinyin-used-preedit-str-lengths (cl-second result))
+      (setq zero-pinyin-candidates-pinyin-indices (cl-third result))
+      (cl-first result))))
 
 (defun zero-pinyin-build-candidates-async (preedit-str fetch-size complete-func)
   "build candidate list, when done call complete-func on it"

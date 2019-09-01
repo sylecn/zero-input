@@ -26,7 +26,7 @@
 ;; dependencies
 ;;==============
 
-(require 'cl)
+(require 'cl-macs)
 (require 's)
 (require 'zero-panel)
 
@@ -79,15 +79,15 @@ respectively."
 
 (defun zero-get-point-position ()
   "return current point's position (x y) based on origin of screen top left corner"
-  (destructuring-bind (x y line-height) (ibus-compute-pixel-position)
+  (cl-destructuring-bind (x y line-height) (ibus-compute-pixel-position)
     (cond
      ((functionp 'window-absolute-pixel-position)
       ;; introduced in emacs 26
-      (destructuring-bind (x . y) (window-absolute-pixel-position)
+      (cl-destructuring-bind (x . y) (window-absolute-pixel-position)
 	(list x (+ y line-height))))
      ((functionp 'frame-edges)
       ;; introduced in emacs 25
-      (destructuring-bind (frame-x frame-y &rest _)
+      (cl-destructuring-bind (frame-x frame-y &rest rest)
 	  (frame-edges nil 'inner-edges)
 	(list (+ frame-x x) (+ frame-y y line-height))))
      (t
@@ -129,7 +129,7 @@ if item is not in lst, return nil"
 
 ;; zero-el version
 (defvar zero-version nil "zero-el package version")
-(setq zero-version "1.0.0")
+(setq zero-version "1.0.1")
 
 ;; FSM state
 (defconst *zero-state-im-off* 'IM-OFF)
@@ -139,32 +139,6 @@ if item is not in lst, return nil"
 (defconst *zero-punctuation-level-basic* 'BASIC)
 (defconst *zero-punctuation-level-full* 'FULL)
 (defconst *zero-punctuation-level-none* 'NONE)
-
-;;; concrete input method should define these functions and set them in the
-;;; corresponding *-func variable.
-(defun zero-build-candidates-default (_preedit-str _fetch-size) nil)
-(defun zero-can-start-sequence-default (_ch) nil)
-(defun zero-get-preedit-str-for-panel-default () zero-preedit-str)
-(defvar zero-build-candidates-func 'zero-build-candidates-default
-  "contains a function to build candidates from preedit-str. The function accepts param preedit-str, fetch-size, returns candidate list.")
-(defvar zero-build-candidates-async-func 'zero-build-candidates-async-default
-  "contains a function to build candidates from preedit-str. The function accepts param preedit-str, fetch-size, and a complete-func that should be called on returned candidate list.")
-(defvar zero-can-start-sequence-func 'zero-can-start-sequence-default
-  "contains a function to decide whether a char can start a preedit sequence")
-(defvar zero-handle-preedit-char-func 'zero-handle-preedit-char-default
-  "contains a function to handle IM-PREEDITING state char insert.
-The function should return t if char is handled.
-This allow input method to override default logic.")
-(defvar zero-get-preedit-str-for-panel-func 'zero-get-preedit-str-for-panel-default
-  "contains a function that return preedit-str to show in zero-panel")
-(defvar zero-backspace-func 'zero-backspace-default
-  "contains a function to handle <backward> char")
-(defvar zero-handle-preedit-char-func 'zero-handle-preedit-char-default
-  "hanlde character insert in `*zero-state-im-preediting*' mode")
-(defvar zero-preedit-start-func 'nil
-  "called when enter `*zero-state-im-preediting*' state")
-(defvar zero-preedit-end-func 'nil
-  "called when leave `*zero-state-im-preediting*' state")
 
 (defvar zero-im nil
   "current input method. if nil, the empty input method will be used.
@@ -209,6 +183,32 @@ otherwise, next single quote insert close quote")
 (defvar zero-previous-page-key ?\- "previous page key")
 (defvar zero-next-page-key ?\= "next page key")
 
+;;; concrete input method should define these functions and set them in the
+;;; corresponding *-func variable.
+(defun zero-build-candidates-default (_preedit-str _fetch-size) nil)
+(defun zero-can-start-sequence-default (_ch) nil)
+(defun zero-get-preedit-str-for-panel-default () zero-preedit-str)
+(defvar zero-build-candidates-func 'zero-build-candidates-default
+  "contains a function to build candidates from preedit-str. The function accepts param preedit-str, fetch-size, returns candidate list.")
+(defvar zero-build-candidates-async-func 'zero-build-candidates-async-default
+  "contains a function to build candidates from preedit-str. The function accepts param preedit-str, fetch-size, and a complete-func that should be called on returned candidate list.")
+(defvar zero-can-start-sequence-func 'zero-can-start-sequence-default
+  "contains a function to decide whether a char can start a preedit sequence")
+(defvar zero-handle-preedit-char-func 'zero-handle-preedit-char-default
+  "contains a function to handle IM-PREEDITING state char insert.
+The function should return t if char is handled.
+This allow input method to override default logic.")
+(defvar zero-get-preedit-str-for-panel-func 'zero-get-preedit-str-for-panel-default
+  "contains a function that return preedit-str to show in zero-panel")
+(defvar zero-backspace-func 'zero-backspace-default
+  "contains a function to handle <backward> char")
+(defvar zero-handle-preedit-char-func 'zero-handle-preedit-char-default
+  "hanlde character insert in `*zero-state-im-preediting*' mode")
+(defvar zero-preedit-start-func 'nil
+  "called when enter `*zero-state-im-preediting*' state")
+(defvar zero-preedit-end-func 'nil
+  "called when leave `*zero-state-im-preediting*' state")
+
 (defvar zero-enable-debug t
   "whether to enable debug.
 if t, `zero-debug' will output debug msg in *zero-debug* buffer")
@@ -252,21 +252,21 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
 
 (defun zero-candidates-on-page (candidates)
   "return candidates on current page for given candidates list"
-  (flet ((take (n lst)
-          "take the first n element from lst. if there is not enough
-elements, return lst as it is."
-          (loop
-	   for lst* = lst then (cdr lst*)
-	   for n* = n then (1- n*)
-	   until (or (zerop n*) (null lst*))
-	   collect (car lst*)))
-	 (drop (n lst)
-          "drop the first n elements from lst"
-          (loop
-	   for lst* = lst then (cdr lst*)
-	   for n* = n then (1- n*)
-	   until (or (zerop n*) (null lst*))
-	   finally (return lst*))))
+  (cl-flet ((take (n lst)
+	       "take the first n element from lst. if there is not
+enough elements, return lst as it is."
+	       (cl-loop
+		for lst* = lst then (cdr lst*)
+		for n* = n then (1- n*)
+		until (or (zerop n*) (null lst*))
+		collect (car lst*)))
+	    (drop (n lst)
+	       "drop the first n elements from lst"
+	       (cl-loop
+		for lst* = lst then (cdr lst*)
+		for n* = n then (1- n*)
+		until (or (zerop n*) (null lst*))
+		finally (return lst*))))
     (take zero-candidates-per-page
 	  (drop (* zero-candidates-per-page zero-current-page) candidates))))
 
@@ -274,7 +274,7 @@ elements, return lst as it is."
   "show candidates using zero-panel via IPC/RPC"
   (let ((candidates-on-page (zero-candidates-on-page (or candidates
 							 zero-candidates))))
-    (destructuring-bind (x y) (zero-get-point-position)
+    (cl-destructuring-bind (x y) (zero-get-point-position)
       (zero-panel-show-candidates
        (funcall zero-get-preedit-str-for-panel-func)
        (length candidates-on-page)
@@ -311,7 +311,7 @@ elements, return lst as it is."
 (defun zero-convert-punctuation-basic (ch)
   "convert punctuation for *zero-punctuation-level-basic*
 return ch's Chinese punctuation if ch is converted. return nil otherwise"
-  (case ch
+  (cl-case ch
     (?, "，")
     (?. "。")
     (?? "？")
@@ -323,7 +323,7 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 (defun zero-convert-punctuation-full (ch)
   "convert punctuation for *zero-punctuation-level-full*
 return ch's Chinese punctuation if ch is converted. return nil otherwise"
-  (case ch
+  (cl-case ch
     (?_ "——")
     (?< "《")
     (?> "》")

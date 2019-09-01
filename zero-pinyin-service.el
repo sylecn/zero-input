@@ -24,6 +24,7 @@
 ;;================
 
 (require 'dbus)
+(require 'cl-lib)
 
 (defun zero-pinyin-service-error-handler (event error)
   "handle dbus errors"
@@ -75,7 +76,8 @@ fetch-size try to fetch this many candidates or more"
     ;; (push :signature result)
     ;; (push "(ii)" result)
     (dolist (pypair candidate_pinyin_indices)
-      (push (list :struct :int32 (first pypair) :int32 (second pypair)) result))
+      (push (list :struct :int32 (cl-first pypair) :int32 (cl-second pypair))
+	    result))
     (reverse result)))
 
 (ert-deftest zero-pinyin-candidate-pinyin-indices-to-dbus-format ()
@@ -107,27 +109,29 @@ fetch-size try to fetch this many candidates or more"
 ;; some app test
 ;;================
 
+(require 'cl-macs)
+
 (ert-deftest zero-pinyin-service-get-candidates ()
-  (destructuring-bind (cs ls &rest rest)
+  (cl-destructuring-bind (cs ls &rest rest)
       (zero-pinyin-service-get-candidates "liyifeng" 1)
-    (should (equal (first cs) "李易峰"))
-    (should (= (first ls) 8)))
-  (destructuring-bind (cs ls &rest rest)
+    (should (equal (car cs) "李易峰"))
+    (should (= (car ls) 8)))
+  (cl-destructuring-bind (cs ls &rest rest)
       (zero-pinyin-service-get-candidates "wenti" 1)
-    (should (equal (first cs) "问题"))
-    (should (= (first ls) 5)))
-  (destructuring-bind (cs ls &rest rest)
+    (should (equal (car cs) "问题"))
+    (should (= (car ls) 5)))
+  (cl-destructuring-bind (cs ls &rest rest)
       (zero-pinyin-service-get-candidates "meiyou" 1)
-    (should (equal (first cs) "没有"))
-    (should (= (first ls) 6)))
-  (destructuring-bind (cs ls &rest rest)
+    (should (equal (car cs) "没有"))
+    (should (= (car ls) 6)))
+  (cl-destructuring-bind (cs ls &rest rest)
       (zero-pinyin-service-get-candidates "shi" 1)
-    (should (equal (first cs) "是"))
-    (should (= (first ls) 3)))
-  (destructuring-bind (cs ls &rest rest)
+    (should (equal (car cs) "是"))
+    (should (= (car ls) 3)))
+  (cl-destructuring-bind (cs ls &rest rest)
       (zero-pinyin-service-get-candidates "de" 1)
-    (should (equal (first cs) "的"))
-    (should (= (first ls) 2))))
+    (should (equal (car cs) "的"))
+    (should (= (car ls) 2))))
 
 (provide 'zero-pinyin-service)
 
