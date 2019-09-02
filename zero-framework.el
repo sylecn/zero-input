@@ -1,8 +1,6 @@
 ;;; -*- lexical-binding: t -*-
 ;;; zero-framework.el --- zero Chinese input method framework
 
-;; Copyright 2019 Yuanle Song <sylecn@gmail.com>
-;;
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
 ;; You may obtain a copy of the License at
@@ -129,7 +127,7 @@ if item is not in lst, return nil"
 
 ;; zero-el version
 (defvar zero-version nil "zero-el package version")
-(setq zero-version "1.0.2")
+(setq zero-version "1.0.3")
 
 ;; FSM state
 (defconst *zero-state-im-off* 'IM-OFF)
