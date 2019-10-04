@@ -127,7 +127,7 @@ if item is not in lst, return nil"
 
 ;; zero-el version
 (defvar zero-version nil "zero-el package version")
-(setq zero-version "1.0.3")
+(setq zero-version "1.1.0")
 
 ;; FSM state
 (defconst *zero-state-im-off* 'IM-OFF)
@@ -370,6 +370,7 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 
 (defun zero-page-up ()
   "if not at first page, show candidates on previous page."
+  (interactive)
   (when (> zero-current-page 0)
     (setq zero-current-page (1- zero-current-page))
     (zero-show-candidates)))
@@ -383,6 +384,7 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 
 (defun zero-page-down ()
   "if there is still candidates to be displayed, show candidates on next page."
+  (interactive)
   (let ((len (length zero-candidates))
 	(new-fetch-size (* zero-candidates-per-page (+ 2 zero-current-page))))
     (if (and (< len new-fetch-size)
