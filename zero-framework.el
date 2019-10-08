@@ -149,6 +149,12 @@ in the empty input method, only punctuation is handled. Other keys are pass thro
 this is used to help with buffer focus in/out events")
 
 (defvar zero-state *zero-state-im-off*)
+(defvar zero-full-width-mode nil
+  "Set to t to enable full-width mode. In full-width mode, commit
+  ascii char will insert full-width char if there is a
+  corresponding full-width char. This full-width char map is
+  independent from punctuation map. You can change this via
+  `zero-toggle-full-width-mode'")
 (defvar zero-punctuation-level *zero-punctuation-level-basic*
   "punctuation level. should be one of
 *zero-punctuation-level-basic*
@@ -170,7 +176,8 @@ otherwise, next single quote insert close quote")
 (defvar zero-candidates nil)
 (defcustom zero-candidates-per-page 10
   "how many candidates to show on each page"
-  :group 'zero)
+  :group 'zero
+  :type 'integer)
 (defvar zero-current-page 0 "current page number. count from 0")
 (defvar zero-initial-fetch-size 20
   "how many candidates to fetch for the first call to GetCandidates")
@@ -542,11 +549,20 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 ;;============
 
 (defvar zero-mode-map
-  '(keymap
-    ;; C-.
-    (67108910 . zero-cycle-punctuation-level)
-    (remap keymap
-	   (self-insert-command . zero-self-insert-command)))
+  (let ((map (make-sparse-keymap)))
+    ;; build zero-prefix-map
+    (defvar zero-prefix-map (define-prefix-command 'zero-prefix-map))
+    (let ((bindings '(("," zero-cycle-punctuation-level)
+		      ("." zero-toggle-full-width-mode))))
+      (dolist (b bindings)
+	(define-key zero-prefix-map (car b) (cadr b))))
+    ;; mount zero-prefix-map in C-c , prefix key.
+    (define-key map (kbd "C-c ,") zero-prefix-map)
+
+    ;; other keybindings
+    (define-key map [remap self-insert-command]
+      'zero-self-insert-command)
+    map)
   "`zero-mode' keymap")
 
 (defun zero-enable-preediting-map ()
@@ -563,12 +579,15 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
   (define-key zero-mode-map (kbd "RET") nil)
   (define-key zero-mode-map (kbd "<escape>") nil))
 
+(defun zero-modeline-string ()
+  (if zero-full-width-mode " ZeroF" " Zero"))
+
 (define-minor-mode zero-mode
   "a Chinese input method framework written as an emacs minor mode.
 
 \\{zero-mode-map}"
   nil
-  " Zero"
+  (:eval (zero-modeline-string))
   zero-mode-map
   ;; local variables and variable init
   (make-local-variable 'zero-state)
@@ -624,6 +643,14 @@ registered input method is saved in `zero-ims'"
 ;;============
 ;; public API
 ;;============
+
+(defun zero-toggle-full-width-mode ()
+  "toggle `zero-full-width-mode' on/off"
+  (interactive)
+  (setq zero-full-width-mode (not zero-full-width-mode))
+  (message (if zero-full-width-mode
+	       "Enabled full-width mode"
+	     "Enabled half-width mode")))
 
 (defun zero-set-punctuation-level (level)
   "set `zero-punctuation-level'"

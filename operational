@@ -1,0 +1,152 @@
+* COMMENT -*- mode: org -*-
+#+Date: 2019-10-08
+Time-stamp: <2019-10-08>
+#+STARTUP: content
+* notes                                                               :entry:
+** 2019-04-01 zero-framework.el a Chinese IM framework in emacs; FSM	:doc:
+title was: how to write a modern im for emacs.
+cd ~/lisp/elisp/zero/
+- DONE can I implement it as a minor mode? yes.
+- DONE can I use panel to show candidates? yes.
+- zero minor mode FSM
+  implemented in zero-framework.el
+
+  | Imp | state            | action                                              | next state       | trigger action                                                      |
+  |-----+------------------+-----------------------------------------------------+------------------+---------------------------------------------------------------------|
+  | Y   | IM_OFF           | M-x zero-on or zero-toggle                          | IM_WAITING_INPUT | turn on minor mode                                                  |
+  | Y   | IM_WAITING_INPUT | type M-x zero-off or zero-toggle                    | IM_OFF           | turn off minor mode                                                 |
+  | Y   | IM_WAITING_INPUT | type character that can start a sequence            | IM_PREEDITING    | update preedit str, show candidate list                             |
+  | Y   | IM_WAITING_INPUT | type character that can not start a sequence        | IM_WAITING_INPUT | insert character                                                    |
+  | Y   | IM_WAITING_INPUT | type [,.?!\]                                        | IM_WAITING_INPUT | insert Chinese punctuation character                                |
+  | Y   | IM_PREEDITING    | type character (that is not SPC, digit keys)        | IM_PREEDITING    | update preedit str, update and show candidate list                  |
+  | Y   | IM_PREEDITING    | type RET                                            | IM_WAITING_INPUT | commit preedit str, hide candidate list, reset preedit str          |
+  | Y   | IM_PREEDITING    | type SPC                                            | IM_WAITING_INPUT | commit first candidate or preedit str, reset preedit str            |
+  | Y   | IM_PREEDITING    | type digit keys                                     | IM_WAITING_INPUT | commit nth candidate if it exists, otherwise, append to preedit str |
+  |     | IM_PREEDITING    | type C-g                                            | IM_WAITING_INPUT | reset IM (reset preedit str, hide candidate list)                   |
+  | Y   | IM_PREEDITING    | type M-x zero-off or zero-toggle                    | IM_OFF           | reset IM, turn off minor mode                                       |
+  | Y   | IM_PREEDITING    | type <backspace>, when preedit str is longer than 1 | IM_PREEDITING    | update preedit str, update and show candidate list                  |
+  | Y   | IM_PREEDITING    | type <backspace>, when preedit str is length 1      | IM_WAITING_INPUT | reset IM                                                            |
+  | Y   | IM_PREEDITING    | focus in                                            | IM_PREEDITING    | show candidat list                                                  |
+  | Y   | IM_PREEDITING    | focus out                                           | IM_PREEDITING    | hide panel                                                          |
+  | Y   | IM_PREEDITING    | type [,.?!\]                                        | IM_WAITING_INPUT | commit first candidate or preedit str, insert Chinese punctuation   |
+  | Y   | IM_PREEDITING    | type -/=                                            | IM_PREEDITING    | candiate page up/down                                               |
+  |     |                  |                                                     |                  |                                                                     |
+
+  in IM_OFF state, zero should not do any preedit try nor do punctuation
+  translate.
+
+- DONE make zero-quickdial IM work in emacs.
+  see ~/lisp/elisp/zero/zero-quickdial.el
+- DONE make zero-table IM work in emacs. with zero-panel.
+  see ~/lisp/elisp/zero/zero-table.el
+- during development, press F8 to byte-compile and load the current el file.
+  this will also look for errors in the file.
+
+  press F9 to run ert tests.
+- TODOs
+  - whenever a command moves point, IM should probably reset()
+    I can't remap every possible key/function.
+
+  - I need hook for buffer/window focus in/out.
+    currently, when user switch to another buffer, the panel will still show.
+
+    user can click mouse in another emacs window.
+    whenever focus is moved outside current buffer, I need a hook to run
+    zero-focus-out.
+
+    how to reproduce the problem
+    =============================
+    open emacs, split, top window show buffer with file t3, bottom window show
+    buffer with file t4.
+
+    in t3 buffer, press F1 to toggle zero on. type "a", candidate list will
+    show. now press C-x o to switch to t4 buffer. candidate list didn't go
+    away. because I can't find a hook for it.
+
+    the mouse case:
+    =================
+    open emacs, split, top window show buffer with file t3, bottom window show
+    buffer with file t4.
+
+    in t3 buffer, press F1 to toggle zero on. type "a", candidate list will
+    show. now click mouse on t4 buffer. candidate list didn't go away. because
+    I can't find a hook for it.
+
+  - how to check whether string contains character?
+    without converting char to string.
+
+    (zero-table-can-start-sequence) can use this.
+
+* later                                                               :entry:
+* current                                                             :entry:
+** 
+** 2019-10-08 support full-width characters and symbols.
+全角 半角
+
+- feature requests
+  - when zero-mode is on, and in full-width mode
+    - commit English character and symbol should commit full-width character
+      if there is a full-width character. This should happen before checking
+      punctuation mapping. if a map is found, punctuation mapping is ignored.
+    - type letters should still go into preedit str, only commit full-width
+      char when user press RET.
+  - when zero-mode is on, and in half-width mode (the default)
+    - do what it does now. punctuation mapping is checked.
+
+- implementation
+  - Block Halfwidth and Fullwidth Forms – Codepoints
+    https://codepoints.net/halfwidth_and_fullwidth_forms
+  - how to support full width character and symbol in zero?
+    update fsm table.
+
+    add a zero-full-width-mode variable
+    add default binding shift+space, M-x zero-toggle-full-width-mode
+
+    use modeline LIGHTER to show full/half width mode.
+    when in full-width mode, show ZeroF.
+
+    FSM table:
+    move from gtk-im-module-zero operational file.
+  - 
+
+- problems
+  - where is the GB standard file?
+  - docs
+    GB/T 15834―2011 标点符号用法 电子版
+    http://people.ubuntu.com/~happyaron/l10n/GB(T)15834-2011.html
+    doesn't have much about full width vs half width.
+  - indeed double quotation mark is different from fullwidth quotation mark.
+
+    LEFT DOUBLE QUOTATION MARK “”
+    FULLWIDTH QUOTATION MARK ＂＂
+
+  - search U+FF02
+    U+FF02 FULLWIDTH QUOTATION MARK – Codepoints
+    https://codepoints.net/U+FF02
+
+    Block Halfwidth and Fullwidth Forms – Codepoints
+    https://codepoints.net/halfwidth_and_fullwidth_forms
+
+  - why bind S-SPC key in zero-mode-map didn't work.
+    global-set-key does work.
+
+    shift-space is always translated to space in minor mode?
+    shift is not registered as key prefix.
+
+    I will just use another key binding for this command.
+    try M-space. nope.
+
+    https://www.gnu.org/software/emacs/manual/html_node/elisp/Keymaps-and-Minor-Modes.html#Keymaps-and-Minor-Modes
+    Minor modes may bind commands to key sequences consisting of C-c followed
+    by a punctuation character. However, sequences consisting of C-c followed
+    by one of {}<>:;, or a control character or digit, are reserved for major
+    modes. Also, C-c letter is reserved for users. See Key Binding
+    Conventions.
+
+    try use C-c , , and C-c , .
+
+    how to add C-c , as prefix key and add binding for those two commands?
+    it works.
+
+* done                                                                :entry:
+* wontfix                                                             :entry:
