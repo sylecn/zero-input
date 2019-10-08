@@ -17,6 +17,17 @@
 
 ;; zero-framework is a Chinese input method framework for emacs, implemented
 ;; as an emacs minor mode.
+;;
+;; You can cycle zero-punctuation-level by C-c , ,
+;; You can change default Chinese punctuation level:
+;;
+;;   (setq-default zero-punctuation-level *zero-punctuation-level-full*)
+;;
+;; You can toggle full-width mode by C-c , .
+;; You can enable full-width mode by default:
+;;
+;;   (setq-default zero-full-width-mode t)
+;;
 
 ;;; Code:
 
@@ -127,7 +138,7 @@ if item is not in lst, return nil"
 
 ;; zero-el version
 (defvar zero-version nil "zero-el package version")
-(setq zero-version "1.1.0")
+(setq zero-version "1.2.0")
 
 ;; FSM state
 (defconst *zero-state-im-off* 'IM-OFF)
@@ -313,15 +324,53 @@ enough elements, return lst as it is."
     ;; update cache to make SPC and digit key selection possible.
     (funcall complete-func candidates)))
 
+(defvar zero-full-width-char-map
+  ;; ascii 33 to 126 map to
+  ;; unicode FF01 to FF5E
+  (cl-loop
+   for i from 33 to 126
+   collect (cons (make-char 'ascii i) (make-char 'unicode 0 255 (- i 32))))
+  "an alist that map half-width char to full-width char")
+
+(defun zero-convert-ch-to-full-width (ch)
+  (let ((pair (assoc ch zero-full-width-char-map)))
+    (if pair (cdr pair) ch)))
+
+(ert-deftest zero-convert-ch-to-full-width ()
+  (should (= (zero-convert-ch-to-full-width ?\!) ?\！)))
+
+(defun zero-convert-str-to-full-width (s)
+  "convert each char in s to their full-width char if there is one"
+  (concat (mapcar 'zero-convert-ch-to-full-width s)))
+
+(ert-deftest zero-convert-str-to-full-width ()
+  (should (string-equal "！" (zero-convert-str-to-full-width "!")))
+  (should (string-equal "（" (zero-convert-str-to-full-width "(")))
+  (should (string-equal "（：）" (zero-convert-str-to-full-width "(:)")))
+  (should (string-equal "ＡＢａｂ" (zero-convert-str-to-full-width "ABab")))
+  (should (string-equal "ｈｅｈｅ" (zero-convert-str-to-full-width "hehe")))
+  (should (string-equal "（Ａ）" (zero-convert-str-to-full-width "(A)"))))
+
+(defun zero-convert-str-to-full-width-maybe (s)
+  "if in zero-full-width-mode, convert char in s to their full-width char; otherwise, return s unchanged."
+  (if zero-full-width-mode (zero-convert-str-to-full-width s) s))
+
+(defun zero-insert-full-width-char (ch)
+  "if in zero-full-width-mode, insert full-width char for given ch and return true, otherwise just return nil."
+  (when zero-full-width-mode
+    (let ((full-width-ch (zero-convert-ch-to-full-width ch)))
+      (insert full-width-ch)
+      full-width-ch)))
+
 (defun zero-convert-punctuation-basic (ch)
   "convert punctuation for *zero-punctuation-level-basic*
 return ch's Chinese punctuation if ch is converted. return nil otherwise"
   (cl-case ch
     (?, "，")
-    (?. "。")
+    (?. "。")				; 0x3002
     (?? "？")
     (?! "！")
-    (?\\ "、")
+    (?\\ "、")				; 0x3001
     (?: "：")
     (otherwise nil)))
 
@@ -330,12 +379,12 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 return ch's Chinese punctuation if ch is converted. return nil otherwise"
   (cl-case ch
     (?_ "——")
-    (?< "《")
-    (?> "》")
+    (?< "《")				;0x300A
+    (?> "》")				;0x300B
     (?\( "（")
     (?\) "）")
-    (?\[ "【")
-    (?\] "】")
+    (?\[ "【")				;0x3010
+    (?\] "】")				;0x3011
     (?^ "……")
     (?\" (setq zero-double-quote-flag (not zero-double-quote-flag))
 	 (if zero-double-quote-flag "“" "”"))
@@ -343,6 +392,7 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 	 (if zero-single-quote-flag "‘" "’"))
     (?~ "～")
     (?\; "；")
+    (?$ "￥")
     (t (zero-convert-punctuation-basic ch))))
 
 (defun zero-convert-punctuation (ch)
@@ -444,7 +494,8 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 	    (zero-append-char-to-preedit-str ch))
 	(zero-debug "cannot start sequence, state=IM_WAITING_INPUT\n")
 	(unless (zero-handle-punctuation ch)
-	  (self-insert-command n))))
+	  (unless (zero-insert-full-width-char ch)
+	    (self-insert-command n)))))
      ((eq zero-state *zero-state-im-preediting*)
       (zero-debug "still preediting\n")
       (funcall zero-handle-preedit-char-func ch))
@@ -493,7 +544,7 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
     (error "zero-return called in non preediting state"))
   (zero-debug "zero-return\n")
   (zero-set-state *zero-state-im-waiting-input*)
-  (zero-commit-text zero-preedit-str))
+  (zero-commit-text (zero-convert-str-to-full-width-maybe zero-preedit-str)))
 
 (defun zero-commit-nth-candidate (n)
   "commit nth candidate and return true if it exists, otherwise, return false"
@@ -507,7 +558,7 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 
 (defun zero-commit-preedit-str ()
   (zero-set-state *zero-state-im-waiting-input*)
-  (zero-commit-text zero-preedit-str))
+  (zero-commit-text (zero-convert-str-to-full-width-maybe zero-preedit-str)))
 
 (defun zero-commit-first-candidate-or-preedit-str ()
   "commit first candidate if there is one, otherwise commit preedit str"
@@ -593,6 +644,7 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
   (make-local-variable 'zero-state)
   (zero-set-state  *zero-state-im-off*)
   (make-local-variable 'zero-punctuation-level)
+  (make-local-variable 'zero-full-width-mode)
   (make-local-variable 'zero-double-quote-flag)
   (make-local-variable 'zero-single-quote-flag)
   (set (make-local-variable 'zero-preedit-str) "")
