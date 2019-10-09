@@ -1,5 +1,4 @@
-;;; -*- lexical-binding: t -*-
-;;; zero-panel --- provide emacs interface for zero-panel dbus service.
+;;; zero-panel --- Provide emacs interface for zero-panel dbus service. -*- lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -31,7 +30,7 @@ EVENT and ERROR are error-handler arguments."
   (when (or (string-equal "com.emacsos.zero.Panel"
 			  (dbus-event-interface-name event))
 	    (s-contains-p "com.emacsos.zero.Panel" (cadr error)))
-    (error "zero-panel dbus failed: %S" (cadr error))))
+    (error "Zero-panel dbus failed: %S" (cadr error))))
 
 (add-hook 'dbus-event-error-functions 'zero-panel-error-handler)
 

@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2019-10-08>
+Time-stamp: <2019-10-10>
 #+STARTUP: content
 * notes                                                               :entry:
 ** 2019-04-01 zero-framework.el a Chinese IM framework in emacs; FSM	:doc:
@@ -80,6 +80,59 @@ cd ~/lisp/elisp/zero/
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
+** 2019-10-09 release zero-el on melpa
+melpa/CONTRIBUTING.org at master · melpa/melpa · GitHub
+https://github.com/melpa/melpa/blob/master/CONTRIBUTING.org
+
+Making your package ready for inclusion
+https://github.com/melpa/melpa/blob/master/CONTRIBUTING.org#making-your-package-ready-for-inclusion
+
+Packaging Basics - GNU Emacs Lisp Reference Manual
+https://www.gnu.org/software/emacs/manual/html_node/elisp/Packaging-Basics.html#Packaging-Basics
+
+name: zero
+version: 1.2.2
+brief: a Chinese input method framework
+long: zero is a Chinese input method framework for Emacs, implemented
+as an Emacs minor mode. A zero-pinyin input method is included with zero
+distribution.
+dependencies: s
+
+progress:
+Preparing a pull request to MELPA
+https://github.com/melpa/melpa/blob/master/CONTRIBUTING.org#preparing-a-pull-request-to-melpa
+
+- problems
+  - should I create two pkg, one for zero-framework and one for zero-pinyin?
+    does melpa require two repo for this?
+  - minimum s version?
+    I only use s-contains-p s-join.
+    checked github
+    tag 1.2.0 already include these functions.
+    https://github.com/magnars/s.el/blob/1.2.0/s.el
+  - TODO Note that there is no way to control the order in which files are
+    byte-compiled.
+  - how to add autoload magic comments?
+
+    https://www.gnu.org/software/emacs/manual/html_node/elisp/Autoload.html
+
+    A magic autoload comment (often called an autoload cookie) consists of
+    ‘;;;###autoload’, on a line by itself, just before the real definition of
+    the function in its autoloadable source file.
+
+    add this for some user commands.
+    zero-set-im
+    zero-set-default-im
+    zero-on
+    zero-toggle
+  - run package-lint
+  - Prefix function names with #’ (i.e., the special form function) instead of
+    just ’ (i.e., the special form quote) to tell the compiler this is a
+    function reference. E.g., (seq-filter #'evenp list).
+
+    I don't think this is necessary in my code.
+  - 
+
 * done                                                                :entry:
 ** 2019-10-08 support full-width characters and symbols.
 全角 半角

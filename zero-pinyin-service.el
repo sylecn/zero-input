@@ -1,5 +1,4 @@
-;;; -*- lexical-binding: t -*-
-;;; zero-pinyin-service.el --- provide emacs interface for zero-pinyin-service dbus service.
+;;; zero-pinyin-service.el --- Provide emacs interface for zero-pinyin-service dbus service. -*- lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -22,13 +21,14 @@
 ;;================
 
 (require 'dbus)
+(require 's)
 
 (defun zero-pinyin-service-error-handler (event error)
   "Handle dbus errors."
   (when (or (string-equal "com.emacsos.zero.ZeroPinyinService1"
 			  (dbus-event-interface-name event))
 	    (s-contains-p "com.emacsos.zero.ZeroPinyinService1" (cadr error)))
-    (error "zero-pinyin-service dbus failed: %S" (cadr error))))
+    (error "`zero-pinyin-service' dbus failed: %S" (cadr error))))
 
 (add-hook 'dbus-event-error-functions 'zero-pinyin-service-error-handler)
 
@@ -92,7 +92,7 @@ GET-CANDIDATES-COMPLETE the async handler function."
 			  (:struct :int32 7 :int32 55)))))
 
 (defun zero-pinyin-service-commit-candidate-async (candidate candidate_pinyin_indices)
-  "Commit CANDIDATE asynchronously."
+  "Commit candidate asynchronously."
   ;; don't care about the result, so no callback.
   (zero-pinyin-service-async-call
    "CommitCandidate" nil

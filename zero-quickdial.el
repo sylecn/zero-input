@@ -1,5 +1,4 @@
-;;; -*- lexical-binding: t -*-
-;;; zero-quickdial --- quickdial input method written as an emacs minor mode.
+;;; zero-quickdial --- quickdial input method written as an emacs minor mode. -*- lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.

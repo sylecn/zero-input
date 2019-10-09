@@ -1,5 +1,4 @@
-;;; -*- lexical-binding: t -*-
-;;; zero-pinyin.el --- a pinyin input method for zero-framework
+;;; zero-pinyin.el --- A pinyin input method for zero-framework -*- lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -27,7 +26,6 @@
 ;; dependencies
 ;;==============
 
-(require 's)
 (require 'zero-framework)
 (require 'zero-pinyin-service)
 
@@ -35,7 +33,7 @@
 ;; basic data and emacs facility
 ;;===============================
 
-(defvar zero-pinyin-state nil "zero-pinyin internal state. could be nil or `*zero-pinyin-state-im-partial-commit*'.")
+(defvar zero-pinyin-state nil "Zero-pinyin internal state.  could be nil or `*zero-pinyin-state-im-partial-commit*'.")
 (defconst *zero-pinyin-state-im-partial-commit* 'IM-PARTIAL-COMMIT)
 
 (defvar zero-pinyin-used-preedit-str-lengths nil
@@ -283,7 +281,7 @@ DIGIT 0 means delete 10th candidate."
   "Allow C-<digit> to DeleteCandidate in `*zero-state-im-preediting*' state."
   (interactive)
   (unless (eq zero-state *zero-state-im-preediting*)
-    (error "zero-digit-argument called in non preediting state"))
+    (error "`zero-digit-argument' called in non preediting state"))
   (if (memq 'control (event-modifiers last-command-event))
       (let* ((char (if (integerp last-command-event)
 		       last-command-event

@@ -1,5 +1,4 @@
-;;; -*- lexical-binding: t -*-
-;;; zero-framework.el --- zero Chinese input method framework
+;;; zero-framework.el --- Zero Chinese input method framework -*- lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -139,8 +138,8 @@ If item is not in lst, return nil."
 ;;=====================
 
 ;; zero-el version
-(defvar zero-version nil "zero-el package version.")
-(setq zero-version "1.2.2")
+(defvar zero-version nil "Zero-el package version.")
+(setq zero-version "1.2.3")
 
 ;; FSM state
 (defconst *zero-state-im-off* 'IM-OFF)
@@ -774,6 +773,7 @@ LEVEL the level to set to."
 	(zero-cycle-list zero-punctuation-levels zero-punctuation-level))
   (message "punctuation level set to %s" zero-punctuation-level))
 
+;;;###autoload
 (defun zero-set-im (im-name)
   "Select zero input method for current buffer.
 
@@ -835,12 +835,14 @@ if IM-NAME is nil, use default empty input method"
     (setq zero-preedit-start-func nil)
     (setq zero-preedit-end-func nil)))
 
+;;;###autoload
 (defun zero-set-default-im (im-name)
   "Set given IM-NAME as default zero input method."
   (unless (symbolp im-name)
     (signal 'wrong-type-argument (list 'symbolp im-name)))
   (setq-default zero-im im-name))
 
+;;;###autoload
 (defun zero-on ()
   "Turn on `zero-mode'."
   (interactive)
@@ -857,6 +859,7 @@ if IM-NAME is nil, use default empty input method"
   (zero-reset)
   (zero-set-state *zero-state-im-off*))
 
+;;;###autoload
 (defun zero-toggle ()
   "Toggle `zero-mode'."
   (interactive)

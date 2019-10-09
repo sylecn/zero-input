@@ -1,5 +1,4 @@
-;;; -*- no-byte-compile: t; -*-
-;;; zero-table.el --- a demo table based input method based on zero-framework.el
+;;; zero-table.el --- a demo table based input method based on zero-framework.el -*- no-byte-compile: t; lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -30,7 +29,6 @@
 ;; dependencies
 ;;==============
 
-(require 's)
 (require 'zero-framework)
 
 ;;===============================
