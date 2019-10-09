@@ -22,7 +22,7 @@
 ;; type 3 will insert three.
 ;; M-x zero-quickdial-mode    ; turn off IM
 ;;
-;; This is just a demo of how emacs minor mode can work as input method.
+;; This is just a demo of how Emacs minor mode can work as input method.
 
 ;;; Code:
 
@@ -43,7 +43,7 @@
     (49 . zero-quickdial-insert-one)
     (50 . zero-quickdial-insert-two)
     (51 . zero-quickdial-insert-three))
-  "zero-quickdial-mode keymap")
+  "zero-quickdial-mode keymap.")
 
 (define-minor-mode zero-quickdial-mode
   "a simple input method written as an emacs minor mode"

@@ -15,7 +15,7 @@
 
 ;;; Commentary:
 
-;; use use this input method, add in emacs init file:
+;; To use this input method, add in Emacs init file:
 ;;
 ;;   (add-to-list 'load-path "~/fromsource/zero")
 ;;   (require 'zero-pinyin)
@@ -36,17 +36,17 @@
 ;; basic data and emacs facility
 ;;===============================
 
-(defvar zero-pinyin-state nil "zero-pinyin internal state. could be nil or `*zero-pinyin-state-im-partial-commit*'")
+(defvar zero-pinyin-state nil "zero-pinyin internal state. could be nil or `*zero-pinyin-state-im-partial-commit*'.")
 (defconst *zero-pinyin-state-im-partial-commit* 'IM-PARTIAL-COMMIT)
 
 (defvar zero-pinyin-used-preedit-str-lengths nil
-  "accompany `zero-candidates', marks how many preedit-str chars are used for each candidate")
+  "Accompany `zero-candidates', marks how many preedit-str chars are used for each candidate.")
 (defvar zero-pinyin-candidates-pinyin-indices nil
-  "store GetCandidates dbus method candidates_pinyin_indices field")
+  "Store GetCandidates dbus method candidates_pinyin_indices field.")
 (defvar zero-pinyin-pending-str "")
 (defvar zero-pinyin-pending-preedit-str "")
 (defvar zero-pinyin-pending-pinyin-indices nil
-  "stores `zero-pinyin-pending-str' corresponds pinyin indices")
+  "Stores `zero-pinyin-pending-str' corresponds pinyin indices.")
 
 ;;=====================
 ;; key logic functions
@@ -59,27 +59,27 @@
   (setq zero-pinyin-pending-preedit-str ""))
 
 (defun zero-pinyin-init ()
-  "called when this im is turned on"
+  "Called when this im is turned on."
   (make-local-variable 'zero-pinyin-state)
   (zero-pinyin-reset))
 
 (defun zero-pinyin-preedit-start ()
-  "called when enter `*zero-state-im-preediting*' state"
+  "Called when enter `*zero-state-im-preediting*' state."
   (define-key zero-mode-map [remap digit-argument] 'zero-digit-argument))
 
 (defun zero-pinyin-preedit-end ()
-  "called when leave `*zero-state-im-preediting*' state"
+  "Called when leave `*zero-state-im-preediting*' state."
   (define-key zero-mode-map [remap digit-argument] nil))
 
 (defun zero-pinyin-shutdown ()
-  "called when this im is turned off"
+  "Called when this im is turned off."
   (define-key zero-mode-map [remap digit-argument] nil))
 
 (defvar zero-pinyin--build-candidates-use-test-data nil
-  "if t, `zero-pinyin-build-candidates' will use `zero-pinyin-build-candidates-test'")
+  "If t, `zero-pinyin-build-candidates' will use `zero-pinyin-build-candidates-test'.")
 
 (defun zero-pinyin-build-candidates (preedit-str fetch-size)
-  "zero-pinyin-build-candidates synchronous version"
+  "zero-pinyin-build-candidates synchronous version."
   (if zero-pinyin--build-candidates-use-test-data
       (progn
 	(zero-pinyin-build-candidates-test preedit-str)
@@ -92,7 +92,7 @@
       (cl-first result))))
 
 (defun zero-pinyin-build-candidates-async (preedit-str fetch-size complete-func)
-  "build candidate list, when done call complete-func on it"
+  "Build candidate list, when done call complete-func on it."
   (zero-debug "zero-pinyin building candidate list asynchronously\n")
   (zero-pinyin-service-get-candidates-async
    preedit-str
@@ -106,7 +106,7 @@
      (funcall complete-func candidates))))
 
 (defun zero-pinyin-can-start-sequence (ch)
-  "return t if char ch can start a preedit sequence."
+  "Return t if char CH can start a preedit sequence."
   (and (>= ch ?a)
        (<= ch ?z)
        (not (= ch ?i))
@@ -130,7 +130,7 @@
   (zero-pinyin-build-candidates-async zero-pinyin-pending-preedit-str zero-initial-fetch-size 'zero-build-candidates-complete))
 
 (defun zero-pinyin-commit-nth-candidate (n)
-  "commit nth candidate and return true if it exists, otherwise, return false"
+  "Commit Nth candidate and return true if it exists, otherwise, return false."
   (let* ((n-prime (+ n (* zero-candidates-per-page zero-current-page)))
 	 (candidate (nth n-prime zero-candidates))
 	 (used-len (when candidate
@@ -188,8 +188,8 @@
     (zero-commit-preedit-str)))
 
 (defun zero-pinyin-commit-first-candidate-in-full ()
-  "commit first candidate and return t if first candidate consumes all preedit-str.
-otherwise, just return nil"
+  "Commit first candidate and return t if it consumes all preedit-str.
+Otherwise, just return nil."
   (let ((candidate (nth 0 (zero-candidates-on-page zero-candidates)))
 	(used-len (nth (* zero-candidates-per-page zero-current-page) zero-pinyin-used-preedit-str-lengths)))
     (when candidate
@@ -208,7 +208,7 @@ otherwise, just return nil"
        (t (error "Unexpected zero-pinyin-state: %s" zero-pinyin-state))))))
 
 (defun zero-pinyin-page-down ()
-  "handle page down for zero-pinyin.
+  "Handle page down for zero-pinyin.
 
 This is different from zero-framework because I need to support partial commit"
   (let ((len (length zero-candidates))
@@ -225,7 +225,8 @@ This is different from zero-framework because I need to support partial commit"
       (zero-just-page-down))))
 
 (defun zero-pinyin-handle-preedit-char (ch)
-  "hanlde character insert in `*zero-state-im-preediting*' state. overrides `zero-handle-preedit-char-default'"
+  "Hanlde character insert in `*zero-state-im-preediting*' state.
+Override `zero-handle-preedit-char-default'."
   (cond
    ((= ch ?\s)
     (zero-pinyin-commit-first-candidate-or-preedit-str))
@@ -255,23 +256,24 @@ This is different from zero-framework because I need to support partial commit"
     zero-preedit-str))
 
 (defun zero-pinyin-preedit-str-changed ()
-  "start over for candidate selection process."
+  "Start over for candidate selection process."
   (setq zero-pinyin-state nil)
   (zero-preedit-str-changed))
 
 (defun zero-pinyin-backspace ()
-  "handle backspace key in `*zero-state-im-preediting*' state"
+  "Handle backspace key in `*zero-state-im-preediting*' state."
   (if (eq zero-pinyin-state *zero-pinyin-state-im-partial-commit*)
       (zero-pinyin-preedit-str-changed)
     (zero-backspace-default)))
 
 (defun zero-pinyin-delete-candidate (digit)
-  "tell backend to delete nth candidate.
+  "Tell backend to delete candidate at DIGIT position.
 
-n is the digit selection number.
-1 means delete 1st candidate.
-2 means delete 2st candidate.
-0 means delete 10th candidate."
+DIGIT is the digit key used to select nth candidate.
+DIGIT 1 means delete 1st candidate.
+DIGIT 2 means delete 2st candidate.
+...
+DIGIT 0 means delete 10th candidate."
   (let ((candidate (nth (mod (- digit 1) 10)
 			(zero-candidates-on-page zero-candidates))))
     (when candidate
@@ -279,7 +281,7 @@ n is the digit selection number.
        candidate 'zero-pinyin-preedit-str-changed))))
 
 (defun zero-digit-argument ()
-  "allow C-<digit> to DeleteCandidate in `*zero-state-im-preediting*' state"
+  "Allow C-<digit> to DeleteCandidate in `*zero-state-im-preediting*' state."
   (interactive)
   (unless (eq zero-state *zero-state-im-preediting*)
     (error "zero-digit-argument called in non preediting state"))
@@ -317,7 +319,9 @@ n is the digit selection number.
 ;;===========
 
 (defun zero-pinyin-build-candidates-test (preedit-str)
-  "test data for testing partial commit"
+  "Test data for testing partial commit.
+
+PREEDIT-STR the preedit string."
   (cond
    ((equal preedit-str "liyifeng")
     (setq zero-pinyin-used-preedit-str-lengths '(8 4 4 4 2 2 2))

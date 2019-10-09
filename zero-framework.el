@@ -15,15 +15,15 @@
 
 ;;; Commentary:
 
-;; zero-framework is a Chinese input method framework for emacs, implemented
-;; as an emacs minor mode.
+;; zero-framework is a Chinese input method framework for Emacs, implemented
+;; as an Emacs minor mode.
 ;;
-;; You can cycle zero-punctuation-level by C-c , ,
+;; You can cycle zero-punctuation-level in current buffer by C-c , ,
 ;; You can change default Chinese punctuation level:
 ;;
 ;;   (setq-default zero-punctuation-level *zero-punctuation-level-full*)
 ;;
-;; You can toggle full-width mode by C-c , .
+;; You can toggle full-width mode in current buffer by C-c , .
 ;; You can enable full-width mode by default:
 ;;
 ;;   (setq-default zero-full-width-mode t)
@@ -47,7 +47,7 @@
 (defun ibus-compute-pixel-position (&optional pos window)
   "Return geometry of object at POS in WINDOW as a list like \(X Y H).
 X and Y are pixel coordinates relative to top left corner of frame which
-WINDOW is in. H is the pixel height of the object.
+WINDOW is in.  H is the pixel height of the object.
 
 Omitting POS and WINDOW means use current position and selected window,
 respectively."
@@ -87,7 +87,8 @@ respectively."
     (list ax ay height)))
 
 (defun zero-get-point-position ()
-  "return current point's position (x y) based on origin of screen top left corner"
+  "Return current point's position (x y).
+Origin (0, 0) is at screen top left corner."
   (cl-destructuring-bind (x y line-height) (ibus-compute-pixel-position)
     (cond
      ((functionp 'window-absolute-pixel-position)
@@ -116,9 +117,10 @@ respectively."
 	       y))))))
 
 (defun zero-cycle-list (lst item)
-  "return the object next to given item in lst, if item is the last object, return the first object in lst.
+  "Return the object next to given ITEM in LST.
 
-if item is not in lst, return nil"
+If item is the last object, return the first object in lst.
+If item is not in lst, return nil."
   (let ((r (member item lst)))
     (cond
      ((null r) nil)
@@ -137,8 +139,8 @@ if item is not in lst, return nil"
 ;;=====================
 
 ;; zero-el version
-(defvar zero-version nil "zero-el package version")
-(setq zero-version "1.2.0")
+(defvar zero-version nil "zero-el package version.")
+(setq zero-version "1.2.1")
 
 ;; FSM state
 (defconst *zero-state-im-off* 'IM-OFF)
@@ -150,54 +152,63 @@ if item is not in lst, return nil"
 (defconst *zero-punctuation-level-none* 'NONE)
 
 (defvar zero-im nil
-  "current input method. if nil, the empty input method will be used.
-in the empty input method, only punctuation is handled. Other keys are pass through")
+  "Stores current input method.
+
+If nil, the empty input method will be used.  In the empty input
+method, only punctuation is handled.  Other keys are pass
+through")
 (defvar zero-ims nil
-  "a list of registered input methods")
+  "A list of registered input methods.")
 
 (defvar zero-buffer nil
-  "stores the associated buffer.
+  "Stores the associated buffer.
 this is used to help with buffer focus in/out events")
 
 (defvar zero-state *zero-state-im-off*)
 (defvar zero-full-width-mode nil
-  "Set to t to enable full-width mode. In full-width mode, commit
-  ascii char will insert full-width char if there is a
-  corresponding full-width char. This full-width char map is
-  independent from punctuation map. You can change this via
-  `zero-toggle-full-width-mode'")
+  "Set to t to enable full-width mode.
+In full-width mode, commit ascii char will insert full-width char if there is a
+corresponding full-width char.  This full-width char map is
+independent from punctuation map.  You can change this via
+`zero-toggle-full-width-mode'")
 (defvar zero-punctuation-level *zero-punctuation-level-basic*
-  "punctuation level. should be one of
+  "Punctuation level.
+
+Should be one of
 *zero-punctuation-level-basic*
 *zero-punctuation-level-full*
 *zero-punctuation-level-none*")
 (defvar zero-punctuation-levels (list *zero-punctuation-level-basic*
 				      *zero-punctuation-level-full*
 				      *zero-punctuation-level-none*)
-  "punctuation levels to use when `zero-cycle-punctuation-level'")
+  "Punctuation levels to use when `zero-cycle-punctuation-level'.")
 (defvar zero-double-quote-flag nil
-  "used when converting double quote to Chinese quote.
-if nil, next double quote insert open quote.
-otherwise, next double quote insert close quote")
+  "Non-nil means next double quote insert close quote.
+
+Used when converting double quote to Chinese quote.
+If nil, next double quote insert open quote.
+Otherwise, next double quote insert close quote.")
 (defvar zero-single-quote-flag nil
-  "used when converting single quote to Chinese quote.
-if nil, next single quote insert open quote.
-otherwise, next single quote insert close quote")
+  "Non-nil means next single quote insert close quote.
+
+Used when converting single quote to Chinese quote.
+If nil, next single quote insert open quote.
+Otherwise, next single quote insert close quote.")
 (defvar zero-preedit-str "")
 (defvar zero-candidates nil)
 (defcustom zero-candidates-per-page 10
-  "how many candidates to show on each page"
+  "How many candidates to show on each page."
   :group 'zero
   :type 'integer)
-(defvar zero-current-page 0 "current page number. count from 0")
+(defvar zero-current-page 0 "Current page number.  count from 0.")
 (defvar zero-initial-fetch-size 20
-  "how many candidates to fetch for the first call to GetCandidates")
+  "How many candidates to fetch for the first call to GetCandidates.")
 ;; zero-fetch-size is reset to 0 when preedit-str changes.
 ;; zero-fetch-size is set to fetch-size in build-candidates-async complete-func
 ;; lambda.
-(defvar zero-fetch-size 0 "last GetCandidates call's fetch-size")
-(defvar zero-previous-page-key ?\- "previous page key")
-(defvar zero-next-page-key ?\= "next page key")
+(defvar zero-fetch-size 0 "Last GetCandidates call's fetch-size.")
+(defvar zero-previous-page-key ?\- "Previous page key.")
+(defvar zero-next-page-key ?\= "Next page key.")
 
 ;;; concrete input method should define these functions and set them in the
 ;;; corresponding *-func variable.
@@ -205,34 +216,36 @@ otherwise, next single quote insert close quote")
 (defun zero-can-start-sequence-default (_ch) nil)
 (defun zero-get-preedit-str-for-panel-default () zero-preedit-str)
 (defvar zero-build-candidates-func 'zero-build-candidates-default
-  "contains a function to build candidates from preedit-str. The function accepts param preedit-str, fetch-size, returns candidate list.")
+  "Contains a function to build candidates from preedit-str.  The function accepts param preedit-str, fetch-size, returns candidate list.")
 (defvar zero-build-candidates-async-func 'zero-build-candidates-async-default
-  "contains a function to build candidates from preedit-str. The function accepts param preedit-str, fetch-size, and a complete-func that should be called on returned candidate list.")
+  "Contains a function to build candidates from preedit-str.  The function accepts param preedit-str, fetch-size, and a complete-func that should be called on returned candidate list.")
 (defvar zero-can-start-sequence-func 'zero-can-start-sequence-default
-  "contains a function to decide whether a char can start a preedit sequence")
+  "Contains a function to decide whether a char can start a preedit sequence.")
 (defvar zero-handle-preedit-char-func 'zero-handle-preedit-char-default
-  "contains a function to handle IM-PREEDITING state char insert.
+  "Contains a function to handle IM-PREEDITING state char insert.
 The function should return t if char is handled.
 This allow input method to override default logic.")
 (defvar zero-get-preedit-str-for-panel-func 'zero-get-preedit-str-for-panel-default
-  "contains a function that return preedit-str to show in zero-panel")
+  "Contains a function that return preedit-str to show in zero-panel.")
 (defvar zero-backspace-func 'zero-backspace-default
-  "contains a function to handle <backward> char")
+  "Contains a function to handle <backward> char.")
 (defvar zero-handle-preedit-char-func 'zero-handle-preedit-char-default
-  "hanlde character insert in `*zero-state-im-preediting*' mode")
+  "Hanlde character insert in `*zero-state-im-preediting*' mode.")
 (defvar zero-preedit-start-func 'nil
-  "called when enter `*zero-state-im-preediting*' state")
+  "Called when enter `*zero-state-im-preediting*' state.")
 (defvar zero-preedit-end-func 'nil
-  "called when leave `*zero-state-im-preediting*' state")
+  "Called when leave `*zero-state-im-preediting*' state.")
 
 (defvar zero-enable-debug nil
-  "whether to enable debug.
+  "Whether to enable debug.
 if t, `zero-debug' will output debug msg in *zero-debug* buffer")
 (defvar zero-debug-buffer-max-size 30000
-  "max characters in *zero-debug* buffer. if reached, first half data will be deleted")
+  "Max characters in *zero-debug* buffer.  If reached, first half data will be deleted.")
 
 (defun zero-debug (string &rest objects)
-  "log debug message in *zero-debug* buffer"
+  "Log debug message in *zero-debug* buffer.
+
+STRING and OBJECTS are passed to `format'"
   (if zero-enable-debug
       (with-current-buffer (get-buffer-create "*zero-debug*")
 	(goto-char (point-max))
@@ -247,19 +260,19 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
 ;; (zero-debug "msg4: %s %s\n" 24 1)
 
 (defun zero-enter-preedit-state ()
-  "config keymap when enter preedit state"
+  "Config keymap when enter preedit state."
   (zero-enable-preediting-map)
   (if (functionp zero-preedit-start-func)
       (funcall zero-preedit-start-func)))
 
 (defun zero-leave-preedit-state ()
-  "config keymap when leave preedit state"
+  "Config keymap when leave preedit state."
   (zero-disable-preediting-map)
   (if (functionp zero-preedit-end-func)
       (funcall zero-preedit-end-func)))
 
 (defun zero-set-state (state)
-  "set state to given state"
+  "Set zero state to given STATE."
   (zero-debug "set state to %s\n" state)
   (setq zero-state state)
   (if (eq state *zero-state-im-preediting*)
@@ -267,7 +280,7 @@ if t, `zero-debug' will output debug msg in *zero-debug* buffer")
     (zero-leave-preedit-state)))
 
 (defun zero-candidates-on-page (candidates)
-  "return candidates on current page for given candidates list"
+  "Return candidates on current page for given CANDIDATES list."
   (cl-flet ((take (n lst)
 	       "take the first n element from lst. if there is not
 enough elements, return lst as it is."
@@ -287,7 +300,7 @@ enough elements, return lst as it is."
 	  (drop (* zero-candidates-per-page zero-current-page) candidates))))
 
 (defun zero-show-candidates (&optional candidates)
-  "show candidates using zero-panel via IPC/RPC"
+  "Show CANDIDATES using zero-panel via IPC/RPC."
   (let ((candidates-on-page (zero-candidates-on-page (or candidates
 							 zero-candidates))))
     (cl-destructuring-bind (x y) (zero-get-point-position)
@@ -305,7 +318,9 @@ enough elements, return lst as it is."
       (zero-debug "candidates: %s\n" (s-join ", " candidates-on-page)))))
 
 (defun zero-build-candidates (preedit-str fetch-size)
-  "build candidates list synchronously"
+  "Build candidates list synchronously.
+
+Try to find at least FETCH-SIZE number of candidates for PREEDIT-STR."
   ;; (zero-debug "zero-build-candidates\n")
   (unless (functionp zero-build-candidates-func)
     (signal 'wrong-type-argument (list 'functionp zero-build-candidates-func)))
@@ -313,12 +328,18 @@ enough elements, return lst as it is."
     (setq zero-fetch-size (max fetch-size (length zero-candidates)))))
 
 (defun zero-build-candidates-complete (candidates)
-  "called when `zero-build-candidates-async' returns"
+  "Called when `zero-build-candidates-async' return.
+
+CANDIDATES is returned candidates list from async call."
   (setq zero-candidates candidates)
   (zero-show-candidates candidates))
 
 (defun zero-build-candidates-async-default (preedit-str fetch-size complete-func)
-  "build candidate list, when done show it via `zero-show-candidates'"
+  "Build candidate list, when done show it via `zero-show-candidates'.
+
+PREEDIT-STR the preedit-str.
+FETCH-SIZE try to find at least this many candidates for preedit-str.
+COMPLETE-FUNC the function to call when build candidates completes."
   ;; (zero-debug "zero-build-candidates-async-default\n")
   (let ((candidates (zero-build-candidates preedit-str fetch-size)))
     ;; update cache to make SPC and digit key selection possible.
@@ -330,9 +351,12 @@ enough elements, return lst as it is."
   (cl-loop
    for i from 33 to 126
    collect (cons (make-char 'ascii i) (make-char 'unicode 0 255 (- i 32))))
-  "an alist that map half-width char to full-width char")
+  "An alist that map half-width char to full-width char.")
 
 (defun zero-convert-ch-to-full-width (ch)
+  "Convert half-width char CH to full-width.
+
+If there is no full-width char for CH, return it unchanged."
   (let ((pair (assoc ch zero-full-width-char-map)))
     (if pair (cdr pair) ch)))
 
@@ -340,7 +364,7 @@ enough elements, return lst as it is."
   (should (= (zero-convert-ch-to-full-width ?\!) ?\！)))
 
 (defun zero-convert-str-to-full-width (s)
-  "convert each char in s to their full-width char if there is one"
+  "Convert each char in S to their full-width char if there is one."
   (concat (mapcar 'zero-convert-ch-to-full-width s)))
 
 (ert-deftest zero-convert-str-to-full-width ()
@@ -352,19 +376,20 @@ enough elements, return lst as it is."
   (should (string-equal "（Ａ）" (zero-convert-str-to-full-width "(A)"))))
 
 (defun zero-convert-str-to-full-width-maybe (s)
-  "if in zero-full-width-mode, convert char in s to their full-width char; otherwise, return s unchanged."
+  "If in `zero-full-width-mode', convert char in S to their full-width char; otherwise, return s unchanged."
   (if zero-full-width-mode (zero-convert-str-to-full-width s) s))
 
 (defun zero-insert-full-width-char (ch)
-  "if in zero-full-width-mode, insert full-width char for given ch and return true, otherwise just return nil."
+  "If in `zero-full-width-mode', insert full-width char for given CH and return true, otherwise just return nil."
   (when zero-full-width-mode
     (let ((full-width-ch (zero-convert-ch-to-full-width ch)))
       (insert full-width-ch)
       full-width-ch)))
 
 (defun zero-convert-punctuation-basic (ch)
-  "convert punctuation for *zero-punctuation-level-basic*
-return ch's Chinese punctuation if ch is converted. return nil otherwise"
+  "Convert punctuation for *zero-punctuation-level-basic*.
+
+Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
   (cl-case ch
     (?, "，")
     (?. "。")				; 0x3002
@@ -375,8 +400,9 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
     (otherwise nil)))
 
 (defun zero-convert-punctuation-full (ch)
-  "convert punctuation for *zero-punctuation-level-full*
-return ch's Chinese punctuation if ch is converted. return nil otherwise"
+  "Convert punctuation for *zero-punctuation-level-full*.
+
+Return CH's Chinese punctuation if CH is converted.  Return nil otherwise"
   (cl-case ch
     (?_ "——")
     (?< "《")				;0x300A
@@ -396,8 +422,8 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
     (t (zero-convert-punctuation-basic ch))))
 
 (defun zero-convert-punctuation (ch)
-  "convert punctuation based on `zero-punctuation-level'
-return ch's Chinese punctuation if ch is converted. return nil otherwise"
+  "Convert punctuation based on `zero-punctuation-level'.
+Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
   (cond
    ((eq zero-punctuation-level *zero-punctuation-level-basic*)
     (zero-convert-punctuation-basic ch))
@@ -406,41 +432,41 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
    (t nil)))
 
 (defun zero-handle-punctuation (ch)
-  "if n is a punctuation character, insert mapped Chinese punctuation and return true; otherwise, return false."
+  "If CH is a punctuation character, insert mapped Chinese punctuation and return true; otherwise, return false."
   (let ((str (zero-convert-punctuation ch)))
     (when str
       (insert str)
       t)))
 
 (defun zero-append-char-to-preedit-str (ch)
-  "append char ch to preedit str, update and show candidate list"
+  "Append char CH to preedit str, update and show candidate list."
   (setq zero-preedit-str
 	(concat zero-preedit-str (make-string 1 ch)))
   (zero-debug "appended %c, preedit str is: %s\n" ch zero-preedit-str)
   (zero-preedit-str-changed))
 
 (defun zero-can-start-sequence (ch)
-  "return t if char ch can start a preedit sequence."
+  "Return t if char CH can start a preedit sequence."
   (if (functionp zero-can-start-sequence-func)
       (funcall zero-can-start-sequence-func ch)
     (error "`zero-can-start-sequence-func' is not a function")))
 
 (defun zero-page-up ()
-  "if not at first page, show candidates on previous page."
+  "If not at first page, show candidates on previous page."
   (interactive)
   (when (> zero-current-page 0)
     (setq zero-current-page (1- zero-current-page))
     (zero-show-candidates)))
 
 (defun zero-just-page-down ()
-  "just page down using existing candidates"
+  "Just page down using existing candidates."
   (let ((len (length zero-candidates)))
     (when (> len (* zero-candidates-per-page (1+ zero-current-page)))
       (setq zero-current-page (1+ zero-current-page))
       (zero-show-candidates))))
 
 (defun zero-page-down ()
-  "if there is still candidates to be displayed, show candidates on next page."
+  "If there is still candidates to be displayed, show candidates on next page."
   (interactive)
   (let ((len (length zero-candidates))
 	(new-fetch-size (* zero-candidates-per-page (+ 2 zero-current-page))))
@@ -457,7 +483,9 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
       (zero-just-page-down))))
 
 (defun zero-handle-preedit-char-default (ch)
-  "hanlde character insert in `*zero-state-im-preediting*' state"
+  "Hanlde character insert in `*zero-state-im-preediting*' state.
+
+CH is the char user has typed."
   (cond
    ((= ch ?\s)
     (zero-commit-first-candidate-or-preedit-str))
@@ -481,7 +509,9 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 	  (zero-append-char-to-preedit-str ch))))))
 
 (defun zero-self-insert-command (n)
-  "handle character self-insert-command. This includes characters and digits"
+  "Handle character `self-insert-command'.  This includes characters and digits.
+
+N is the argument passed to `self-insert-command'."
   (interactive "p")
   (let ((ch (elt (this-command-keys-vector) 0)))
     (zero-debug "user typed: %c\n" ch)
@@ -504,13 +534,13 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
       (self-insert-command n)))))
 
 (defun zero-preedit-str-changed ()
-  "called when preedit str is changed and not empty. update and show candidate list"
+  "Called when preedit str is changed and not empty.  Update and show candidate list."
   (setq zero-fetch-size 0)
   (setq zero-current-page 0)
   (funcall zero-build-candidates-async-func zero-preedit-str zero-initial-fetch-size 'zero-build-candidates-complete))
 
 (defun zero-backspace-default ()
-  "handle backspace key in `*zero-state-im-preediting*' state"
+  "Handle backspace key in `*zero-state-im-preediting*' state."
   (let ((len (length zero-preedit-str)))
     (if (> len 1)
 	(progn
@@ -521,15 +551,15 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
       (zero-reset))))
 
 (defun zero-backspace ()
-  "handle backspace key in `*zero-state-im-preediting*' state"
+  "Handle backspace key in `*zero-state-im-preediting*' state."
   (interactive)
   (unless (eq zero-state *zero-state-im-preediting*)
-    (error "zero-backspace called in non preediting state"))
+    (error "Error: zero-backspace called in non preediting state"))
   (zero-debug "zero-backspace\n")
   (funcall zero-backspace-func))
 
 (defun zero-commit-text (text)
-  "commit given text, reset preedit str, hide candidate list"
+  "Commit given TEXT, reset preedit str, hide candidate list."
   (zero-debug "commit text: %s\n" text)
   (insert text)
   (setq zero-preedit-str "")
@@ -538,16 +568,16 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
   (zero-hide-candidate-list))
 
 (defun zero-return ()
-  "handle RET key press in `*zero-state-im-preediting*' state"
+  "Handle RET key press in `*zero-state-im-preediting*' state."
   (interactive)
   (unless (eq zero-state *zero-state-im-preediting*)
-    (error "zero-return called in non preediting state"))
+    (error "Error: zero-return called in non preediting state"))
   (zero-debug "zero-return\n")
   (zero-set-state *zero-state-im-waiting-input*)
   (zero-commit-text (zero-convert-str-to-full-width-maybe zero-preedit-str)))
 
 (defun zero-commit-nth-candidate (n)
-  "commit nth candidate and return true if it exists, otherwise, return false"
+  "Commit Nth candidate and return true if it exists; otherwise, return false."
   (let ((candidate (nth n (zero-candidates-on-page zero-candidates))))
     (if candidate
 	(progn
@@ -557,19 +587,22 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
       nil)))
 
 (defun zero-commit-preedit-str ()
+  "Commit current preedit-str."
   (zero-set-state *zero-state-im-waiting-input*)
   (zero-commit-text (zero-convert-str-to-full-width-maybe zero-preedit-str)))
 
 (defun zero-commit-first-candidate-or-preedit-str ()
-  "commit first candidate if there is one, otherwise commit preedit str"
+  "Commit first candidate if there is one, otherwise commit preedit str."
   (unless (zero-commit-nth-candidate 0)
     (zero-commit-preedit-str)))
 
 (defun zero-hide-candidate-list ()
+  "Hide candidate list."
   (zero-panel-hide)
   (zero-debug "hide candidate list\n"))
 
 (defun zero-reset ()
+  "Reset zero states."
   (interactive)
   (zero-debug "zero-reset\n")
   (zero-set-state *zero-state-im-waiting-input*)
@@ -579,19 +612,19 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
   (zero-hide-candidate-list))
 
 (defun zero-focus-in ()
-  "a hook function. run when focus in a zero-mode buffer"
+  "A hook function, run when focus in a `zero-mode' buffer."
   (when (eq zero-state *zero-state-im-preediting*)
     (zero-show-candidates zero-candidates)
     (zero-enter-preedit-state)))
 
 (defun zero-focus-out ()
-  "a hook function. run when focus out a zero-mode buffer"
+  "A hook function, run when focus out a `zero-mode' buffer."
   (when (eq zero-state *zero-state-im-preediting*)
     (zero-hide-candidate-list)
     (zero-leave-preedit-state)))
 
 (defun zero-buffer-list-changed ()
-  "a hook function, run when buffer list has changed. This includes user has switched buffer"
+  "A hook function, run when buffer list has changed.  This includes user has switched buffer."
   (if (eq (car (buffer-list)) zero-buffer)
       (zero-focus-in)))
 
@@ -614,23 +647,27 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
     (define-key map [remap self-insert-command]
       'zero-self-insert-command)
     map)
-  "`zero-mode' keymap")
+  "`zero-mode' keymap.")
 
 (defun zero-enable-preediting-map ()
-  "enable preediting keymap in `zero-mode-map'"
+  "Enable preediting keymap in `zero-mode-map'."
   (zero-debug "zero-enable-preediting-map\n")
   (define-key zero-mode-map (kbd "<backspace>") 'zero-backspace)
   (define-key zero-mode-map (kbd "RET") 'zero-return)
   (define-key zero-mode-map (kbd "<escape>") 'zero-reset))
 
 (defun zero-disable-preediting-map ()
-  "disable preediting keymap in `zero-mode-map'"
+  "Disable preediting keymap in `zero-mode-map'."
   (zero-debug "zero-disable-preediting-map\n")
   (define-key zero-mode-map (kbd "<backspace>") nil)
   (define-key zero-mode-map (kbd "RET") nil)
   (define-key zero-mode-map (kbd "<escape>") nil))
 
 (defun zero-modeline-string ()
+  "Build `zero-mode' modeline string aka lighter.
+
+If full-width mode is enabled, show ZeroF;
+Otherwise, show Zero."
   (if zero-full-width-mode " ZeroF" " Zero"))
 
 (define-minor-mode zero-mode
@@ -667,23 +704,26 @@ return ch's Chinese punctuation if ch is converted. return nil otherwise"
 ;;==================
 
 (defun zero-register-im (im-name im-functions-alist)
-  "(re)register an input method in zero. After registration, you can use `zero-set-default-im' and `zero-set-im' to select input method to use.
+  "(Re)register an input method in zero.
 
-im-name should be a symbol.
-im-functions-alist should be a list of form
+After registration, you can use `zero-set-default-im' and
+`zero-set-im' to select input method to use.
+
+IM-NAME should be a symbol.
+IM-FUNCTIONS-ALIST should be a list of form
   '((:virtual-function-name . implementation-function-name))
 
 virtual functions                       corresponding variable
 ===========================================================================
-:build-candidates                       zero-build-candidates-func
-:can-start-sequence                     zero-can-start-sequence-func
-:handle-preedit-char                    zero-handle-preedit-char-func
-:get-preedit-str-for-panel              zero-get-preedit-str-for-panel-func
-:handle-backspace                       zero-backspace-func
+:build-candidates                       `zero-build-candidates-func'
+:can-start-sequence                     `zero-can-start-sequence-func'
+:handle-preedit-char                    `zero-handle-preedit-char-func'
+:get-preedit-str-for-panel              `zero-get-preedit-str-for-panel-func'
+:handle-backspace                       `zero-backspace-func'
 :init                                   nil
 :shutdown                               nil
-:preedit-start                          zero-preedit-start-func
-:preedit-end                            zero-preedit-end-func
+:preedit-start                          `zero-preedit-start-func'
+:preedit-end                            `zero-preedit-end-func'
 
 registered input method is saved in `zero-ims'"
   ;; add or replace entry in `zero-ims'
@@ -697,7 +737,7 @@ registered input method is saved in `zero-ims'"
 ;;============
 
 (defun zero-toggle-full-width-mode ()
-  "toggle `zero-full-width-mode' on/off"
+  "Toggle `zero-full-width-mode' on/off."
   (interactive)
   (setq zero-full-width-mode (not zero-full-width-mode))
   (message (if zero-full-width-mode
@@ -705,7 +745,9 @@ registered input method is saved in `zero-ims'"
 	     "Enabled half-width mode")))
 
 (defun zero-set-punctuation-level (level)
-  "set `zero-punctuation-level'"
+  "Set `zero-punctuation-level'.
+
+LEVEL the level to set to."
   (interactive)
   (if (not (member level (list *zero-punctuation-level-basic*
 			       *zero-punctuation-level-full*
@@ -714,7 +756,10 @@ registered input method is saved in `zero-ims'"
     (setq zero-punctuation-level level)))
 
 (defun zero-set-punctuation-levels (levels)
-  "set `zero-punctuation-levels'. `zero-cycle-punctuation-level' will cycle current `zero-punctuation-level' among defined levels"
+  "Set `zero-punctuation-levels'.
+
+`zero-cycle-punctuation-level' will cycle current
+`zero-punctuation-level' among defined LEVELS."
   (dolist (level levels)
     (if (not (member level (list *zero-punctuation-level-basic*
 				 *zero-punctuation-level-full*
@@ -723,16 +768,16 @@ registered input method is saved in `zero-ims'"
   (setq zero-punctuation-levels levels))
 
 (defun zero-cycle-punctuation-level ()
-  "cycle `zero-punctuation-level' among `zero-punctuation-levels'"
+  "Cycle `zero-punctuation-level' among `zero-punctuation-levels'."
   (interactive)
   (setq zero-punctuation-level
 	(zero-cycle-list zero-punctuation-levels zero-punctuation-level))
   (message "punctuation level set to %s" zero-punctuation-level))
 
 (defun zero-set-im (im-name)
-  "select zero input method for current buffer.
+  "Select zero input method for current buffer.
 
-if im-name is nil, use default empty input method"
+if IM-NAME is nil, use default empty input method"
   ;; TODO provide auto completion for im-name
   (interactive "SSet input method to: ")
   ;; when switch away from an IM, run last IM's :shutdown function.
@@ -791,12 +836,13 @@ if im-name is nil, use default empty input method"
     (setq zero-preedit-end-func nil)))
 
 (defun zero-set-default-im (im-name)
-  "set given im as default zero input method"
+  "Set given IM-NAME as default zero input method."
   (unless (symbolp im-name)
     (signal 'wrong-type-argument (list 'symbolp im-name)))
   (setq-default zero-im im-name))
 
 (defun zero-on ()
+  "Turn on `zero-mode'."
   (interactive)
   (zero-debug "zero-on\n")
   (zero-mode 1)
@@ -804,6 +850,7 @@ if im-name is nil, use default empty input method"
       (zero-set-state *zero-state-im-waiting-input*)))
 
 (defun zero-off ()
+  "Turn off `zero-mode'."
   (interactive)
   (zero-debug "zero-off\n")
   (zero-mode -1)
@@ -811,6 +858,7 @@ if im-name is nil, use default empty input method"
   (zero-set-state *zero-state-im-off*))
 
 (defun zero-toggle ()
+  "Toggle `zero-mode'."
   (interactive)
   (if zero-mode
       (zero-off)

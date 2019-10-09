@@ -37,16 +37,15 @@
 ;; basic data and emacs facility
 ;;===============================
 
-(defvar zero-table-table nil "zero-table's table, map string to string")
-(defvar zero-table-sequence-initials nil "used in `zero-table-can-start-sequence'")
+(defvar zero-table-table nil "zero-table's table, map string to string.")
+(defvar zero-table-sequence-initials nil "Used in `zero-table-can-start-sequence'.")
 
 ;;=====================
 ;; key logic functions
 ;;=====================
 
 (defun zero-table-sort-key (lhs rhs)
-  "a predicate function to sort candidates. return t if lhs
-should sort before rhs."
+  "A predicate function to sort candidates.  Return t if LHS should sort before RHS."
   (string< (car lhs) (car rhs)))
 
 (defun zero-table-build-candidates (preedit-str &optional _fetch-size)
@@ -67,7 +66,7 @@ should sort before rhs."
 ;;     (zero-table-show-candidates candidates)))
 
 (defun zero-table-can-start-sequence (ch)
-  "return t if char ch can start a preedit sequence."
+  "Return t if char CH can start a preedit sequence."
   (member (make-string 1 ch) zero-table-sequence-initials))
 
 (ert-deftest zero-table-can-start-sequence ()
@@ -90,18 +89,17 @@ should sort before rhs."
 ;;============
 
 (defun zero-table-set-table (alist)
-  "set the conversion table.
+  "Set the conversion table.
 
-the alist should be a list of (key . value) pairs. when user type
-(part of) key, the IM will show all matching value.
+the ALIST should be a list of (key . value) pairs.  when user type
+\(part of) key, the IM will show all matching value.
 
 e.g.
 '((\"phone\" . \"18612345678\")
   (\"mail\" . \"foo@example.com\")
   (\"map\" . \"https://ditu.amap.com/\")
   (\"m\" . \"https://msdn.microsoft.com/en-us\")
-  (\"address\" . \"123 Happy Street\"))
-"
+  (\"address\" . \"123 Happy Street\"))"
   (setq zero-table-table alist)
   (setq zero-table-sequence-initials
 	(delete-dups (mapcar (lambda (pair) (substring (car pair) 0 1))

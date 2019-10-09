@@ -25,7 +25,9 @@
 (require 's)
 
 (defun zero-panel-error-handler (event error)
-  "handle dbus errors"
+  "Handle dbus errors.
+
+EVENT and ERROR are error-handler arguments."
   (when (or (string-equal "com.emacsos.zero.Panel"
 			  (dbus-event-interface-name event))
 	    (s-contains-p "com.emacsos.zero.Panel" (cadr error)))
@@ -34,7 +36,10 @@
 (add-hook 'dbus-event-error-functions 'zero-panel-error-handler)
 
 (defun zero-panel-async-call (method _handler &rest args)
-  "call Method on zero-panel service asynchronously. This is a wrapper around `dbus-call-method-asynchronously'"
+  "Call METHOD on zero-panel service asynchronously.
+
+This is a wrapper around `dbus-call-method-asynchronously'.
+ARGS optional extra args to pass to the wrapped function."
   (apply 'dbus-call-method-asynchronously
 	 :session
 	 "com.emacsos.zero.Panel1"	; well known name
@@ -47,18 +52,18 @@
 ;;=========================
 
 (defun zero-alist-to-asv (hints)
-  "convert lisp alist to dbus a{sv} data structure.
-alist should be of form '((k1 [v1type] v1) (k2 [v2type] v2)).
+  "Convert Lisp alist to dbus a{sv} data structure.
+
+HINTS should be an alist of form '((k1 [v1type] v1) (k2 [v2type] v2)).
 
 For example,
-(zero-alist-to-asv
+\(zero-alist-to-asv
   '((\"name\" \"foo\")
     (\"timeout\" :int32 10)))
 =>
 '(:array
   (:dict-entry \"name\" (:variant \"foo\"))
-  (:dict-entry \"timeout\" (:variant :int32 10)))
-"
+  (:dict-entry \"timeout\" (:variant :int32 10)))"
   (if (null hints)
       '(:array :signature "{sv}")
     (let ((result '(:array)))
@@ -80,12 +85,14 @@ For example,
 ;;============
 
 (defun zero-panel-move (x y)
-  "move panel to specific position
-(x, y) are coordinates, (0, 0) is at screen top left corner"
+  "Move panel to specific coordinate (X, Y).
+Origin (0, 0) is at screen top left corner."
   (zero-panel-async-call "Move" nil :int32 x :int32 y))
 
 (defun zero-panel-show-candidates (preedit_str candidate_length candidates &optional hints)
-  "show candidates"
+  "Show CANDIDATES.
+Argument PREEDIT_STR the preedit string.
+Argument CANDIDATE_LENGTH how many candidates are in candidates list."
   (zero-panel-async-call "ShowCandidates" nil
 			 :string preedit_str
 			 :uint32 candidate_length
@@ -93,15 +100,15 @@ For example,
 			 (zero-alist-to-asv hints)))
 
 (defun zero-panel-show ()
-  "show panel"
+  "Show panel."
   (zero-panel-async-call "Show" nil))
 
 (defun zero-panel-hide ()
-  "hide panel"
+  "Hide panel."
   (zero-panel-async-call "Hide" nil))
 
 (defun zero-panel-quit ()
-  "quit panel application"
+  "Quit panel application."
   (interactive)
   (zero-panel-async-call "Quit" nil))
 

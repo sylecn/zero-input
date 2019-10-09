@@ -25,7 +25,7 @@
 (require 'cl-lib)
 
 (defun zero-pinyin-service-error-handler (event error)
-  "handle dbus errors"
+  "Handle dbus errors."
   (when (or (string-equal "com.emacsos.zero.ZeroPinyinService1"
 			  (dbus-event-interface-name event))
 	    (s-contains-p "com.emacsos.zero.ZeroPinyinService1" (cadr error)))
@@ -34,7 +34,10 @@
 (add-hook 'dbus-event-error-functions 'zero-pinyin-service-error-handler)
 
 (defun zero-pinyin-service-async-call (method handler &rest args)
-  "call Method on zero-pinin-service asynchronously. This is a wrapper around `dbus-call-method-asynchronously'"
+  "Call METHOD on zero-pinin-service asynchronously.
+This is a wrapper around `dbus-call-method-asynchronously'.
+Argument HANDLER the handler function.
+Optional argument ARGS extra arguments to pass to the wrapped function."
   (apply 'dbus-call-method-asynchronously
 	 :session "com.emacsos.zero.ZeroPinyinService1"
 	 "/com/emacsos/zero/ZeroPinyinService1"
@@ -42,7 +45,9 @@
 	 method handler :timeout 1000 args))
 
 (defun zero-pinyin-service-call (method &rest args)
-  "call Method on zero-pinin-service synchronously. This is a wrapper around `dbus-call-method'"
+  "Call METHOD on zero-pinin-service synchronously.
+This is a wrapper around `dbus-call-method'.
+Optional argument ARGS extra arguments to pass to the wrapped function."
   (apply 'dbus-call-method
 	 :session "com.emacsos.zero.ZeroPinyinService1"
 	 "/com/emacsos/zero/ZeroPinyinService1"
@@ -54,17 +59,18 @@
 ;;============
 
 (defun zero-pinyin-service-get-candidates (preedit-str fetch-size)
-  "get candidates for pinyin in preedit-str synchronously.
+  "Get candidates for pinyin in PREEDIT-STR synchronously.
 
 preedit-str the preedit-str, should be pure pinyin string
-fetch-size try to fetch this many candidates or more"
+FETCH-SIZE try to fetch this many candidates or more"
   (zero-pinyin-service-call "GetCandidates" :string preedit-str :uint32 fetch-size))
 
 (defun zero-pinyin-service-get-candidates-async (preedit-str fetch-size get-candidates-complete)
-  "get candidates for pinyin in preedit-str asynchronously.
+  "Get candidates for pinyin in PREEDIT-STR asynchronously.
 
-preedit-str the preedit-str, should be pure pinyin string
-fetch-size try to fetch this many candidates or more"
+PREEDIT-STR the preedit string, should be pure pinyin string.
+FETCH-SIZE try to fetch this many candidates or more.
+GET-CANDIDATES-COMPLETE the async handler function."
   (zero-pinyin-service-async-call
    "GetCandidates" get-candidates-complete :string preedit-str :uint32 fetch-size))
 
@@ -87,7 +93,7 @@ fetch-size try to fetch this many candidates or more"
 			  (:struct :int32 7 :int32 55)))))
 
 (defun zero-pinyin-service-commit-candidate-async (candidate candidate_pinyin_indices)
-  "commit candidate asynchronously"
+  "Commit CANDIDATE asynchronously."
   ;; don't care about the result, so no callback.
   (zero-pinyin-service-async-call
    "CommitCandidate" nil
@@ -95,12 +101,14 @@ fetch-size try to fetch this many candidates or more"
    (zero-pinyin-candidate-pinyin-indices-to-dbus-format candidate_pinyin_indices)))
 
 (defun zero-pinyin-service-delete-candidates-async (candidate delete-candidate-complete)
-  "delete candidate asynchronously"
+  "Delete CANDIDATE asynchronously.
+
+DELETE-CANDIDATE-COMPLETE the async handler function."
   (zero-pinyin-service-async-call
    "DeleteCandidate" delete-candidate-complete :string candidate))
 
 (defun zero-pinyin-service-quit ()
-  "quit panel application"
+  "Quit panel application."
   (zero-pinyin-service-async-call "Quit" nil))
 
 ;;================
