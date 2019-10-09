@@ -35,7 +35,7 @@
 ;; dependencies
 ;;==============
 
-(require 'cl-macs)
+(eval-when-compile (require 'cl-macs))
 (require 's)
 (require 'zero-panel)
 
@@ -140,7 +140,7 @@ If item is not in lst, return nil."
 
 ;; zero-el version
 (defvar zero-version nil "zero-el package version.")
-(setq zero-version "1.2.1")
+(setq zero-version "1.2.2")
 
 ;; FSM state
 (defconst *zero-state-im-off* 'IM-OFF)

@@ -30,7 +30,6 @@
 (require 's)
 (require 'zero-framework)
 (require 'zero-pinyin-service)
-(require 'cl-lib)
 
 ;;===============================
 ;; basic data and emacs facility

@@ -22,7 +22,6 @@
 ;;================
 
 (require 'dbus)
-(require 'cl-lib)
 
 (defun zero-pinyin-service-error-handler (event error)
   "Handle dbus errors."
@@ -115,7 +114,7 @@ DELETE-CANDIDATE-COMPLETE the async handler function."
 ;; some app test
 ;;================
 
-(require 'cl-macs)
+(eval-when-compile (require 'cl-macs))
 
 (ert-deftest zero-pinyin-service-get-candidates ()
   (cl-destructuring-bind (cs ls &rest rest)
