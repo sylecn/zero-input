@@ -4,8 +4,8 @@ Time-stamp: <2019-10-11>
 
 * zero-el
 
-zero-el provides zero-pinyin, an emacs pinyin input method for Chinese and
-zero-framework, which is an emacs Chinese input method framework.
+zero-el provides zero-pinyin, an Emacs pinyin input method for Chinese and
+zero library, which is an emacs Chinese input method framework.
 
 * File list
 - zero.el
@@ -23,7 +23,7 @@ zero-framework, which is an emacs Chinese input method framework.
 
 - zero-pinyin.el
 
-  pinyin input method implemented using zero.el
+  Pinyin input method implemented using zero.el
 
 - zero-quickdial.el
 
