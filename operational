@@ -83,11 +83,11 @@ cd ~/lisp/elisp/zero/
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
+* done                                                                :entry:
 ** 2019-10-11 move tests to separated files.
 otherwise (require 'zero-pinyin) will fail because (require 'ert) is not in
 source code.
 
-* done                                                                :entry:
 ** 2019-10-09 release zero-el on melpa
 melpa/CONTRIBUTING.org at master · melpa/melpa · GitHub
 https://github.com/melpa/melpa/blob/master/CONTRIBUTING.org
