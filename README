@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-09-01
-Time-stamp: <2019-09-01>
+Time-stamp: <2019-10-11>
 
 * zero-el
 
@@ -8,9 +8,9 @@ zero-el provides zero-pinyin, an emacs pinyin input method for Chinese and
 zero-framework, which is an emacs Chinese input method framework.
 
 * File list
-- zero-framework.el
+- zero.el
 
-  zero-framework source code. This provides the framework and user interface
+  zero framework source code. This provides the framework and user interface
   for zero-el.
 
 - zero-panel.el
@@ -23,7 +23,7 @@ zero-framework, which is an emacs Chinese input method framework.
 
 - zero-pinyin.el
 
-  pinyin input method implemented using zero-framework.el
+  pinyin input method implemented using zero.el
 
 - zero-quickdial.el
 
@@ -35,7 +35,7 @@ zero-framework, which is an emacs Chinese input method framework.
 
 - zero-table.el
 
-  serves as an example of how to use zero-framework to create new input
+  serves as an example of how to use zero framework to create new input
   methods.
 
 * introduce to zero-el
@@ -44,5 +44,5 @@ https://blog.emacsos.com/zero-el.html
 * License
 zero-el is under Apache License 2.0
 
-ibus-compute-pixel-position function in zero-framework.el is under GPLv3.
+ibus-compute-pixel-position function in zero.el is under GPLv3.
 see NOTICE file.

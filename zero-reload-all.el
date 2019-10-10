@@ -26,9 +26,14 @@ SOURCE-DIR where to find the zero source dir."
   (let ((source-dir (or source-dir "~/lisp/elisp/zero/")))
     (dolist (f '("zero-quickdial.el"
 		 "zero-panel.el"
-		 "zero-framework.el"
+		 "zero-panel-test.el"
+		 "zero.el"
+		 "zero-test.el"
 		 "zero-pinyin-service.el"
-		 "zero-pinyin.el"))
+		 "zero-pinyin-service-test.el"
+		 "zero-pinyin.el"
+		 "zero-pinyin-test.el"
+		 ))
       (byte-compile-file (concat source-dir f) t))))
 
 (defun zero-reload-all ()
@@ -37,10 +42,16 @@ SOURCE-DIR where to find the zero source dir."
   (byte-recompile-directory "~/lisp/elisp/zero/" 0)
   (dolist (f '("zero-quickdial.elc"
 	       "zero-panel.elc"
-	       "zero-framework.elc"
-	       "zero-table.el"
+	       "zero-panel-test.elc"
+	       "zero.elc"
+	       "zero-test.elc"
 	       "zero-pinyin-service.elc"
-	       "zero-pinyin.elc"))
+	       "zero-pinyin-service-test.elc"
+	       "zero-pinyin.elc"
+	       "zero-pinyin-test.elc"
+	       "zero-table.el"
+	       "zero-table-test.el"
+	       ))
     (load-file f)))
 
 ;;; zero-reload-all.el ends here

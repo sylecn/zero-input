@@ -1,4 +1,4 @@
-;;; zero-pkg.el --- Zero package file -*- lexical-binding: t -*-
+;;; zero-panel-test.el --- tests for zero-panel.el -*- lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -12,22 +12,24 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 1.2.5
-;; URL: https://gitlab.emacsos.com/sylecn/zero-el
-;; Package-Version: 1.2.5
-;; Package-Requires: ((emacs "24") (s "1.2.0"))
-
 ;;; Commentary:
 
-;; defines zero package.
+;;
 
 ;;; Code:
 
-(define-package "zero" "1.2.5"
-  "a Chinese input method framework"
-  '((emacs "24")
-    (s "1.2.0")))
+(require 'ert)
+(require 'zero-panel)
 
-(provide 'zero-pkg)
+(ert-deftest zero-alist-to-asv ()
+  (should (equal (zero-alist-to-asv nil) '(:array :signature "{sv}")))
+  (should (equal (zero-alist-to-asv
+		  '(("name" "foo")
+		    ("timeout" :int32 10)))
+		 '(:array
+		   (:dict-entry "name" (:variant "foo"))
+		   (:dict-entry "timeout" (:variant :int32 10))))))
 
-;;; zero-pkg.el ends here
+(provide 'zero-panel-test)
+
+;;; zero-panel-test.el ends here

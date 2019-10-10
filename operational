@@ -1,15 +1,15 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2019-10-10>
+Time-stamp: <2019-10-11>
 #+STARTUP: content
 * notes                                                               :entry:
-** 2019-04-01 zero-framework.el a Chinese IM framework in emacs; FSM	:doc:
+** 2019-04-01 zero.el a Chinese IM framework in emacs; FSM              :doc:
 title was: how to write a modern im for emacs.
 cd ~/lisp/elisp/zero/
 - DONE can I implement it as a minor mode? yes.
 - DONE can I use panel to show candidates? yes.
 - zero minor mode FSM
-  implemented in zero-framework.el
+  implemented in zero.el
 
   | Imp | state            | action                                              | next state       | trigger action                                                                                          |
   |-----+------------------+-----------------------------------------------------+------------------+---------------------------------------------------------------------------------------------------------|
@@ -83,6 +83,10 @@ cd ~/lisp/elisp/zero/
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
+** 2019-10-11 move tests to separated files.
+otherwise (require 'zero-pinyin) will fail because (require 'ert) is not in
+source code.
+
 * done                                                                :entry:
 ** 2019-10-09 release zero-el on melpa
 melpa/CONTRIBUTING.org at master · melpa/melpa · GitHub

@@ -70,15 +70,6 @@ For example,
 	(push (list :dict-entry (car item) (cons :variant (cdr item))) result))
       (reverse result))))
 
-(ert-deftest zero-alist-to-asv ()
-  (should (equal (zero-alist-to-asv nil) '(:array :signature "{sv}")))
-  (should (equal (zero-alist-to-asv
-		  '(("name" "foo")
-		    ("timeout" :int32 10)))
-		 '(:array
-		   (:dict-entry "name" (:variant "foo"))
-		   (:dict-entry "timeout" (:variant :int32 10))))))
-
 ;;============
 ;; public API
 ;;============

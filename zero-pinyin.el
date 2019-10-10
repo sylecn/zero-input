@@ -26,7 +26,7 @@
 ;; dependencies
 ;;==============
 
-(require 'zero-framework)
+(require 'zero)
 (require 'zero-pinyin-service)
 
 ;;===============================
@@ -118,17 +118,6 @@ COMPLETE-FUNC the callback function when async call completes.  it's called with
        (not (= ch ?i))
        (not (= ch ?u))
        (not (= ch ?v))))
-
-(ert-deftest zero-pinyin-can-start-sequence ()
-  (should (zero-pinyin-can-start-sequence ?a))
-  (should (zero-pinyin-can-start-sequence ?l))
-  (should (zero-pinyin-can-start-sequence ?m))
-  (should (zero-pinyin-can-start-sequence ?z))
-  (should-not (zero-pinyin-can-start-sequence ?1))
-  (should-not (zero-pinyin-can-start-sequence ?.))
-  (should-not (zero-pinyin-can-start-sequence ?i))
-  (should-not (zero-pinyin-can-start-sequence ?u))
-  (should-not (zero-pinyin-can-start-sequence ?v)))
 
 (defun zero-pinyin-pending-preedit-str-changed ()
   "Update zero states when pending preedit string changed."

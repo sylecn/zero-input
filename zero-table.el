@@ -1,4 +1,4 @@
-;;; zero-table.el --- a demo table based input method based on zero-framework.el -*- no-byte-compile: t; lexical-binding: t -*-
+;;; zero-table.el --- a demo table based input method based on zero.el -*- no-byte-compile: t; lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@
 ;; dependencies
 ;;==============
 
-(require 'zero-framework)
+(require 'zero)
 
 ;;===============================
 ;; basic data and emacs facility
@@ -51,12 +51,6 @@
   "Build candidates by looking up PREEDIT-STR in `zero-table-table'."
   (mapcar 'cdr (sort (cl-remove-if-not (lambda (pair) (string-prefix-p preedit-str (car pair))) zero-table-table) 'zero-table-sort-key)))
 
-(ert-deftest zero-table-build-candidates ()
-  (should (equal (zero-table-build-candidates "ph") '("18612345678")))
-  (should (equal (zero-table-build-candidates "m") '("https://msdn.microsoft.com/en-us"
-						     "foo@example.com"
-						     "https://ditu.amap.com/"))))
-
 ;; (defun zero-table-build-candidates-async (preedit-str)
 ;;   "build candidate list, when done show it via `zero-table-show-candidates'"
 ;;   (zero-table-debug "building candidate list\n")
@@ -68,12 +62,6 @@
 (defun zero-table-can-start-sequence (ch)
   "Return t if char CH can start a preedit sequence."
   (member (make-string 1 ch) zero-table-sequence-initials))
-
-(ert-deftest zero-table-can-start-sequence ()
-  (should (zero-table-can-start-sequence ?a))
-  (should (zero-table-can-start-sequence ?m))
-  (should-not (zero-table-can-start-sequence ?1))
-  (should-not (zero-table-can-start-sequence ?b)))
 
 ;;===============================
 ;; register IM to zero framework

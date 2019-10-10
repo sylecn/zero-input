@@ -1,4 +1,4 @@
-;;; zero-framework.el --- Zero Chinese input method framework -*- lexical-binding: t -*-
+;;; zero.el --- Zero Chinese input method framework -*- lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 ;;; Commentary:
 
-;; zero-framework is a Chinese input method framework for Emacs, implemented
+;; zero is a Chinese input method framework for Emacs, implemented
 ;; as an Emacs minor mode.
 ;;
 ;; You can cycle zero-punctuation-level in current buffer by C-c , ,
@@ -126,20 +126,13 @@ If item is not in lst, return nil."
      (t (or (cadr r)
 	    (car lst))))))
 
-(ert-deftest zero-cycle-list ()
-  (should (= (zero-cycle-list '(1 2 3) 1) 2))
-  (should (eq (zero-cycle-list '(a b c) 'a) 'b))
-  (should (eq (zero-cycle-list '(a b c) 'b) 'c))
-  (should (eq (zero-cycle-list '(a b c) 'c) 'a))
-  (should (eq (zero-cycle-list '(a b c) 'd) nil)))
-
 ;;=====================
 ;; key logic functions
 ;;=====================
 
 ;; zero-el version
-(defvar zero-version nil "Zero-el package version.")
-(setq zero-version "1.2.4")
+(defvar zero-version nil "Zero package version.")
+(setq zero-version "1.2.5")
 
 ;; FSM state
 (defconst *zero-state-im-off* 'IM-OFF)
@@ -365,20 +358,9 @@ If there is no full-width char for CH, return it unchanged."
   (let ((pair (assoc ch zero-full-width-char-map)))
     (if pair (cdr pair) ch)))
 
-(ert-deftest zero-convert-ch-to-full-width ()
-  (should (= (zero-convert-ch-to-full-width ?\!) ?\！)))
-
 (defun zero-convert-str-to-full-width (s)
   "Convert each char in S to their full-width char if there is one."
   (concat (mapcar 'zero-convert-ch-to-full-width s)))
-
-(ert-deftest zero-convert-str-to-full-width ()
-  (should (string-equal "！" (zero-convert-str-to-full-width "!")))
-  (should (string-equal "（" (zero-convert-str-to-full-width "(")))
-  (should (string-equal "（：）" (zero-convert-str-to-full-width "(:)")))
-  (should (string-equal "ＡＢａｂ" (zero-convert-str-to-full-width "ABab")))
-  (should (string-equal "ｈｅｈｅ" (zero-convert-str-to-full-width "hehe")))
-  (should (string-equal "（Ａ）" (zero-convert-str-to-full-width "(A)"))))
 
 (defun zero-convert-str-to-full-width-maybe (s)
   "If in `zero-full-width-mode', convert char in S to their full-width char; otherwise, return s unchanged."
@@ -873,6 +855,6 @@ if IM-NAME is nil, use default empty input method"
       (zero-off)
     (zero-on)))
 
-(provide 'zero-framework)
+(provide 'zero)
 
-;;; zero-framework.el ends here
+;;; zero.el ends here
