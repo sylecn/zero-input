@@ -16,7 +16,7 @@
 
 ;; To use this input method, add in Emacs init file:
 ;;
-;;   (add-to-list 'load-path "~/fromsource/zero")
+;;   (add-to-list 'load-path "~/fromsource/zero")  ;; omit if install from melpa
 ;;   (require 'zero-pinyin)
 ;;   (zero-set-default-im 'pinyin)
 
@@ -50,6 +50,7 @@
 ;;=====================
 
 (defun zero-pinyin-reset ()
+  "Reset states."
   (setq zero-pinyin-state nil)
   (setq zero-pinyin-used-preedit-str-lengths nil)
   (setq zero-pinyin-pending-str "")
@@ -76,7 +77,10 @@
   "If t, `zero-pinyin-build-candidates' will use `zero-pinyin-build-candidates-test'.")
 
 (defun zero-pinyin-build-candidates (preedit-str fetch-size)
-  "zero-pinyin-build-candidates synchronous version."
+  "Synchronously build candidates list.
+
+PREEDIT-STR the preedit string.
+FETCH-SIZE fetch at least this many candidates if possible."
   (if zero-pinyin--build-candidates-use-test-data
       (progn
 	(zero-pinyin-build-candidates-test preedit-str)
@@ -89,7 +93,12 @@
       (cl-first result))))
 
 (defun zero-pinyin-build-candidates-async (preedit-str fetch-size complete-func)
-  "Build candidate list, when done call complete-func on it."
+  "Asynchronously build candidate list, when done call complete-func on it.
+
+PREEDIT-STR the preedit string.
+FETCH-SIZE fetch at least this many candidates if possible.
+COMPLETE-FUNC the callback function when async call completes.  it's called with
+              fetched candidates list as parameter."
   (zero-debug "zero-pinyin building candidate list asynchronously\n")
   (zero-pinyin-service-get-candidates-async
    preedit-str
@@ -122,6 +131,7 @@
   (should-not (zero-pinyin-can-start-sequence ?v)))
 
 (defun zero-pinyin-pending-preedit-str-changed ()
+  "Update zero states when pending preedit string changed."
   (setq zero-fetch-size 0)
   (setq zero-current-page 0)
   (zero-pinyin-build-candidates-async zero-pinyin-pending-preedit-str zero-initial-fetch-size 'zero-build-candidates-complete))
@@ -181,6 +191,7 @@
        (t (error "Unexpected zero-pinyin-state: %s" zero-pinyin-state))))))
 
 (defun zero-pinyin-commit-first-candidate-or-preedit-str ()
+  "Commit first candidate if there is one, otherwise, commit preedit string."
   (unless (zero-pinyin-commit-nth-candidate 0)
     (zero-commit-preedit-str)))
 
@@ -223,7 +234,9 @@ This is different from zero-framework because I need to support partial commit"
 
 (defun zero-pinyin-handle-preedit-char (ch)
   "Hanlde character insert in `*zero-state-im-preediting*' state.
-Override `zero-handle-preedit-char-default'."
+Override `zero-handle-preedit-char-default'.
+
+CH the character user typed."
   (cond
    ((= ch ?\s)
     (zero-pinyin-commit-first-candidate-or-preedit-str))
@@ -248,6 +261,7 @@ Override `zero-handle-preedit-char-default'."
 	  (zero-append-char-to-preedit-str ch))))))
 
 (defun zero-pinyin-get-preedit-str-for-panel ()
+  "Return the preedit string that should show in panel."
   (if (eq zero-pinyin-state *zero-pinyin-state-im-partial-commit*)
       (concat zero-pinyin-pending-str zero-pinyin-pending-preedit-str)
     zero-preedit-str))

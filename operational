@@ -76,10 +76,14 @@ cd ~/lisp/elisp/zero/
     without converting char to string.
 
     (zero-table-can-start-sequence) can use this.
+** 2019-10-10 documents
+- Using of D-Bus
+  https://www.gnu.org/software/emacs/manual/html_mono/dbus.html
 
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
+* done                                                                :entry:
 ** 2019-10-09 release zero-el on melpa
 melpa/CONTRIBUTING.org at master · melpa/melpa · GitHub
 https://github.com/melpa/melpa/blob/master/CONTRIBUTING.org
@@ -110,8 +114,10 @@ https://github.com/melpa/melpa/blob/master/CONTRIBUTING.org#preparing-a-pull-req
     checked github
     tag 1.2.0 already include these functions.
     https://github.com/magnars/s.el/blob/1.2.0/s.el
-  - TODO Note that there is no way to control the order in which files are
+  - Note that there is no way to control the order in which files are
     byte-compiled.
+
+    // seems my pkg compile just fine.
   - how to add autoload magic comments?
 
     https://www.gnu.org/software/emacs/manual/html_node/elisp/Autoload.html
@@ -131,9 +137,40 @@ https://github.com/melpa/melpa/blob/master/CONTRIBUTING.org#preparing-a-pull-req
     function reference. E.g., (seq-filter #'evenp list).
 
     I don't think this is necessary in my code.
-  - 
+  - do I need to fix all checkdoc problems for my pkg to be accepted by melpa?
+    search: melpa checkdoc one liner functions docstring
 
-* done                                                                :entry:
+    yes. they require all checkdoc problem be fixed.
+    Add recipe for a.el by dotemacs · Pull Request #4830 · melpa/melpa
+    https://github.com/melpa/melpa/pull/4830
+
+    how to specify minimum emacs version?
+    ;; Package-Requires: ((emacs "24"))
+  - DONE fix all checkdoc problems.
+    // except for zero-mode, which I don't know how to fix. all other problems
+    fixed.
+    - Disambiguate zero-mode by preceding w/ function,command,variable,option
+      or symbol. (C-h,f,e,n,p,q) [4 times]
+
+      this one is really confusing.
+      org-mode-map doesn't do this.
+      magit-mode-map doesn't do this.
+  - TODO how to add dbus as dependencies?
+    some emacs build may not have dbus.
+    (require 'dbus)
+
+    also how to only allow install on linux? when I test it dbus only worked
+    in linux.
+
+    what's the correct syntax for specifying dbus as dependency?
+    (dbus "1.0")
+    didn't work.
+  - search: package-install-file package--description-file: Wrong type argument: stringp, nil
+    search: emacs package-install-file install tar package--description-file: Wrong type argument: stringp, nil
+
+    install from dir is okay.
+    install from tar is not. Not sure what's wrong.
+
 ** 2019-10-08 support full-width characters and symbols.
 全角 半角
 

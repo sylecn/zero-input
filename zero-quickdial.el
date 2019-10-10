@@ -26,14 +26,17 @@
 ;;; Code:
 
 (defun zero-quickdial-insert-one ()
+  "Insert \"one\"."
   (interactive)
   (insert "one"))
 
 (defun zero-quickdial-insert-two ()
+  "Insert \"two\"."
   (interactive)
   (insert "two"))
 
 (defun zero-quickdial-insert-three ()
+  "Insert \"three\"."
   (interactive)
   (insert "three"))
 
@@ -42,7 +45,7 @@
     (49 . zero-quickdial-insert-one)
     (50 . zero-quickdial-insert-two)
     (51 . zero-quickdial-insert-three))
-  "zero-quickdial-mode keymap.")
+  "Keymap for zero-quickdial-mode.")
 
 (define-minor-mode zero-quickdial-mode
   "a simple input method written as an emacs minor mode"

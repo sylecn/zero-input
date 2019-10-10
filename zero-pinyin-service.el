@@ -24,7 +24,9 @@
 (require 's)
 
 (defun zero-pinyin-service-error-handler (event error)
-  "Handle dbus errors."
+  "Handle dbus errors.
+
+EVENT, ERROR are arguments passed to the handler."
   (when (or (string-equal "com.emacsos.zero.ZeroPinyinService1"
 			  (dbus-event-interface-name event))
 	    (s-contains-p "com.emacsos.zero.ZeroPinyinService1" (cadr error)))
@@ -74,6 +76,7 @@ GET-CANDIDATES-COMPLETE the async handler function."
    "GetCandidates" get-candidates-complete :string preedit-str :uint32 fetch-size))
 
 (defun zero-pinyin-candidate-pinyin-indices-to-dbus-format (candidate_pinyin_indices)
+  "Convert CANDIDATE_PINYIN_INDICES to Emacs dbus format."
   (let (result)
     (push :array result)
     ;; (push :signature result)
@@ -92,7 +95,10 @@ GET-CANDIDATES-COMPLETE the async handler function."
 			  (:struct :int32 7 :int32 55)))))
 
 (defun zero-pinyin-service-commit-candidate-async (candidate candidate_pinyin_indices)
-  "Commit candidate asynchronously."
+  "Commit candidate asynchronously.
+
+CANDIDATE the candidate user selected.
+CANDIDATE_PINYIN_INDICES the candidate's pinyin shengmu and yunmu index."
   ;; don't care about the result, so no callback.
   (zero-pinyin-service-async-call
    "CommitCandidate" nil

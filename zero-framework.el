@@ -139,7 +139,7 @@ If item is not in lst, return nil."
 
 ;; zero-el version
 (defvar zero-version nil "Zero-el package version.")
-(setq zero-version "1.2.3")
+(setq zero-version "1.2.4")
 
 ;; FSM state
 (defconst *zero-state-im-off* 'IM-OFF)
@@ -211,9 +211,15 @@ Otherwise, next single quote insert close quote.")
 
 ;;; concrete input method should define these functions and set them in the
 ;;; corresponding *-func variable.
-(defun zero-build-candidates-default (_preedit-str _fetch-size) nil)
-(defun zero-can-start-sequence-default (_ch) nil)
-(defun zero-get-preedit-str-for-panel-default () zero-preedit-str)
+(defun zero-build-candidates-default (_preedit-str _fetch-size)
+  "Default implementation for `zero-build-candidates-func'."
+  nil)
+(defun zero-can-start-sequence-default (_ch)
+  "Default implementation for `zero-can-start-sequence-func'."
+  nil)
+(defun zero-get-preedit-str-for-panel-default ()
+  "Default implementation for `zero-get-preedit-str-for-panel-func'."
+  zero-preedit-str)
 (defvar zero-build-candidates-func 'zero-build-candidates-default
   "Contains a function to build candidates from preedit-str.  The function accepts param preedit-str, fetch-size, returns candidate list.")
 (defvar zero-build-candidates-async-func 'zero-build-candidates-async-default
@@ -611,13 +617,13 @@ N is the argument passed to `self-insert-command'."
   (zero-hide-candidate-list))
 
 (defun zero-focus-in ()
-  "A hook function, run when focus in a `zero-mode' buffer."
+  "A hook function, run when focus in a buffer."
   (when (eq zero-state *zero-state-im-preediting*)
     (zero-show-candidates zero-candidates)
     (zero-enter-preedit-state)))
 
 (defun zero-focus-out ()
-  "A hook function, run when focus out a `zero-mode' buffer."
+  "A hook function, run when focus out a buffer."
   (when (eq zero-state *zero-state-im-preediting*)
     (zero-hide-candidate-list)
     (zero-leave-preedit-state)))
@@ -646,7 +652,7 @@ N is the argument passed to `self-insert-command'."
     (define-key map [remap self-insert-command]
       'zero-self-insert-command)
     map)
-  "`zero-mode' keymap.")
+  "Keymap for `zero-mode'.")
 
 (defun zero-enable-preediting-map ()
   "Enable preediting keymap in `zero-mode-map'."

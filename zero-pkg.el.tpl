@@ -12,9 +12,9 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 1.2.4
+;; Version: PKG_VERSION
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
-;; Package-Version: 1.2.4
+;; Package-Version: PKG_VERSION
 ;; Package-Requires: ((emacs "24") (s "1.2.0"))
 
 ;;; Commentary:
@@ -23,7 +23,7 @@
 
 ;;; Code:
 
-(define-package "zero" "1.2.4"
+(define-package "zero" "PKG_VERSION"
   "a Chinese input method framework"
   '((emacs "24")
     (s "1.2.0")))

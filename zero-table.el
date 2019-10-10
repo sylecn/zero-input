@@ -35,7 +35,8 @@
 ;; basic data and emacs facility
 ;;===============================
 
-(defvar zero-table-table nil "zero-table's table, map string to string.")
+(defvar zero-table-table nil
+  "The table used by zero-table input method, map string to string.")
 (defvar zero-table-sequence-initials nil "Used in `zero-table-can-start-sequence'.")
 
 ;;=====================
@@ -47,6 +48,7 @@
   (string< (car lhs) (car rhs)))
 
 (defun zero-table-build-candidates (preedit-str &optional _fetch-size)
+  "Build candidates by looking up PREEDIT-STR in `zero-table-table'."
   (mapcar 'cdr (sort (cl-remove-if-not (lambda (pair) (string-prefix-p preedit-str (car pair))) zero-table-table) 'zero-table-sort-key)))
 
 (ert-deftest zero-table-build-candidates ()

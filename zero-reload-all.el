@@ -17,7 +17,9 @@
 ;;; Code:
 
 (defun zero-rebuild (&optional source-dir)
-  "rebuild zero-el"
+  "Rebuild zero-el.
+
+SOURCE-DIR where to find the zero source dir."
   (interactive)
   ;; for loading s
   (package-initialize)
@@ -30,6 +32,7 @@
       (byte-compile-file (concat source-dir f) t))))
 
 (defun zero-reload-all ()
+  "Recompile and load all zero files."
   (interactive)
   (byte-recompile-directory "~/lisp/elisp/zero/" 0)
   (dolist (f '("zero-quickdial.elc"
