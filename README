@@ -8,6 +8,11 @@ zero-el provides zero-pinyin, an Emacs pinyin input method for Chinese and
 zero-framework, which is an emacs Chinese input method framework.
 
 * File list
+- zero.el
+
+  It's a generated file for one-file package distribution. Not used for
+  development.
+
 - zero-framework.el
 
   zero framework source code. This provides the framework and user interface
