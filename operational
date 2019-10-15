@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2019-10-11>
+Time-stamp: <2019-10-16>
 #+STARTUP: content
 * notes                                                               :entry:
 ** 2019-04-01 zero.el a Chinese IM framework in emacs; FSM              :doc:
@@ -83,6 +83,65 @@ cd ~/lisp/elisp/zero/
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
+** 2019-10-15 make package-lint happy on all el files.
+- package-lint doesn't support multi-file package.
+
+  Need to add headers to make it happy.
+
+  Because it doesn't have concept on multi-file package, it insists all
+  functions in file start with file name prefix. I can't have zero-* utility
+  function in zero-panel.el
+
+- M-x package-lint-current-buffer fail on zero.el file
+  this line:
+  (eval-when-compile (require 'cl-macs))
+
+  M-x package-lint-current-buffer fails on a fresh .el file with just that
+  line.
+
+  #+BEGIN_SRC sh
+    Debugger entered--Lisp error: (wrong-type-argument integer-or-marker-p nil)
+      package-lint--map-symbol-match("(\\s-*?require\\s-*?'cl-\\(?:macs\\|seq\\)\\_>" #f(compiled-function (_) #<bytecode 0x15e4cd9>))
+      package-lint--check-no-use-of-cl-lib-sublibraries()
+      package-lint--check-all()
+      package-lint-buffer()
+      package-lint-current-buffer()
+      funcall-interactively(package-lint-current-buffer)
+      call-interactively(package-lint-current-buffer record nil)
+      command-execute(package-lint-current-buffer record)
+      execute-extended-command(nil "package-lint-current-buffer" nil)
+      funcall-interactively(execute-extended-command nil "package-lint-current-buffer" nil)
+      call-interactively(execute-extended-command nil nil)
+      command-execute(execute-extended-command)
+  #+END_SRC
+
+  package-lint--check-no-use-of-cl-lib-sublibraries
+  'warning
+  "This file is not in the `cl-lib' ELPA compatibility package: require `cl-lib' instead."
+
+  says you should use cl-lib instead. may as well try that.
+  yes. that works.
+
+- create a single file for distribution.
+  package-lint doesn't support multiple file pkg yet.
+
+  - create a single zero.el file for distribution.
+    rename current zero.el to zero-framework.el
+    create zero.el.in
+  - make build
+    should generate zero.el and run checks on it.
+  - insert content to zero.el.in
+    ;;; Code:
+    ;;; .*\.el ends here
+  - now package-lint should be fine.
+  - I should I put zero.el in a branch or a separate git repo?
+    separate git repo is better.
+    how to auto build and commit on source repo push?
+    use gocd CI, I can trigger a build. just run git add and git push there?
+    if run in the same repo, two branch is required.
+  - maybe just add zero.el in master branch and commit it anyway.
+  - 
+
 * done                                                                :entry:
 ** 2019-10-11 move tests to separated files.
 otherwise (require 'zero-pinyin) will fail because (require 'ert) is not in

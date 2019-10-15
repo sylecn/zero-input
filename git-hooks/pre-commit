@@ -1,4 +1,4 @@
 #!/bin/sh
 set -e
-make pkg-el compile
-git add zero-pkg.el
+make dist-check
+git add zero.el

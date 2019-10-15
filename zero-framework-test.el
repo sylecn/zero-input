@@ -1,4 +1,4 @@
-;;; zero-test.el --- tests for zero.el -*- lexical-binding: t -*-
+;;; zero-framework-test.el --- tests for zero-framework.el -*- lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
 
 ;;; Commentary:
 
-;;
+;; tests for zero-framework.el
 
 ;;; Code:
 
-(require 'zero)
+(require 'zero-framework)
 (require 'ert)
 
 (ert-deftest zero-cycle-list ()
@@ -39,6 +39,6 @@
   (should (string-equal "ｈｅｈｅ" (zero-convert-str-to-full-width "hehe")))
   (should (string-equal "（Ａ）" (zero-convert-str-to-full-width "(A)"))))
 
-(provide 'zero-test)
+(provide 'zero-framework-test)
 
-;;; zero-test.el ends here
+;;; zero-framework-test.el ends here

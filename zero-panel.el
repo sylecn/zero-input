@@ -14,6 +14,8 @@
 
 ;;; Commentary:
 
+;; use dbus to communicate with zero-panel service.
+
 ;;; Code:
 
 ;;================

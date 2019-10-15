@@ -29,7 +29,7 @@
 ;; dependencies
 ;;==============
 
-(require 'zero)
+(require 'zero-framework)
 (require 'zero-pinyin-service)
 
 ;;===============================
@@ -37,7 +37,7 @@
 ;;===============================
 
 (defvar zero-pinyin-state nil "Zero-pinyin internal state.  could be nil or `*zero-pinyin-state-im-partial-commit*'.")
-(defconst *zero-pinyin-state-im-partial-commit* 'IM-PARTIAL-COMMIT)
+(defconst zero-pinyin--state-im-partial-commit 'IM-PARTIAL-COMMIT)
 
 (defvar zero-pinyin-used-preedit-str-lengths nil
   "Accompany `zero-candidates', marks how many preedit-str chars are used for each candidate.")
@@ -143,26 +143,26 @@ COMPLETE-FUNC the callback function when async call completes.  it's called with
 	(if (= used-len (length zero-preedit-str))
 	    (progn
 	      (zero-debug "commit in full\n")
-	      (zero-set-state *zero-state-im-waiting-input*)
+	      (zero-set-state zero--state-im-waiting-input)
 	      (zero-commit-text candidate)
 	      (zero-pinyin-service-commit-candidate-async
 	       candidate
 	       (nth n-prime zero-pinyin-candidates-pinyin-indices))
 	      t)
 	  (zero-debug "partial commit, in partial commit mode now.\n")
-	  (setq zero-pinyin-state *zero-pinyin-state-im-partial-commit*)
+	  (setq zero-pinyin-state zero-pinyin--state-im-partial-commit)
 	  (setq zero-pinyin-pending-str candidate)
 	  (setq zero-pinyin-pending-preedit-str (substring zero-preedit-str used-len))
 	  (setq zero-pinyin-pending-pinyin-indices
 		(nth n-prime zero-pinyin-candidates-pinyin-indices))
 	  (zero-pinyin-pending-preedit-str-changed)
 	  t))
-       ((eq zero-pinyin-state *zero-pinyin-state-im-partial-commit*)
+       ((eq zero-pinyin-state zero-pinyin--state-im-partial-commit)
 	(if (= used-len (length zero-pinyin-pending-preedit-str))
 	    (progn
 	      (zero-debug "finishes partial commit\n")
 	      (setq zero-pinyin-state nil)
-	      (zero-set-state *zero-state-im-waiting-input*)
+	      (zero-set-state zero--state-im-waiting-input)
 	      (zero-commit-text (concat zero-pinyin-pending-str candidate))
 	      (zero-pinyin-service-commit-candidate-async
 	       (concat zero-pinyin-pending-str candidate)
@@ -196,13 +196,13 @@ Otherwise, just return nil."
       (cond
        ((null zero-pinyin-state)
 	(when (= used-len (length zero-preedit-str))
-	  (zero-set-state *zero-state-im-waiting-input*)
+	  (zero-set-state zero--state-im-waiting-input)
 	  (zero-commit-text candidate)
 	  t))
-       ((eq zero-pinyin-state *zero-pinyin-state-im-partial-commit*)
+       ((eq zero-pinyin-state zero-pinyin--state-im-partial-commit)
 	(when (= used-len (length zero-pinyin-pending-preedit-str))
 	  (setq zero-pinyin-state nil)
-	  (zero-set-state *zero-state-im-waiting-input*)
+	  (zero-set-state zero--state-im-waiting-input)
 	  (zero-commit-text (concat zero-pinyin-pending-str candidate))
 	  t))
        (t (error "Unexpected zero-pinyin-state: %s" zero-pinyin-state))))))
@@ -215,7 +215,7 @@ This is different from zero-framework because I need to support partial commit"
 	(new-fetch-size (* zero-candidates-per-page (+ 2 zero-current-page))))
     (if (and (< len new-fetch-size)
 	     (< zero-fetch-size new-fetch-size))
-	(let ((preedit-str (if (eq zero-pinyin-state *zero-pinyin-state-im-partial-commit*) zero-pinyin-pending-preedit-str zero-preedit-str)))
+	(let ((preedit-str (if (eq zero-pinyin-state zero-pinyin--state-im-partial-commit) zero-pinyin-pending-preedit-str zero-preedit-str)))
 	  (zero-pinyin-build-candidates-async
 	   preedit-str
 	   new-fetch-size
@@ -247,14 +247,14 @@ CH the character user typed."
    (t (let ((str (zero-convert-punctuation ch)))
 	(if str
 	    (when (zero-pinyin-commit-first-candidate-in-full)
-	      (zero-set-state *zero-state-im-waiting-input*)
+	      (zero-set-state zero--state-im-waiting-input)
 	      (insert str))
 	  (setq zero-pinyin-state nil)
 	  (zero-append-char-to-preedit-str ch))))))
 
 (defun zero-pinyin-get-preedit-str-for-panel ()
   "Return the preedit string that should show in panel."
-  (if (eq zero-pinyin-state *zero-pinyin-state-im-partial-commit*)
+  (if (eq zero-pinyin-state zero-pinyin--state-im-partial-commit)
       (concat zero-pinyin-pending-str zero-pinyin-pending-preedit-str)
     zero-preedit-str))
 
@@ -265,7 +265,7 @@ CH the character user typed."
 
 (defun zero-pinyin-backspace ()
   "Handle backspace key in `*zero-state-im-preediting*' state."
-  (if (eq zero-pinyin-state *zero-pinyin-state-im-partial-commit*)
+  (if (eq zero-pinyin-state zero-pinyin--state-im-partial-commit)
       (zero-pinyin-preedit-str-changed)
     (zero-backspace-default)))
 
@@ -286,7 +286,7 @@ DIGIT 0 means delete 10th candidate."
 (defun zero-digit-argument ()
   "Allow C-<digit> to DeleteCandidate in `*zero-state-im-preediting*' state."
   (interactive)
-  (unless (eq zero-state *zero-state-im-preediting*)
+  (unless (eq zero-state zero--state-im-preediting)
     (error "`zero-digit-argument' called in non preediting state"))
   (if (memq 'control (event-modifiers last-command-event))
       (let* ((char (if (integerp last-command-event)
