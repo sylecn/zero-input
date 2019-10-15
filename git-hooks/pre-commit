@@ -1,4 +1,6 @@
 #!/bin/sh
 set -e
-make dist-check
-git add zero.el
+if git branch |grep '^\* master'; then
+	make dist-check
+	git add zero.el
+fi
