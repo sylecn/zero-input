@@ -12,15 +12,15 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 1.3.0
+;; Version: 1.3.1
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
-;; Package-Version: 1.3.0
+;; Package-Version: 1.3.1
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
 ;;; Commentary:
 
-;; zero.el is auto-generated from multiple other files. see zero.el.in and
-;; build.py for details. It's created because package-lint doesn't support
+;; zero.el is auto-generated from multiple other files.  see zero.el.in and
+;; build.py for details.  It's created because package-lint doesn't support
 ;; multi-file package yet (issue #111).
 ;;
 ;; zero is a Chinese input method framework for Emacs, implemented
@@ -35,14 +35,14 @@
 ;;   ;; switch on/off the input method.
 ;;   (global-set-key (kbd "<f5>") 'zero-toggle)
 ;;
-;; zero supports Chinese punctuation mapping. There are three modes, none,
-;; basic, and full. The default is basic mode, which only map most essential
-;; punctuations. You can cycle zero-punctuation-level in current buffer by
+;; zero supports Chinese punctuation mapping.  There are three modes, none,
+;; basic, and full.  The default is basic mode, which only map most essential
+;; punctuations.  You can cycle zero-punctuation-level in current buffer by
 ;; C-c , , You can change default Chinese punctuation level:
 ;;
 ;;   (setq-default zero-punctuation-level *zero-punctuation-level-full*)
 ;;
-;; zero supports full-width mode. You can toggle full-width mode in current
+;; zero supports full-width mode.  You can toggle full-width mode in current
 ;; buffer by C-c , . You can enable full-width mode by default:
 ;;
 ;;   (setq-default zero-full-width-mode t)
@@ -243,7 +243,7 @@ If item is not in lst, return nil."
 
 ;; zero-el version
 (defvar zero-version nil "Zero package version.")
-(setq zero-version "1.3.0")
+(setq zero-version "1.3.1")
 
 ;; FSM state
 (defconst zero--state-im-off 'IM-OFF)
@@ -278,9 +278,9 @@ independent from punctuation map.  You can change this via
   "Punctuation level.
 
 Should be one of
-zero-punctuation-level-basic
-zero-punctuation-level-full
-zero-punctuation-level-none")
+`zero-punctuation-level-basic'
+`zero-punctuation-level-full'
+`zero-punctuation-level-none'")
 (defvar zero-punctuation-levels (list zero-punctuation-level-basic
 				      zero-punctuation-level-full
 				      zero-punctuation-level-none)
@@ -485,7 +485,7 @@ If there is no full-width char for CH, return it unchanged."
       full-width-ch)))
 
 (defun zero-convert-punctuation-basic (ch)
-  "Convert punctuation for zero-punctuation-level-basic.
+  "Convert punctuation for `zero-punctuation-level-basic'.
 
 Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
   (cl-case ch
@@ -498,7 +498,7 @@ Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
     (otherwise nil)))
 
 (defun zero-convert-punctuation-full (ch)
-  "Convert punctuation for zero-punctuation-level-full.
+  "Convert punctuation for `zero-punctuation-level-full'.
 
 Return CH's Chinese punctuation if CH is converted.  Return nil otherwise"
   (cl-case ch
@@ -1175,7 +1175,7 @@ DELETE-CANDIDATE-COMPLETE the async handler function."
 (defun zero-pinyin-service-set-fuzzy-flag (fuzzy-flag)
   "Set FuzzyFlag property.
 
-FUZZY-FLAG should be a natural number. See service interface XML
+FUZZY-FLAG should be a natural number.  See service interface XML
 for flag value and meaning"
   (interactive)
   (dbus-set-property
@@ -1197,14 +1197,18 @@ for flag value and meaning"
 ;; basic data and emacs facility
 ;;===============================
 
+;; these two var is only used in docstring to avoid checkdoc line-too-long
+;; error.
+(defvar zero-pinyin-service-interface-xml-file
+  "/usr/share/dbus-1/interfaces/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml")
+(defvar zero-pinyin-service-interface-xml-url
+  "https://gitlab.emacsos.com/sylecn/zero-pinyin-service/blob/master/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml")
 (defcustom zero-pinyin-fuzzy-flag 0
-  "FuzzyFlag for pinyin.
+  "Non-nil means use this value as FuzzyFlag.
 see zero-pinyin-service dbus interface xml for flag value and meaning.
 
-You can check the xml file locally at
-/usr/share/dbus-1/interfaces/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml
-or online at
-https://gitlab.emacsos.com/sylecn/zero-pinyin-service/blob/master/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml"
+You can find the xml file locally at `zero-pinyin-service-interface-xml-file'
+or online at `zero-pinyin-service-interface-xml-url'."
   :type 'integer
   :group 'zero-pinyin)
 

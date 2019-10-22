@@ -36,14 +36,18 @@
 ;; basic data and emacs facility
 ;;===============================
 
+;; these two var is only used in docstring to avoid checkdoc line-too-long
+;; error.
+(defvar zero-pinyin-service-interface-xml-file
+  "/usr/share/dbus-1/interfaces/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml")
+(defvar zero-pinyin-service-interface-xml-url
+  "https://gitlab.emacsos.com/sylecn/zero-pinyin-service/blob/master/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml")
 (defcustom zero-pinyin-fuzzy-flag 0
-  "FuzzyFlag for pinyin.
+  "Non-nil means use this value as FuzzyFlag.
 see zero-pinyin-service dbus interface xml for flag value and meaning.
 
-You can check the xml file locally at
-/usr/share/dbus-1/interfaces/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml
-or online at
-https://gitlab.emacsos.com/sylecn/zero-pinyin-service/blob/master/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml"
+You can find the xml file locally at `zero-pinyin-service-interface-xml-file'
+or online at `zero-pinyin-service-interface-xml-url'."
   :type 'integer
   :group 'zero-pinyin)
 

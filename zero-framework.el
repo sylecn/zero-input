@@ -132,7 +132,7 @@ If item is not in lst, return nil."
 
 ;; zero-el version
 (defvar zero-version nil "Zero package version.")
-(setq zero-version "1.3.0")
+(setq zero-version "1.3.1")
 
 ;; FSM state
 (defconst zero--state-im-off 'IM-OFF)
@@ -167,9 +167,9 @@ independent from punctuation map.  You can change this via
   "Punctuation level.
 
 Should be one of
-zero-punctuation-level-basic
-zero-punctuation-level-full
-zero-punctuation-level-none")
+`zero-punctuation-level-basic'
+`zero-punctuation-level-full'
+`zero-punctuation-level-none'")
 (defvar zero-punctuation-levels (list zero-punctuation-level-basic
 				      zero-punctuation-level-full
 				      zero-punctuation-level-none)
@@ -374,7 +374,7 @@ If there is no full-width char for CH, return it unchanged."
       full-width-ch)))
 
 (defun zero-convert-punctuation-basic (ch)
-  "Convert punctuation for zero-punctuation-level-basic.
+  "Convert punctuation for `zero-punctuation-level-basic'.
 
 Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
   (cl-case ch
@@ -387,7 +387,7 @@ Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
     (otherwise nil)))
 
 (defun zero-convert-punctuation-full (ch)
-  "Convert punctuation for zero-punctuation-level-full.
+  "Convert punctuation for `zero-punctuation-level-full'.
 
 Return CH's Chinese punctuation if CH is converted.  Return nil otherwise"
   (cl-case ch

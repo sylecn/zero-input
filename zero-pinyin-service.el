@@ -118,7 +118,7 @@ DELETE-CANDIDATE-COMPLETE the async handler function."
 (defun zero-pinyin-service-set-fuzzy-flag (fuzzy-flag)
   "Set FuzzyFlag property.
 
-FUZZY-FLAG should be a natural number. See service interface XML
+FUZZY-FLAG should be a natural number.  See service interface XML
 for flag value and meaning"
   (interactive)
   (dbus-set-property
