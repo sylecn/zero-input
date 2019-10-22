@@ -12,9 +12,9 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 1.2.6
+;; Version: 1.3.0
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
-;; Package-Version: 1.2.6
+;; Package-Version: 1.3.0
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
 ;;; Commentary:
@@ -243,7 +243,7 @@ If item is not in lst, return nil."
 
 ;; zero-el version
 (defvar zero-version nil "Zero package version.")
-(setq zero-version "1.2.6")
+(setq zero-version "1.3.0")
 
 ;; FSM state
 (defconst zero--state-im-off 'IM-OFF)
@@ -1080,13 +1080,20 @@ e.g.
 ;;================
 
 
+(defvar zero-pinyin-service-service-name
+  "com.emacsos.zero.ZeroPinyinService1")
+(defvar zero-pinyin-service-path
+  "/com/emacsos/zero/ZeroPinyinService1")
+(defvar zero-pinyin-service-interface
+  "com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface")
+
 (defun zero-pinyin-service-error-handler (event error)
   "Handle dbus errors.
 
 EVENT, ERROR are arguments passed to the handler."
-  (when (or (string-equal "com.emacsos.zero.ZeroPinyinService1"
+  (when (or (string-equal zero-pinyin-service-service-name
 			  (dbus-event-interface-name event))
-	    (s-contains-p "com.emacsos.zero.ZeroPinyinService1" (cadr error)))
+	    (s-contains-p zero-pinyin-service-service-name (cadr error)))
     (error "`zero-pinyin-service' dbus failed: %S" (cadr error))))
 
 (add-hook 'dbus-event-error-functions 'zero-pinyin-service-error-handler)
@@ -1097,9 +1104,9 @@ This is a wrapper around `dbus-call-method-asynchronously'.
 Argument HANDLER the handler function.
 Optional argument ARGS extra arguments to pass to the wrapped function."
   (apply 'dbus-call-method-asynchronously
-	 :session "com.emacsos.zero.ZeroPinyinService1"
-	 "/com/emacsos/zero/ZeroPinyinService1"
-	 "com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface"
+	 :session zero-pinyin-service-service-name
+	 zero-pinyin-service-path
+	 zero-pinyin-service-interface
 	 method handler :timeout 1000 args))
 
 (defun zero-pinyin-service-call (method &rest args)
@@ -1107,9 +1114,9 @@ Optional argument ARGS extra arguments to pass to the wrapped function."
 This is a wrapper around `dbus-call-method'.
 Optional argument ARGS extra arguments to pass to the wrapped function."
   (apply 'dbus-call-method
-	 :session "com.emacsos.zero.ZeroPinyinService1"
-	 "/com/emacsos/zero/ZeroPinyinService1"
-	 "com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface"
+	 :session zero-pinyin-service-service-name
+	 zero-pinyin-service-path
+	 zero-pinyin-service-interface
 	 method :timeout 1000 args))
 
 ;;============
@@ -1165,6 +1172,18 @@ DELETE-CANDIDATE-COMPLETE the async handler function."
   "Quit panel application."
   (zero-pinyin-service-async-call "Quit" nil))
 
+(defun zero-pinyin-service-set-fuzzy-flag (fuzzy-flag)
+  "Set FuzzyFlag property.
+
+FUZZY-FLAG should be a natural number. See service interface XML
+for flag value and meaning"
+  (interactive)
+  (dbus-set-property
+   :session zero-pinyin-service-service-name
+   zero-pinyin-service-path
+   zero-pinyin-service-interface
+   "FuzzyFlag" fuzzy-flag))
+
 (provide 'zero-pinyin-service)
 
 ;; body of zero-pinyin.el
@@ -1177,6 +1196,17 @@ DELETE-CANDIDATE-COMPLETE the async handler function."
 ;;===============================
 ;; basic data and emacs facility
 ;;===============================
+
+(defcustom zero-pinyin-fuzzy-flag 0
+  "FuzzyFlag for pinyin.
+see zero-pinyin-service dbus interface xml for flag value and meaning.
+
+You can check the xml file locally at
+/usr/share/dbus-1/interfaces/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml
+or online at
+https://gitlab.emacsos.com/sylecn/zero-pinyin-service/blob/master/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml"
+  :type 'integer
+  :group 'zero-pinyin)
 
 (defvar zero-pinyin-state nil "Zero-pinyin internal state.  could be nil or `*zero-pinyin-state-im-partial-commit*'.")
 (defconst zero-pinyin--state-im-partial-commit 'IM-PARTIAL-COMMIT)
@@ -1199,7 +1229,10 @@ DELETE-CANDIDATE-COMPLETE the async handler function."
   (setq zero-pinyin-state nil)
   (setq zero-pinyin-used-preedit-str-lengths nil)
   (setq zero-pinyin-pending-str "")
-  (setq zero-pinyin-pending-preedit-str ""))
+  (setq zero-pinyin-pending-preedit-str "")
+  (when (null (zero-pinyin-service-set-fuzzy-flag zero-pinyin-fuzzy-flag))
+    (unless (zerop zero-pinyin-fuzzy-flag)
+      (display-warning 'zero-pinyin "Requires zero-pinyin-service v0.9.0 or later to support `zero-pinyin-fuzzy-flag'." :warning))))
 
 (defun zero-pinyin-init ()
   "Called when this im is turned on."

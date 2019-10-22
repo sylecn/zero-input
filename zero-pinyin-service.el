@@ -23,13 +23,20 @@
 (require 'dbus)
 (require 's)
 
+(defvar zero-pinyin-service-service-name
+  "com.emacsos.zero.ZeroPinyinService1")
+(defvar zero-pinyin-service-path
+  "/com/emacsos/zero/ZeroPinyinService1")
+(defvar zero-pinyin-service-interface
+  "com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface")
+
 (defun zero-pinyin-service-error-handler (event error)
   "Handle dbus errors.
 
 EVENT, ERROR are arguments passed to the handler."
-  (when (or (string-equal "com.emacsos.zero.ZeroPinyinService1"
+  (when (or (string-equal zero-pinyin-service-service-name
 			  (dbus-event-interface-name event))
-	    (s-contains-p "com.emacsos.zero.ZeroPinyinService1" (cadr error)))
+	    (s-contains-p zero-pinyin-service-service-name (cadr error)))
     (error "`zero-pinyin-service' dbus failed: %S" (cadr error))))
 
 (add-hook 'dbus-event-error-functions 'zero-pinyin-service-error-handler)
@@ -40,9 +47,9 @@ This is a wrapper around `dbus-call-method-asynchronously'.
 Argument HANDLER the handler function.
 Optional argument ARGS extra arguments to pass to the wrapped function."
   (apply 'dbus-call-method-asynchronously
-	 :session "com.emacsos.zero.ZeroPinyinService1"
-	 "/com/emacsos/zero/ZeroPinyinService1"
-	 "com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface"
+	 :session zero-pinyin-service-service-name
+	 zero-pinyin-service-path
+	 zero-pinyin-service-interface
 	 method handler :timeout 1000 args))
 
 (defun zero-pinyin-service-call (method &rest args)
@@ -50,9 +57,9 @@ Optional argument ARGS extra arguments to pass to the wrapped function."
 This is a wrapper around `dbus-call-method'.
 Optional argument ARGS extra arguments to pass to the wrapped function."
   (apply 'dbus-call-method
-	 :session "com.emacsos.zero.ZeroPinyinService1"
-	 "/com/emacsos/zero/ZeroPinyinService1"
-	 "com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface"
+	 :session zero-pinyin-service-service-name
+	 zero-pinyin-service-path
+	 zero-pinyin-service-interface
 	 method :timeout 1000 args))
 
 ;;============
@@ -107,6 +114,18 @@ DELETE-CANDIDATE-COMPLETE the async handler function."
 (defun zero-pinyin-service-quit ()
   "Quit panel application."
   (zero-pinyin-service-async-call "Quit" nil))
+
+(defun zero-pinyin-service-set-fuzzy-flag (fuzzy-flag)
+  "Set FuzzyFlag property.
+
+FUZZY-FLAG should be a natural number. See service interface XML
+for flag value and meaning"
+  (interactive)
+  (dbus-set-property
+   :session zero-pinyin-service-service-name
+   zero-pinyin-service-path
+   zero-pinyin-service-interface
+   "FuzzyFlag" fuzzy-flag))
 
 (provide 'zero-pinyin-service)
 

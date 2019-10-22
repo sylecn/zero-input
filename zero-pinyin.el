@@ -36,6 +36,17 @@
 ;; basic data and emacs facility
 ;;===============================
 
+(defcustom zero-pinyin-fuzzy-flag 0
+  "FuzzyFlag for pinyin.
+see zero-pinyin-service dbus interface xml for flag value and meaning.
+
+You can check the xml file locally at
+/usr/share/dbus-1/interfaces/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml
+or online at
+https://gitlab.emacsos.com/sylecn/zero-pinyin-service/blob/master/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml"
+  :type 'integer
+  :group 'zero-pinyin)
+
 (defvar zero-pinyin-state nil "Zero-pinyin internal state.  could be nil or `*zero-pinyin-state-im-partial-commit*'.")
 (defconst zero-pinyin--state-im-partial-commit 'IM-PARTIAL-COMMIT)
 
@@ -57,7 +68,10 @@
   (setq zero-pinyin-state nil)
   (setq zero-pinyin-used-preedit-str-lengths nil)
   (setq zero-pinyin-pending-str "")
-  (setq zero-pinyin-pending-preedit-str ""))
+  (setq zero-pinyin-pending-preedit-str "")
+  (when (null (zero-pinyin-service-set-fuzzy-flag zero-pinyin-fuzzy-flag))
+    (unless (zerop zero-pinyin-fuzzy-flag)
+      (display-warning 'zero-pinyin "Requires zero-pinyin-service v0.9.0 or later to support `zero-pinyin-fuzzy-flag'." :warning))))
 
 (defun zero-pinyin-init ()
   "Called when this im is turned on."
