@@ -12,15 +12,15 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 1.2.6
+;; Version: 1.3.3
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
-;; Package-Version: 1.2.6
+;; Package-Version: 1.3.3
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
 ;;; Commentary:
 
-;; zero.el is auto-generated from multiple other files. see zero.el.in and
-;; build.py for details. It's created because package-lint doesn't support
+;; zero.el is auto-generated from multiple other files.  see zero.el.in and
+;; build.py for details.  It's created because package-lint doesn't support
 ;; multi-file package yet (issue #111).
 ;;
 ;; zero is a Chinese input method framework for Emacs, implemented
@@ -35,14 +35,14 @@
 ;;   ;; switch on/off the input method.
 ;;   (global-set-key (kbd "<f5>") 'zero-toggle)
 ;;
-;; zero supports Chinese punctuation mapping. There are three modes, none,
-;; basic, and full. The default is basic mode, which only map most essential
-;; punctuations. You can cycle zero-punctuation-level in current buffer by
+;; zero supports Chinese punctuation mapping.  There are three modes, none,
+;; basic, and full.  The default is basic mode, which only map most essential
+;; punctuations.  You can cycle zero-punctuation-level in current buffer by
 ;; C-c , , You can change default Chinese punctuation level:
 ;;
 ;;   (setq-default zero-punctuation-level *zero-punctuation-level-full*)
 ;;
-;; zero supports full-width mode. You can toggle full-width mode in current
+;; zero supports full-width mode.  You can toggle full-width mode in current
 ;; buffer by C-c , . You can enable full-width mode by default:
 ;;
 ;;   (setq-default zero-full-width-mode t)
@@ -243,7 +243,7 @@ If item is not in lst, return nil."
 
 ;; zero-el version
 (defvar zero-version nil "Zero package version.")
-(setq zero-version "1.2.6")
+(setq zero-version "1.3.3")
 
 ;; FSM state
 (defconst zero--state-im-off 'IM-OFF)
@@ -278,9 +278,9 @@ independent from punctuation map.  You can change this via
   "Punctuation level.
 
 Should be one of
-zero-punctuation-level-basic
-zero-punctuation-level-full
-zero-punctuation-level-none")
+`zero-punctuation-level-basic'
+`zero-punctuation-level-full'
+`zero-punctuation-level-none'")
 (defvar zero-punctuation-levels (list zero-punctuation-level-basic
 				      zero-punctuation-level-full
 				      zero-punctuation-level-none)
@@ -485,7 +485,7 @@ If there is no full-width char for CH, return it unchanged."
       full-width-ch)))
 
 (defun zero-convert-punctuation-basic (ch)
-  "Convert punctuation for zero-punctuation-level-basic.
+  "Convert punctuation for `zero-punctuation-level-basic'.
 
 Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
   (cl-case ch
@@ -498,7 +498,7 @@ Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
     (otherwise nil)))
 
 (defun zero-convert-punctuation-full (ch)
-  "Convert punctuation for zero-punctuation-level-full.
+  "Convert punctuation for `zero-punctuation-level-full'.
 
 Return CH's Chinese punctuation if CH is converted.  Return nil otherwise"
   (cl-case ch
@@ -1080,13 +1080,20 @@ e.g.
 ;;================
 
 
+(defvar zero-pinyin-service-service-name
+  "com.emacsos.zero.ZeroPinyinService1")
+(defvar zero-pinyin-service-path
+  "/com/emacsos/zero/ZeroPinyinService1")
+(defvar zero-pinyin-service-interface
+  "com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface")
+
 (defun zero-pinyin-service-error-handler (event error)
   "Handle dbus errors.
 
 EVENT, ERROR are arguments passed to the handler."
-  (when (or (string-equal "com.emacsos.zero.ZeroPinyinService1"
+  (when (or (string-equal zero-pinyin-service-service-name
 			  (dbus-event-interface-name event))
-	    (s-contains-p "com.emacsos.zero.ZeroPinyinService1" (cadr error)))
+	    (s-contains-p zero-pinyin-service-service-name (cadr error)))
     (error "`zero-pinyin-service' dbus failed: %S" (cadr error))))
 
 (add-hook 'dbus-event-error-functions 'zero-pinyin-service-error-handler)
@@ -1097,9 +1104,9 @@ This is a wrapper around `dbus-call-method-asynchronously'.
 Argument HANDLER the handler function.
 Optional argument ARGS extra arguments to pass to the wrapped function."
   (apply 'dbus-call-method-asynchronously
-	 :session "com.emacsos.zero.ZeroPinyinService1"
-	 "/com/emacsos/zero/ZeroPinyinService1"
-	 "com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface"
+	 :session zero-pinyin-service-service-name
+	 zero-pinyin-service-path
+	 zero-pinyin-service-interface
 	 method handler :timeout 1000 args))
 
 (defun zero-pinyin-service-call (method &rest args)
@@ -1107,9 +1114,9 @@ Optional argument ARGS extra arguments to pass to the wrapped function."
 This is a wrapper around `dbus-call-method'.
 Optional argument ARGS extra arguments to pass to the wrapped function."
   (apply 'dbus-call-method
-	 :session "com.emacsos.zero.ZeroPinyinService1"
-	 "/com/emacsos/zero/ZeroPinyinService1"
-	 "com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface"
+	 :session zero-pinyin-service-service-name
+	 zero-pinyin-service-path
+	 zero-pinyin-service-interface
 	 method :timeout 1000 args))
 
 ;;============
@@ -1121,7 +1128,7 @@ Optional argument ARGS extra arguments to pass to the wrapped function."
 
 preedit-str the preedit-str, should be pure pinyin string
 FETCH-SIZE try to fetch this many candidates or more"
-  (zero-pinyin-service-call "GetCandidates" :string preedit-str :uint32 fetch-size))
+  (zero-pinyin-service-call "GetCandidatesV2" :string preedit-str :uint32 fetch-size :uint32 zero-pinyin-fuzzy-flag))
 
 (defun zero-pinyin-service-get-candidates-async (preedit-str fetch-size get-candidates-complete)
   "Get candidates for pinyin in PREEDIT-STR asynchronously.
@@ -1130,7 +1137,7 @@ PREEDIT-STR the preedit string, should be pure pinyin string.
 FETCH-SIZE try to fetch this many candidates or more.
 GET-CANDIDATES-COMPLETE the async handler function."
   (zero-pinyin-service-async-call
-   "GetCandidates" get-candidates-complete :string preedit-str :uint32 fetch-size))
+   "GetCandidatesV2" get-candidates-complete :string preedit-str :uint32 fetch-size :uint32 zero-pinyin-fuzzy-flag))
 
 (defun zero-pinyin-candidate-pinyin-indices-to-dbus-format (candidate_pinyin_indices)
   "Convert CANDIDATE_PINYIN_INDICES to Emacs dbus format."
@@ -1177,6 +1184,21 @@ DELETE-CANDIDATE-COMPLETE the async handler function."
 ;;===============================
 ;; basic data and emacs facility
 ;;===============================
+
+;; these two var is only used in docstring to avoid checkdoc line-too-long
+;; error.
+(defvar zero-pinyin-service-interface-xml-file
+  "/usr/share/dbus-1/interfaces/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml")
+(defvar zero-pinyin-service-interface-xml-url
+  "https://gitlab.emacsos.com/sylecn/zero-pinyin-service/blob/master/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml")
+(defcustom zero-pinyin-fuzzy-flag 0
+  "Non-nil means use this value as GetCandidatesV2 fuzzy_flag param.
+see zero-pinyin-service dbus interface xml for document.
+
+You can find the xml file locally at `zero-pinyin-service-interface-xml-file'
+or online at `zero-pinyin-service-interface-xml-url'."
+  :type 'integer
+  :group 'zero-pinyin)
 
 (defvar zero-pinyin-state nil "Zero-pinyin internal state.  could be nil or `*zero-pinyin-state-im-partial-commit*'.")
 (defconst zero-pinyin--state-im-partial-commit 'IM-PARTIAL-COMMIT)
