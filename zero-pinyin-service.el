@@ -71,7 +71,7 @@ Optional argument ARGS extra arguments to pass to the wrapped function."
 
 preedit-str the preedit-str, should be pure pinyin string
 FETCH-SIZE try to fetch this many candidates or more"
-  (zero-pinyin-service-call "GetCandidates" :string preedit-str :uint32 fetch-size))
+  (zero-pinyin-service-call "GetCandidatesV2" :string preedit-str :uint32 fetch-size :uint32 zero-pinyin-fuzzy-flag))
 
 (defun zero-pinyin-service-get-candidates-async (preedit-str fetch-size get-candidates-complete)
   "Get candidates for pinyin in PREEDIT-STR asynchronously.
@@ -80,7 +80,7 @@ PREEDIT-STR the preedit string, should be pure pinyin string.
 FETCH-SIZE try to fetch this many candidates or more.
 GET-CANDIDATES-COMPLETE the async handler function."
   (zero-pinyin-service-async-call
-   "GetCandidates" get-candidates-complete :string preedit-str :uint32 fetch-size))
+   "GetCandidatesV2" get-candidates-complete :string preedit-str :uint32 fetch-size :uint32 zero-pinyin-fuzzy-flag))
 
 (defun zero-pinyin-candidate-pinyin-indices-to-dbus-format (candidate_pinyin_indices)
   "Convert CANDIDATE_PINYIN_INDICES to Emacs dbus format."
@@ -114,18 +114,6 @@ DELETE-CANDIDATE-COMPLETE the async handler function."
 (defun zero-pinyin-service-quit ()
   "Quit panel application."
   (zero-pinyin-service-async-call "Quit" nil))
-
-(defun zero-pinyin-service-set-fuzzy-flag (fuzzy-flag)
-  "Set FuzzyFlag property.
-
-FUZZY-FLAG should be a natural number.  See service interface XML
-for flag value and meaning"
-  (interactive)
-  (dbus-set-property
-   :session zero-pinyin-service-service-name
-   zero-pinyin-service-path
-   zero-pinyin-service-interface
-   "FuzzyFlag" fuzzy-flag))
 
 (provide 'zero-pinyin-service)
 

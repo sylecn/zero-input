@@ -72,10 +72,7 @@ or online at `zero-pinyin-service-interface-xml-url'."
   (setq zero-pinyin-state nil)
   (setq zero-pinyin-used-preedit-str-lengths nil)
   (setq zero-pinyin-pending-str "")
-  (setq zero-pinyin-pending-preedit-str "")
-  (when (null (zero-pinyin-service-set-fuzzy-flag zero-pinyin-fuzzy-flag))
-    (unless (zerop zero-pinyin-fuzzy-flag)
-      (display-warning 'zero-pinyin "Requires zero-pinyin-service v0.9.0 or later to support `zero-pinyin-fuzzy-flag'." :warning))))
+  (setq zero-pinyin-pending-preedit-str ""))
 
 (defun zero-pinyin-init ()
   "Called when this im is turned on."

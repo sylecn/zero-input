@@ -12,9 +12,9 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 1.3.1
+;; Version: 1.3.2
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
-;; Package-Version: 1.3.1
+;; Package-Version: 1.3.2
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
 ;;; Commentary:
@@ -243,7 +243,7 @@ If item is not in lst, return nil."
 
 ;; zero-el version
 (defvar zero-version nil "Zero package version.")
-(setq zero-version "1.3.1")
+(setq zero-version "1.3.2")
 
 ;; FSM state
 (defconst zero--state-im-off 'IM-OFF)
@@ -1128,7 +1128,7 @@ Optional argument ARGS extra arguments to pass to the wrapped function."
 
 preedit-str the preedit-str, should be pure pinyin string
 FETCH-SIZE try to fetch this many candidates or more"
-  (zero-pinyin-service-call "GetCandidates" :string preedit-str :uint32 fetch-size))
+  (zero-pinyin-service-call "GetCandidatesV2" :string preedit-str :uint32 fetch-size :uint32 zero-pinyin-fuzzy-flag))
 
 (defun zero-pinyin-service-get-candidates-async (preedit-str fetch-size get-candidates-complete)
   "Get candidates for pinyin in PREEDIT-STR asynchronously.
@@ -1137,7 +1137,7 @@ PREEDIT-STR the preedit string, should be pure pinyin string.
 FETCH-SIZE try to fetch this many candidates or more.
 GET-CANDIDATES-COMPLETE the async handler function."
   (zero-pinyin-service-async-call
-   "GetCandidates" get-candidates-complete :string preedit-str :uint32 fetch-size))
+   "GetCandidatesV2" get-candidates-complete :string preedit-str :uint32 fetch-size :uint32 zero-pinyin-fuzzy-flag))
 
 (defun zero-pinyin-candidate-pinyin-indices-to-dbus-format (candidate_pinyin_indices)
   "Convert CANDIDATE_PINYIN_INDICES to Emacs dbus format."
@@ -1171,18 +1171,6 @@ DELETE-CANDIDATE-COMPLETE the async handler function."
 (defun zero-pinyin-service-quit ()
   "Quit panel application."
   (zero-pinyin-service-async-call "Quit" nil))
-
-(defun zero-pinyin-service-set-fuzzy-flag (fuzzy-flag)
-  "Set FuzzyFlag property.
-
-FUZZY-FLAG should be a natural number.  See service interface XML
-for flag value and meaning"
-  (interactive)
-  (dbus-set-property
-   :session zero-pinyin-service-service-name
-   zero-pinyin-service-path
-   zero-pinyin-service-interface
-   "FuzzyFlag" fuzzy-flag))
 
 (provide 'zero-pinyin-service)
 
@@ -1233,10 +1221,7 @@ or online at `zero-pinyin-service-interface-xml-url'."
   (setq zero-pinyin-state nil)
   (setq zero-pinyin-used-preedit-str-lengths nil)
   (setq zero-pinyin-pending-str "")
-  (setq zero-pinyin-pending-preedit-str "")
-  (when (null (zero-pinyin-service-set-fuzzy-flag zero-pinyin-fuzzy-flag))
-    (unless (zerop zero-pinyin-fuzzy-flag)
-      (display-warning 'zero-pinyin "Requires zero-pinyin-service v0.9.0 or later to support `zero-pinyin-fuzzy-flag'." :warning))))
+  (setq zero-pinyin-pending-preedit-str ""))
 
 (defun zero-pinyin-init ()
   "Called when this im is turned on."
