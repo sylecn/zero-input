@@ -12,9 +12,9 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 1.3.2
+;; Version: 1.3.3
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
-;; Package-Version: 1.3.2
+;; Package-Version: 1.3.3
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
 ;;; Commentary:
@@ -243,7 +243,7 @@ If item is not in lst, return nil."
 
 ;; zero-el version
 (defvar zero-version nil "Zero package version.")
-(setq zero-version "1.3.2")
+(setq zero-version "1.3.3")
 
 ;; FSM state
 (defconst zero--state-im-off 'IM-OFF)
@@ -1192,8 +1192,8 @@ DELETE-CANDIDATE-COMPLETE the async handler function."
 (defvar zero-pinyin-service-interface-xml-url
   "https://gitlab.emacsos.com/sylecn/zero-pinyin-service/blob/master/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml")
 (defcustom zero-pinyin-fuzzy-flag 0
-  "Non-nil means use this value as FuzzyFlag.
-see zero-pinyin-service dbus interface xml for flag value and meaning.
+  "Non-nil means use this value as GetCandidatesV2 fuzzy_flag param.
+see zero-pinyin-service dbus interface xml for document.
 
 You can find the xml file locally at `zero-pinyin-service-interface-xml-file'
 or online at `zero-pinyin-service-interface-xml-url'."

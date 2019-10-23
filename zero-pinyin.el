@@ -43,8 +43,8 @@
 (defvar zero-pinyin-service-interface-xml-url
   "https://gitlab.emacsos.com/sylecn/zero-pinyin-service/blob/master/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml")
 (defcustom zero-pinyin-fuzzy-flag 0
-  "Non-nil means use this value as FuzzyFlag.
-see zero-pinyin-service dbus interface xml for flag value and meaning.
+  "Non-nil means use this value as GetCandidatesV2 fuzzy_flag param.
+see zero-pinyin-service dbus interface xml for document.
 
 You can find the xml file locally at `zero-pinyin-service-interface-xml-file'
 or online at `zero-pinyin-service-interface-xml-url'."
