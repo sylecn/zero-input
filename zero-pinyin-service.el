@@ -29,6 +29,7 @@
   "/com/emacsos/zero/ZeroPinyinService1")
 (defvar zero-pinyin-service-interface
   "com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface")
+(defvar zero-pinyin-fuzzy-flag 0)
 
 (defun zero-pinyin-service-error-handler (event error)
   "Handle dbus errors.

@@ -132,7 +132,7 @@ If item is not in lst, return nil."
 
 ;; zero-el version
 (defvar zero-version nil "Zero package version.")
-(setq zero-version "1.3.3")
+(setq zero-version "1.3.4")
 
 ;; FSM state
 (defconst zero--state-im-off 'IM-OFF)
