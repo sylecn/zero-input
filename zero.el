@@ -12,9 +12,9 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 1.3.3
+;; Version: 1.3.4
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
-;; Package-Version: 1.3.3
+;; Package-Version: 1.3.4
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
 ;;; Commentary:
@@ -243,7 +243,7 @@ If item is not in lst, return nil."
 
 ;; zero-el version
 (defvar zero-version nil "Zero package version.")
-(setq zero-version "1.3.3")
+(setq zero-version "1.3.4")
 
 ;; FSM state
 (defconst zero--state-im-off 'IM-OFF)
@@ -1086,6 +1086,7 @@ e.g.
   "/com/emacsos/zero/ZeroPinyinService1")
 (defvar zero-pinyin-service-interface
   "com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface")
+(defvar zero-pinyin-fuzzy-flag 0)
 
 (defun zero-pinyin-service-error-handler (event error)
   "Handle dbus errors.
