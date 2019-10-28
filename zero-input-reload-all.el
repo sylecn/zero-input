@@ -1,4 +1,4 @@
-;;; zero-reload-all.el --- reload zero-el in correct order -*- no-byte-compile: t; -*-
+;;; zero-input-reload-all.el --- reload zero-input-el in correct order -*- no-byte-compile: t; -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -16,42 +16,42 @@
 
 ;;; Code:
 
-(defun zero-rebuild (&optional source-dir)
-  "Rebuild zero-el.
+(defun zero-input-rebuild (&optional source-dir)
+  "Rebuild zero-input-el.
 
 SOURCE-DIR where to find the zero source dir."
   (interactive)
   ;; for loading s
   (package-initialize)
   (let ((source-dir (or source-dir "~/lisp/elisp/zero/")))
-    (dolist (f '("zero-quickdial.el"
-		 "zero-panel.el"
-		 "zero-panel-test.el"
-		 "zero-framework.el"
-		 "zero-framework-test.el"
-		 "zero-pinyin-service.el"
-		 "zero-pinyin-service-test.el"
-		 "zero-pinyin.el"
-		 "zero-pinyin-test.el"
+    (dolist (f '("zero-input-quickdial.el"
+		 "zero-input-panel.el"
+		 "zero-input-panel-test.el"
+		 "zero-input-framework.el"
+		 "zero-input-framework-test.el"
+		 "zero-input-pinyin-service.el"
+		 "zero-input-pinyin-service-test.el"
+		 "zero-input-pinyin.el"
+		 "zero-input-pinyin-test.el"
 		 ))
       (byte-compile-file (concat source-dir f) t))))
 
-(defun zero-reload-all ()
+(defun zero-input-reload-all ()
   "Recompile and load all zero files."
   (interactive)
   (byte-recompile-directory "~/lisp/elisp/zero/" 0)
-  (dolist (f '("zero-quickdial.elc"
-	       "zero-panel.elc"
-	       "zero-panel-test.elc"
-	       "zero-framework.elc"
-	       "zero-framework-test.elc"
-	       "zero-pinyin-service.elc"
-	       "zero-pinyin-service-test.elc"
-	       "zero-pinyin.elc"
-	       "zero-pinyin-test.elc"
-	       "zero-table.el"
-	       "zero-table-test.el"
+  (dolist (f '("zero-input-quickdial.elc"
+	       "zero-input-panel.elc"
+	       "zero-input-panel-test.elc"
+	       "zero-input-framework.elc"
+	       "zero-input-framework-test.elc"
+	       "zero-input-pinyin-service.elc"
+	       "zero-input-pinyin-service-test.elc"
+	       "zero-input-pinyin.elc"
+	       "zero-input-pinyin-test.elc"
+	       "zero-input-table.el"
+	       "zero-input-table-test.el"
 	       ))
     (load-file f)))
 
-;;; zero-reload-all.el ends here
+;;; zero-input-reload-all.el ends here

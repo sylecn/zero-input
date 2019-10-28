@@ -1,4 +1,4 @@
-;;; zero-table.el --- a demo table based input method based on zero.el -*- no-byte-compile: t; lexical-binding: t -*-
+;;; zero-input-table.el --- a demo table based input method based on zero.el -*- no-byte-compile: t; lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
 
 ;;; Commentary:
 
-;; when you type the key in `zero-table-table', IM will insert the
+;; when you type the key in `zero-input-table-table', IM will insert the
 ;; corresponding value.
 ;;
 ;; To use this demo IM,
 ;;   (add-to-list 'load-path "~/fromsource/zero")
-;;   (require 'zero-table)
-;;   (zero-set-default-im 'zero-table) ; set as default IM
-;;   or (zero-set-im 'zero-table)      ; set as current buffer's IM
+;;   (require 'zero-input-table)
+;;   (zero-input-set-default-im 'zero-input-table) ; set as default IM
+;;   or (zero-input-set-im 'zero-input-table)      ; set as current buffer's IM
 
 ;;; Code:
 
@@ -29,54 +29,54 @@
 ;; dependencies
 ;;==============
 
-(require 'zero-framework)
+(require 'zero-input-framework)
 
 ;;===============================
 ;; basic data and emacs facility
 ;;===============================
 
-(defvar zero-table-table nil
-  "The table used by zero-table input method, map string to string.")
-(defvar zero-table-sequence-initials nil "Used in `zero-table-can-start-sequence'.")
+(defvar zero-input-table-table nil
+  "The table used by zero-input-table input method, map string to string.")
+(defvar zero-input-table-sequence-initials nil "Used in `zero-input-table-can-start-sequence'.")
 
 ;;=====================
 ;; key logic functions
 ;;=====================
 
-(defun zero-table-sort-key (lhs rhs)
+(defun zero-input-table-sort-key (lhs rhs)
   "A predicate function to sort candidates.  Return t if LHS should sort before RHS."
   (string< (car lhs) (car rhs)))
 
-(defun zero-table-build-candidates (preedit-str &optional _fetch-size)
-  "Build candidates by looking up PREEDIT-STR in `zero-table-table'."
-  (mapcar 'cdr (sort (cl-remove-if-not (lambda (pair) (string-prefix-p preedit-str (car pair))) zero-table-table) 'zero-table-sort-key)))
+(defun zero-input-table-build-candidates (preedit-str &optional _fetch-size)
+  "Build candidates by looking up PREEDIT-STR in `zero-input-table-table'."
+  (mapcar 'cdr (sort (cl-remove-if-not (lambda (pair) (string-prefix-p preedit-str (car pair))) zero-input-table-table) 'zero-input-table-sort-key)))
 
-;; (defun zero-table-build-candidates-async (preedit-str)
-;;   "build candidate list, when done show it via `zero-table-show-candidates'"
-;;   (zero-table-debug "building candidate list\n")
-;;   (let ((candidates (zero-table-build-candidates preedit-str)))
+;; (defun zero-input-table-build-candidates-async (preedit-str)
+;;   "build candidate list, when done show it via `zero-input-table-show-candidates'"
+;;   (zero-input-table-debug "building candidate list\n")
+;;   (let ((candidates (zero-input-table-build-candidates preedit-str)))
 ;;     ;; update cache to make SPC and digit key selection possible.
-;;     (setq zero-table-candidates candidates)
-;;     (zero-table-show-candidates candidates)))
+;;     (setq zero-input-table-candidates candidates)
+;;     (zero-input-table-show-candidates candidates)))
 
-(defun zero-table-can-start-sequence (ch)
+(defun zero-input-table-can-start-sequence (ch)
   "Return t if char CH can start a preedit sequence."
-  (member (make-string 1 ch) zero-table-sequence-initials))
+  (member (make-string 1 ch) zero-input-table-sequence-initials))
 
 ;;===============================
 ;; register IM to zero framework
 ;;===============================
 
-(zero-register-im
- 'zero-table
- '((:build-candidates . zero-table-build-candidates)
-   (:can-start-sequence . zero-table-can-start-sequence)))
+(zero-input-register-im
+ 'zero-input-table
+ '((:build-candidates . zero-input-table-build-candidates)
+   (:can-start-sequence . zero-input-table-can-start-sequence)))
 
 ;;============
 ;; public API
 ;;============
 
-(defun zero-table-set-table (alist)
+(defun zero-input-table-set-table (alist)
   "Set the conversion table.
 
 the ALIST should be a list of (key . value) pairs.  when user type
@@ -88,17 +88,17 @@ e.g.
   (\"map\" . \"https://ditu.amap.com/\")
   (\"m\" . \"https://msdn.microsoft.com/en-us\")
   (\"address\" . \"123 Happy Street\"))"
-  (setq zero-table-table alist)
-  (setq zero-table-sequence-initials
+  (setq zero-input-table-table alist)
+  (setq zero-input-table-sequence-initials
 	(delete-dups (mapcar (lambda (pair) (substring (car pair) 0 1))
-			     zero-table-table))))
+			     zero-input-table-table))))
 
 ;;===========
 ;; test data
 ;;===========
 
-(unless zero-table-table
-  (zero-table-set-table
+(unless zero-input-table-table
+  (zero-input-table-set-table
    '(("phone" . "18612345678")
      ("pyl" . "http://localdocs.emacsos.com/python2/library/%s.html")
      ("pyli" . "http://localdocs.emacsos.com/python2/index.html")
@@ -127,6 +127,6 @@ e.g.
      ("da" . "__da__")
      ("now" . "__now__"))))
 
-(provide 'zero-table)
+(provide 'zero-input-table)
 
-;;; zero-table.el ends here
+;;; zero-input-table.el ends here

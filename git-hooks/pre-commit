@@ -2,5 +2,5 @@
 set -e
 if git branch |grep '^\* master'; then
 	make dist-check
-	git add zero.el
+	git add zero-input.el
 fi

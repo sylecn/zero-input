@@ -1,4 +1,4 @@
-;;; zero-quickdial --- quickdial input method written as an emacs minor mode. -*- lexical-binding: t -*-
+;;; zero-input-quickdial --- quickdial input method written as an emacs minor mode. -*- lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -15,44 +15,44 @@
 ;;; Commentary:
 
 ;; To use this input method,
-;; M-x zero-quickdial-mode    ; turn on IM
+;; M-x zero-input-quickdial-mode    ; turn on IM
 ;; type 1 will insert one
 ;; type 2 will insert two
 ;; type 3 will insert three.
-;; M-x zero-quickdial-mode    ; turn off IM
+;; M-x zero-input-quickdial-mode    ; turn off IM
 ;;
 ;; This is just a demo of how Emacs minor mode can work as input method.
 
 ;;; Code:
 
-(defun zero-quickdial-insert-one ()
+(defun zero-input-quickdial-insert-one ()
   "Insert \"one\"."
   (interactive)
   (insert "one"))
 
-(defun zero-quickdial-insert-two ()
+(defun zero-input-quickdial-insert-two ()
   "Insert \"two\"."
   (interactive)
   (insert "two"))
 
-(defun zero-quickdial-insert-three ()
+(defun zero-input-quickdial-insert-three ()
   "Insert \"three\"."
   (interactive)
   (insert "three"))
 
-(defvar zero-quickdial-mode-map
+(defvar zero-input-quickdial-mode-map
   '(keymap
-    (49 . zero-quickdial-insert-one)
-    (50 . zero-quickdial-insert-two)
-    (51 . zero-quickdial-insert-three))
-  "Keymap for zero-quickdial-mode.")
+    (49 . zero-input-quickdial-insert-one)
+    (50 . zero-input-quickdial-insert-two)
+    (51 . zero-input-quickdial-insert-three))
+  "Keymap for zero-input-quickdial-mode.")
 
-(define-minor-mode zero-quickdial-mode
+(define-minor-mode zero-input-quickdial-mode
   "a simple input method written as an emacs minor mode"
   nil
   " Quickdial"
-  zero-quickdial-mode-map)
+  zero-input-quickdial-mode-map)
 
-(provide 'zero-quickdial)
+(provide 'zero-input-quickdial)
 
-;;; zero-quickdial.el ends here
+;;; zero-input-quickdial.el ends here

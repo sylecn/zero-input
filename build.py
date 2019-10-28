@@ -2,7 +2,7 @@
 # coding=utf-8
 
 """
-build zero.el from zero.el.in and other el files
+build zero-input.el from zero-input.el.in and other el files
 """
 
 import logging
@@ -18,9 +18,10 @@ def placeholder_for_file(fn):
 
 
 def test_placeholder_for_file():
-    assert placeholder_for_file("zero-panel.el") == "INCLUDE_ZERO_PANEL_EL"
-    assert placeholder_for_file("zero-pinyin-service.el") == (
-        "INCLUDE_ZERO_PINYIN_SERVICE_EL")
+    assert placeholder_for_file("zero-input-panel.el") == (
+        "INCLUDE_ZERO_INPUT_PANEL_EL")
+    assert placeholder_for_file("zero-input-pinyin-service.el") == (
+        "INCLUDE_ZERO_INPUT_PINYIN_SERVICE_EL")
 
 
 def get_el_file_body(fn):
@@ -57,16 +58,16 @@ def main():
     logging.basicConfig(
         format='%(asctime)s [%(module)s] %(levelname)-8s %(message)s',
         level=logging.INFO)
-    with open("zero.el.in") as tpl:
+    with open("zero-input.el.in") as tpl:
         content = tpl.read()
     expanded_content = expand_placeholder_for_files(content, [
-        "zero-panel.el",
-        "zero-framework.el",
-        "zero-table.el",
-        "zero-pinyin-service.el",
-        "zero-pinyin.el",
+        "zero-input-panel.el",
+        "zero-input-framework.el",
+        "zero-input-table.el",
+        "zero-input-pinyin-service.el",
+        "zero-input-pinyin.el",
         ])
-    with open('zero.el', 'w') as out:
+    with open('zero-input.el', 'w') as out:
         out.write(expanded_content)
 
 

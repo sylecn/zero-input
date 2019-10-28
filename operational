@@ -1,9 +1,9 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2019-10-23>
+Time-stamp: <2019-10-28>
 #+STARTUP: content
 * notes                                                               :entry:
-** 2019-04-01 zero.el a Chinese IM framework in emacs; FSM              :doc:
+** 2019-04-01 zero-el a Chinese IM framework in emacs; FSM              :doc:
 title was: how to write a modern im for emacs.
 cd ~/lisp/elisp/zero/
 - DONE can I implement it as a minor mode? yes.
@@ -13,8 +13,8 @@ cd ~/lisp/elisp/zero/
 
   | Imp | state            | action                                              | next state       | trigger action                                                                                          |
   |-----+------------------+-----------------------------------------------------+------------------+---------------------------------------------------------------------------------------------------------|
-  | Y   | IM_OFF           | M-x zero-on or zero-toggle                          | IM_WAITING_INPUT | turn on minor mode                                                                                      |
-  | Y   | IM_WAITING_INPUT | type M-x zero-off or zero-toggle                    | IM_OFF           | turn off minor mode                                                                                     |
+  | Y   | IM_OFF           | M-x zero-input-on or zero-input-toggle                          | IM_WAITING_INPUT | turn on minor mode                                                                                      |
+  | Y   | IM_WAITING_INPUT | type M-x zero-input-off or zero-input-toggle                    | IM_OFF           | turn off minor mode                                                                                     |
   | Y   | IM_WAITING_INPUT | type character that can start a sequence            | IM_PREEDITING    | update preedit str, show candidate list                                                                 |
   | Y   | IM_WAITING_INPUT | type character that can not start a sequence        | IM_WAITING_INPUT | insert character (full-width aware)                                                                     |
   | Y   | IM_WAITING_INPUT | type [,.?!\]                                        | IM_WAITING_INPUT | insert Chinese punctuation character (full-width aware)                                                 |
@@ -23,7 +23,7 @@ cd ~/lisp/elisp/zero/
   | Y   | IM_PREEDITING    | type SPC                                            | IM_WAITING_INPUT | commit first candidate or preedit str (full-width aware), reset preedit str                             |
   | Y   | IM_PREEDITING    | type digit keys                                     | IM_WAITING_INPUT | commit nth candidate if it exists, otherwise, append to preedit str                                     |
   |     | IM_PREEDITING    | type C-g                                            | IM_WAITING_INPUT | reset IM (reset preedit str, hide candidate list)                                                       |
-  | Y   | IM_PREEDITING    | type M-x zero-off or zero-toggle                    | IM_OFF           | reset IM, turn off minor mode                                                                           |
+  | Y   | IM_PREEDITING    | type M-x zero-input-off or zero-input-toggle                    | IM_OFF           | reset IM, turn off minor mode                                                                           |
   | Y   | IM_PREEDITING    | type <backspace>, when preedit str is longer than 1 | IM_PREEDITING    | update preedit str, update and show candidate list                                                      |
   | Y   | IM_PREEDITING    | type <backspace>, when preedit str is length 1      | IM_WAITING_INPUT | reset IM                                                                                                |
   | Y   | IM_PREEDITING    | focus in                                            | IM_PREEDITING    | show candidat list                                                                                      |
@@ -35,10 +35,10 @@ cd ~/lisp/elisp/zero/
   in IM_OFF state, zero should not do any preedit try nor do punctuation
   translate.
 
-- DONE make zero-quickdial IM work in emacs.
-  see ~/lisp/elisp/zero/zero-quickdial.el
-- DONE make zero-table IM work in emacs. with zero-panel.
-  see ~/lisp/elisp/zero/zero-table.el
+- DONE make zero-input-quickdial IM work in emacs.
+  see ~/lisp/elisp/zero/zero-input-quickdial.el
+- DONE make zero-input-table IM work in emacs. with zero-input-panel.
+  see ~/lisp/elisp/zero/zero-input-table.el
 - during development, press F8 to byte-compile and load the current el file.
   this will also look for errors in the file.
 
@@ -52,7 +52,7 @@ cd ~/lisp/elisp/zero/
 
     user can click mouse in another emacs window.
     whenever focus is moved outside current buffer, I need a hook to run
-    zero-focus-out.
+    zero-input-focus-out.
 
     how to reproduce the problem
     =============================
@@ -75,7 +75,7 @@ cd ~/lisp/elisp/zero/
   - how to check whether string contains character?
     without converting char to string.
 
-    (zero-table-can-start-sequence) can use this.
+    (zero-input-table-can-start-sequence) can use this.
 ** 2019-10-10 documents
 - Using of D-Bus
   https://www.gnu.org/software/emacs/manual/html_mono/dbus.html
@@ -92,8 +92,8 @@ I can't run them in git pre-commit hook.
   Need to add headers to make it happy.
 
   Because it doesn't have concept on multi-file package, it insists all
-  functions in file start with file name prefix. I can't have zero-* utility
-  function in zero-panel.el
+  functions in file start with file name prefix. I can't have zero-input-* utility
+  function in zero-input-panel.el
 
 - M-x package-lint-current-buffer fail on zero.el file
   this line:
@@ -129,7 +129,7 @@ I can't run them in git pre-commit hook.
   package-lint doesn't support multiple file pkg yet.
 
   - create a single zero.el file for distribution.
-    rename current zero.el to zero-framework.el
+    rename current zero.el to zero-input-framework.el
     create zero.el.in
   - make build
     should generate zero.el and run checks on it.
@@ -146,7 +146,7 @@ I can't run them in git pre-commit hook.
   - 
 
 ** 2019-10-11 move tests to separated files.
-otherwise (require 'zero-pinyin) will fail because (require 'ert) is not in
+otherwise (require 'zero-input-pinyin) will fail because (require 'ert) is not in
 source code.
 
 ** 2019-10-09 release zero-el on melpa

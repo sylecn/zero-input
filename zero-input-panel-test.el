@@ -1,4 +1,4 @@
-;;; zero-panel-test.el --- tests for zero-panel.el -*- lexical-binding: t -*-
+;;; zero-input-panel-test.el --- tests for zero-input-panel.el -*- lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -19,17 +19,17 @@
 ;;; Code:
 
 (require 'ert)
-(require 'zero-panel)
+(require 'zero-input-panel)
 
-(ert-deftest zero-alist-to-asv ()
-  (should (equal (zero-alist-to-asv nil) '(:array :signature "{sv}")))
-  (should (equal (zero-alist-to-asv
+(ert-deftest zero-input-alist-to-asv ()
+  (should (equal (zero-input-alist-to-asv nil) '(:array :signature "{sv}")))
+  (should (equal (zero-input-alist-to-asv
 		  '(("name" "foo")
 		    ("timeout" :int32 10)))
 		 '(:array
 		   (:dict-entry "name" (:variant "foo"))
 		   (:dict-entry "timeout" (:variant :int32 10))))))
 
-(provide 'zero-panel-test)
+(provide 'zero-input-panel-test)
 
-;;; zero-panel-test.el ends here
+;;; zero-input-panel-test.el ends here

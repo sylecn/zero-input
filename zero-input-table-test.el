@@ -1,4 +1,4 @@
-;;; zero-table-test.el --- tests for zero-table.el -*- no-byte-compile: t; lexical-binding: t -*-
+;;; zero-input-table-test.el --- tests for zero-input-table.el -*- no-byte-compile: t; lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -18,22 +18,22 @@
 
 ;;; Code:
 
-(require 'zero-table)
+(require 'zero-input-table)
 (require 'ert)
 
-(ert-deftest zero-table-build-candidates ()
-  (should (equal (zero-table-build-candidates "ph") '("18612345678")))
-  (should (equal (zero-table-build-candidates "m")
+(ert-deftest zero-input-table-build-candidates ()
+  (should (equal (zero-input-table-build-candidates "ph") '("18612345678")))
+  (should (equal (zero-input-table-build-candidates "m")
 		 '("https://msdn.microsoft.com/en-us"
 		   "foo@example.com"
 		   "https://ditu.amap.com/"))))
 
-(ert-deftest zero-table-can-start-sequence ()
-  (should (zero-table-can-start-sequence ?a))
-  (should (zero-table-can-start-sequence ?m))
-  (should-not (zero-table-can-start-sequence ?1))
-  (should-not (zero-table-can-start-sequence ?b)))
+(ert-deftest zero-input-table-can-start-sequence ()
+  (should (zero-input-table-can-start-sequence ?a))
+  (should (zero-input-table-can-start-sequence ?m))
+  (should-not (zero-input-table-can-start-sequence ?1))
+  (should-not (zero-input-table-can-start-sequence ?b)))
 
-(provide 'zero-table-test)
+(provide 'zero-input-table-test)
 
-;;; zero-table-test.el ends here
+;;; zero-input-table-test.el ends here
