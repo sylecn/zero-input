@@ -41,7 +41,7 @@
 ;; buffer by C-c , , You can change default Chinese punctuation level:
 ;;
 ;;   (setq-default zero-input-punctuation-level
-;;   *zero-input-punctuation-level-full*)
+;;     zero-input-punctuation-level-full)
 ;;
 ;; zero-input supports full-width mode.  You can toggle full-width mode in
 ;; current buffer by C-c , . You can enable full-width mode by default:

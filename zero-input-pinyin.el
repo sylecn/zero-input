@@ -52,7 +52,7 @@ You can find the xml file locally at
   :type 'integer
   :group 'zero-input-pinyin)
 
-(defvar zero-input-pinyin-state nil "Zero-Input-pinyin internal state.  could be nil or `*zero-input-pinyin-state-im-partial-commit*'.")
+(defvar zero-input-pinyin-state nil "Zero-input-pinyin internal state.  could be nil or `zero-input-pinyin--state-im-partial-commit'.")
 (defconst zero-input-pinyin--state-im-partial-commit 'IM-PARTIAL-COMMIT)
 
 (defvar zero-input-pinyin-used-preedit-str-lengths nil
@@ -81,11 +81,11 @@ You can find the xml file locally at
   (zero-input-pinyin-reset))
 
 (defun zero-input-pinyin-preedit-start ()
-  "Called when enter `*zero-input-state-im-preediting*' state."
+  "Called when enter `zero-input--state-im-preediting' state."
   (define-key zero-input-mode-map [remap digit-argument] 'zero-input-digit-argument))
 
 (defun zero-input-pinyin-preedit-end ()
-  "Called when leave `*zero-input-state-im-preediting*' state."
+  "Called when leave `zero-input--state-im-preediting' state."
   (define-key zero-input-mode-map [remap digit-argument] nil))
 
 (defun zero-input-pinyin-shutdown ()
@@ -241,7 +241,7 @@ This is different from zero-input-framework because I need to support partial co
       (zero-input-just-page-down))))
 
 (defun zero-input-pinyin-handle-preedit-char (ch)
-  "Hanlde character insert in `*zero-input-state-im-preediting*' state.
+  "Hanlde character insert in `zero-input--state-im-preediting' state.
 Override `zero-input-handle-preedit-char-default'.
 
 CH the character user typed."
@@ -280,7 +280,7 @@ CH the character user typed."
   (zero-input-preedit-str-changed))
 
 (defun zero-input-pinyin-backspace ()
-  "Handle backspace key in `*zero-input-state-im-preediting*' state."
+  "Handle backspace key in `zero-input--state-im-preediting' state."
   (if (eq zero-input-pinyin-state zero-input-pinyin--state-im-partial-commit)
       (zero-input-pinyin-preedit-str-changed)
     (zero-input-backspace-default)))
@@ -300,7 +300,7 @@ DIGIT 0 means delete 10th candidate."
        candidate 'zero-input-pinyin-preedit-str-changed))))
 
 (defun zero-input-digit-argument ()
-  "Allow C-<digit> to DeleteCandidate in `*zero-input-state-im-preediting*' state."
+  "Allow C-<digit> to DeleteCandidate in `zero-input--state-im-preediting' state."
   (interactive)
   (unless (eq zero-input-state zero-input--state-im-preediting)
     (error "`zero-input-digit-argument' called in non preediting state"))

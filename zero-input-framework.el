@@ -20,7 +20,7 @@
 ;; You can cycle zero-input-punctuation-level in current buffer by C-c , ,
 ;; You can change default Chinese punctuation level:
 ;;
-;;   (setq-default zero-input-punctuation-level *zero-input-punctuation-level-full*)
+;;   (setq-default zero-input-punctuation-level zero-input-punctuation-level-full)
 ;;
 ;; You can toggle full-width mode in current buffer by C-c , .
 ;; You can enable full-width mode by default:
@@ -132,7 +132,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.0.0")
+(setq zero-input-version "2.0.1")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
