@@ -12,9 +12,8 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 2.0.1
+;; Version: 2.0.2
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
-;; Package-Version: 2.0.1
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
 ;;; Commentary:
@@ -29,11 +28,11 @@
 ;; zero-input-pinyin is bundled with zero, to use pinyin input method, add to
 ;; ~/.emacs file:
 ;;
-;;   (require 'zero-input-pinyin)
+;;   (require 'zero-input)
 ;;   (zero-input-set-default-im 'pinyin)
-;;   ;; Now you may bind a key to zero-input-toggle to make it easy to
+;;   ;; Now you may bind a key to zero-input-mode to make it easy to
 ;;   ;; switch on/off the input method.
-;;   (global-set-key (kbd "<f5>") 'zero-input-toggle)
+;;   (global-set-key (kbd "<f5>") 'zero-input-mode)
 ;;
 ;; zero-input supports Chinese punctuation mapping.  There are three modes,
 ;; none, basic, and full.  The default is basic mode, which only map most
@@ -46,7 +45,7 @@
 ;; zero-input supports full-width mode.  You can toggle full-width mode in
 ;; current buffer by C-c , . You can enable full-width mode by default:
 ;;
-;;   (setq-default zero-input-full-width-mode t)
+;;   (setq-default zero-input-full-width-p t)
 ;;
 
 ;;; Code:
@@ -244,7 +243,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.0.1")
+(setq zero-input-version "2.0.2")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -255,7 +254,7 @@ If item is not in lst, return nil."
 (defconst zero-input-punctuation-level-full 'FULL)
 (defconst zero-input-punctuation-level-none 'NONE)
 
-(defvar zero-input-im nil
+(defvar-local zero-input-im nil
   "Stores current input method.
 
 If nil, the empty input method will be used.  In the empty input
@@ -264,18 +263,18 @@ through")
 (defvar zero-input-ims nil
   "A list of registered input methods.")
 
-(defvar zero-input-buffer nil
+(defvar-local zero-input-buffer nil
   "Stores the associated buffer.
 this is used to help with buffer focus in/out events")
 
-(defvar zero-input-state zero-input--state-im-off)
-(defvar zero-input-full-width-mode nil
+(defvar-local zero-input-state zero-input--state-im-off)
+(defvar-local zero-input-full-width-p nil
   "Set to t to enable full-width mode.
 In full-width mode, commit ascii char will insert full-width char if there is a
 corresponding full-width char.  This full-width char map is
 independent from punctuation map.  You can change this via
 `zero-input-toggle-full-width-mode'")
-(defvar zero-input-punctuation-level zero-input-punctuation-level-basic
+(defvar-local zero-input-punctuation-level zero-input-punctuation-level-basic
   "Punctuation level.
 
 Should be one of
@@ -286,31 +285,33 @@ Should be one of
 				      zero-input-punctuation-level-full
 				      zero-input-punctuation-level-none)
   "Punctuation levels to use when `zero-input-cycle-punctuation-level'.")
-(defvar zero-input-double-quote-flag nil
+(defvar-local zero-input-double-quote-flag nil
   "Non-nil means next double quote insert close quote.
 
 Used when converting double quote to Chinese quote.
 If nil, next double quote insert open quote.
 Otherwise, next double quote insert close quote.")
-(defvar zero-input-single-quote-flag nil
+(defvar-local zero-input-single-quote-flag nil
   "Non-nil means next single quote insert close quote.
 
 Used when converting single quote to Chinese quote.
 If nil, next single quote insert open quote.
 Otherwise, next single quote insert close quote.")
-(defvar zero-input-preedit-str "")
-(defvar zero-input-candidates nil)
+(defvar-local zero-input-preedit-str "")
+(defvar-local zero-input-candidates nil)
 (defcustom zero-input-candidates-per-page 10
-  "How many candidates to show on each page."
+  "How many candidates to show on each page.
+
+Change will be effective only in new `zero-input-mode' buffer."
   :group 'zero
   :type 'integer)
-(defvar zero-input-current-page 0 "Current page number.  count from 0.")
-(defvar zero-input-initial-fetch-size 20
+(defvar-local zero-input-current-page 0 "Current page number.  count from 0.")
+(defvar-local zero-input-initial-fetch-size 20
   "How many candidates to fetch for the first call to GetCandidates.")
 ;; zero-input-fetch-size is reset to 0 when preedit-str changes.
 ;; zero-input-fetch-size is set to fetch-size in build-candidates-async complete-func
 ;; lambda.
-(defvar zero-input-fetch-size 0 "Last GetCandidates call's fetch-size.")
+(defvar-local zero-input-fetch-size 0 "Last GetCandidates call's fetch-size.")
 (defvar zero-input-previous-page-key ?\- "Previous page key.")
 (defvar zero-input-next-page-key ?\= "Next page key.")
 
@@ -325,25 +326,32 @@ Otherwise, next single quote insert close quote.")
 (defun zero-input-get-preedit-str-for-panel-default ()
   "Default implementation for `zero-input-get-preedit-str-for-panel-func'."
   zero-input-preedit-str)
-(defvar zero-input-build-candidates-func 'zero-input-build-candidates-default
+(defvar-local zero-input-build-candidates-func
+  'zero-input-build-candidates-default
   "Contains a function to build candidates from preedit-str.  The function accepts param preedit-str, fetch-size, returns candidate list.")
-(defvar zero-input-build-candidates-async-func 'zero-input-build-candidates-async-default
+(defvar-local zero-input-build-candidates-async-func
+  'zero-input-build-candidates-async-default
   "Contains a function to build candidates from preedit-str.  The function accepts param preedit-str, fetch-size, and a complete-func that should be called on returned candidate list.")
-(defvar zero-input-can-start-sequence-func 'zero-input-can-start-sequence-default
+(defvar-local zero-input-can-start-sequence-func
+  'zero-input-can-start-sequence-default
   "Contains a function to decide whether a char can start a preedit sequence.")
-(defvar zero-input-handle-preedit-char-func 'zero-input-handle-preedit-char-default
+(defvar-local zero-input-handle-preedit-char-func
+  'zero-input-handle-preedit-char-default
   "Contains a function to handle IM-PREEDITING state char insert.
 The function should return t if char is handled.
 This allow input method to override default logic.")
-(defvar zero-input-get-preedit-str-for-panel-func 'zero-input-get-preedit-str-for-panel-default
+(defvar-local zero-input-get-preedit-str-for-panel-func
+  'zero-input-get-preedit-str-for-panel-default
   "Contains a function that return preedit-str to show in zero-input-panel.")
-(defvar zero-input-backspace-func 'zero-input-backspace-default
+(defvar-local zero-input-backspace-func
+  'zero-input-backspace-default
   "Contains a function to handle <backward> char.")
-(defvar zero-input-handle-preedit-char-func 'zero-input-handle-preedit-char-default
+(defvar-local zero-input-handle-preedit-char-func
+  'zero-input-handle-preedit-char-default
   "Hanlde character insert in `zero-input--state-im-preediting' mode.")
-(defvar zero-input-preedit-start-func 'nil
+(defvar-local zero-input-preedit-start-func 'nil
   "Called when enter `zero-input--state-im-preediting' state.")
-(defvar zero-input-preedit-end-func 'nil
+(defvar-local zero-input-preedit-end-func 'nil
   "Called when leave `zero-input--state-im-preediting' state.")
 
 (defvar zero-input-enable-debug nil
@@ -475,12 +483,12 @@ If there is no full-width char for CH, return it unchanged."
   (concat (mapcar 'zero-input-convert-ch-to-full-width s)))
 
 (defun zero-input-convert-str-to-full-width-maybe (s)
-  "If in `zero-input-full-width-mode', convert char in S to their full-width char; otherwise, return s unchanged."
-  (if zero-input-full-width-mode (zero-input-convert-str-to-full-width s) s))
+  "If in `zero-input-full-width-p', convert char in S to their full-width char; otherwise, return s unchanged."
+  (if zero-input-full-width-p (zero-input-convert-str-to-full-width s) s))
 
 (defun zero-input-insert-full-width-char (ch)
-  "If in `zero-input-full-width-mode', insert full-width char for given CH and return true, otherwise just return nil."
-  (when zero-input-full-width-mode
+  "If in `zero-input-full-width-p', insert full-width char for given CH and return true, otherwise just return nil."
+  (when zero-input-full-width-p
     (let ((full-width-ch (zero-input-convert-ch-to-full-width ch)))
       (insert full-width-ch)
       full-width-ch)))
@@ -767,7 +775,7 @@ N is the argument passed to `self-insert-command'."
 
 If full-width mode is enabled, show ZeroF;
 Otherwise, show Zero."
-  (if zero-input-full-width-mode " ZeroF" " Zero"))
+  (if zero-input-full-width-p " ZeroF" " Zero"))
 
 (define-minor-mode zero-input-mode
   "a Chinese input method framework written as an emacs minor mode.
@@ -777,25 +785,13 @@ Otherwise, show Zero."
   (:eval (zero-input-modeline-string))
   zero-input-mode-map
   ;; local variables and variable init
-  (make-local-variable 'zero-input-state)
-  (zero-input-set-state  zero-input--state-im-off)
-  (make-local-variable 'zero-input-punctuation-level)
-  (make-local-variable 'zero-input-full-width-mode)
-  (make-local-variable 'zero-input-double-quote-flag)
-  (make-local-variable 'zero-input-single-quote-flag)
-  (set (make-local-variable 'zero-input-preedit-str) "")
-  (set (make-local-variable 'zero-input-candidates) nil)
+  (zero-input-reset)
   (make-local-variable 'zero-input-candidates-per-page)
-  (make-local-variable 'zero-input-current-page)
-  (make-local-variable 'zero-input-fetch-size)
-  (make-local-variable 'zero-input-im)
-  (make-local-variable 'zero-input-build-candidates-func)
-  (make-local-variable 'zero-input-can-start-sequence-func)
   (zero-input-set-im zero-input-im)
   ;; hooks
   (add-hook 'focus-in-hook 'zero-input-focus-in)
   (add-hook 'focus-out-hook 'zero-input-focus-out)
-  (set (make-local-variable 'zero-input-buffer) (current-buffer))
+  (setq zero-input-buffer (current-buffer))
   (add-hook 'buffer-list-update-hook 'zero-input-buffer-list-changed))
 
 ;;==================
@@ -835,11 +831,11 @@ registered input method is saved in `zero-input-ims'"
 ;; public API
 ;;============
 
-(defun zero-input-toggle-full-width-mode ()
-  "Toggle `zero-input-full-width-mode' on/off."
+(defun zero-input-toggle-full-width ()
+  "Toggle `zero-input-full-width-p' on/off."
   (interactive)
-  (setq zero-input-full-width-mode (not zero-input-full-width-mode))
-  (message (if zero-input-full-width-mode
+  (setq zero-input-full-width-p (not zero-input-full-width-p))
+  (message (if zero-input-full-width-p
 	       "Enabled full-width mode"
 	     "Enabled half-width mode")))
 
@@ -923,7 +919,7 @@ if IM-NAME is nil, use default empty input method"
 	      (let ((init-func (cdr (assq :init im-functions))))
 		(if (functionp init-func)
 		    (funcall init-func)))
-	      (set (make-local-variable 'zero-input-im) im-name))
+	      (setq zero-input-im im-name))
 	  (error "Input method %s not registered in zero" im-name)))
     (zero-input-debug "using default empty input method")
     (setq zero-input-build-candidates-func 'zero-input-build-candidates-default)
@@ -946,26 +942,15 @@ if IM-NAME is nil, use default empty input method"
 (defun zero-input-on ()
   "Turn on `zero-input-mode'."
   (interactive)
-  (zero-input-debug "zero-input-on\n")
-  (zero-input-mode 1)
-  (if (eq zero-input-state zero-input--state-im-off)
-      (zero-input-set-state zero-input--state-im-waiting-input)))
+  (zero-input-mode 1))
 
 (defun zero-input-off ()
   "Turn off `zero-input-mode'."
   (interactive)
-  (zero-input-debug "zero-input-off\n")
-  (zero-input-mode -1)
-  (zero-input-reset)
-  (zero-input-set-state zero-input--state-im-off))
+  (zero-input-mode -1))
 
-;;;###autoload
-(defun zero-input-toggle ()
-  "Toggle `zero-input-mode'."
-  (interactive)
-  (if zero-input-mode
-      (zero-input-off)
-    (zero-input-on)))
+(define-obsolete-function-alias 'zero-input-toggle 'zero-input-mode
+  "Zero-input v2.0.2" "Toggle `zero-input-mode'.")
 
 (provide 'zero-input-framework)
 
@@ -982,7 +967,8 @@ if IM-NAME is nil, use default empty input method"
 
 (defvar zero-input-table-table nil
   "The table used by zero-input-table input method, map string to string.")
-(defvar zero-input-table-sequence-initials nil "Used in `zero-input-table-can-start-sequence'.")
+(defvar zero-input-table-sequence-initials nil
+  "Used in `zero-input-table-can-start-sequence'.")
 
 ;;=====================
 ;; key logic functions
@@ -1027,50 +1013,17 @@ if IM-NAME is nil, use default empty input method"
 the ALIST should be a list of (key . value) pairs.  when user type
 \(part of) key, the IM will show all matching value.
 
-e.g.
-'((\"phone\" . \"18612345678\")
-  (\"mail\" . \"foo@example.com\")
-  (\"map\" . \"https://ditu.amap.com/\")
-  (\"m\" . \"https://msdn.microsoft.com/en-us\")
-  (\"address\" . \"123 Happy Street\"))"
+To use demo data, you can call:
+\(zero-input-table-set-table
+ \\='((\"phone\" . \"18612345678\")
+   (\"mail\" . \"foo@example.com\")
+   (\"map\" . \"https://ditu.amap.com/\")
+   (\"m\" . \"https://msdn.microsoft.com/en-us\")
+   (\"address\" . \"123 Happy Street\")))"
   (setq zero-input-table-table alist)
   (setq zero-input-table-sequence-initials
 	(delete-dups (mapcar (lambda (pair) (substring (car pair) 0 1))
 			     zero-input-table-table))))
-
-;;===========
-;; test data
-;;===========
-
-(unless zero-input-table-table
-  (zero-input-table-set-table
-   '(("phone" . "18612345678")
-     ("pyl" . "http://localdocs.emacsos.com/python2/library/%s.html")
-     ("pyli" . "http://localdocs.emacsos.com/python2/index.html")
-     ("pylm" . "http://localdocs.emacsos.com/python2/py-modindex.html")
-     ("py3li" . "http://localdocs.emacsos.com/python2/index.html")
-     ("py3l" . "http://localdocs.emacsos.com/python3/library/%s.html")
-     ("py3lm" . "http://localdocs.emacsos.com/python3/py-modindex.html")
-     ("pyop" . "http://docs.python.org/library/operator.html")
-     ("pyopl" . "http://localdocs.emacsos.com/python2/library/operator.html")
-     ("pympl" . "http://localdocs.emacsos.com/python2/library/multiprocessing.html")
-     ("py2" . "http://docs.python.org/2/library/%s.html")
-     ("py3" . "http://docs.python.org/3/library/%s.html")
-     ("py2i" . "http://docs.python.org/2/")
-     ("py2m" . "http://docs.python.org/2/py-modindex.html")
-     ("py3i" . "http://docs.python.org/3/")
-     ("py3m" . "http://docs.python.org/3/py-modindex.html")
-     ("pycodec" . "http://localdocs.emacsos.com/python2/library/codecs.html#standard-encodings")
-     ("pycodecs" . "http://localdocs.emacsos.com/python2/library/codecs.html#standard-encodings")
-     ("pycodecsr" . "http://docs.python.org/library/codecs.html#standard-encodings")
-     ("pycodecr" . "http://docs.python.org/library/codecs.html#standard-encodings")
-     ("pep328" . "http://www.python.org/dev/peps/pep-0328/")
-     ("mail" . "foo@example.com")
-     ("map" . "https://ditu.amap.com/")
-     ("m" . "https://msdn.microsoft.com/en-us")
-     ("address" . "123 Happy Street")
-     ("da" . "__da__")
-     ("now" . "__now__"))))
 
 (provide 'zero-input-table)
 
@@ -1101,7 +1054,7 @@ EVENT, ERROR are arguments passed to the handler."
 (add-hook 'dbus-event-error-functions 'zero-input-pinyin-service-error-handler)
 
 (defun zero-input-pinyin-service-async-call (method handler &rest args)
-  "Call METHOD on zero-input-pinin-service asynchronously.
+  "Call METHOD on `zero-input-pinyin-service' asynchronously.
 This is a wrapper around `dbus-call-method-asynchronously'.
 Argument HANDLER the handler function.
 Optional argument ARGS extra arguments to pass to the wrapped function."
@@ -1112,7 +1065,7 @@ Optional argument ARGS extra arguments to pass to the wrapped function."
 	 method handler :timeout 1000 args))
 
 (defun zero-input-pinyin-service-call (method &rest args)
-  "Call METHOD on zero-input-pinin-service synchronously.
+  "Call METHOD on `zero-input-pinyin-service' synchronously.
 This is a wrapper around `dbus-call-method'.
 Optional argument ARGS extra arguments to pass to the wrapped function."
   (apply 'dbus-call-method
@@ -1203,7 +1156,9 @@ You can find the xml file locally at
   :type 'integer
   :group 'zero-input-pinyin)
 
-(defvar zero-input-pinyin-state nil "Zero-input-pinyin internal state.  could be nil or `zero-input-pinyin--state-im-partial-commit'.")
+(defvar-local zero-input-pinyin-state nil
+  "Zero-input-pinyin internal state.  could be nil or
+`zero-input-pinyin--state-im-partial-commit'.")
 (defconst zero-input-pinyin--state-im-partial-commit 'IM-PARTIAL-COMMIT)
 
 (defvar zero-input-pinyin-used-preedit-str-lengths nil
@@ -1228,7 +1183,6 @@ You can find the xml file locally at
 
 (defun zero-input-pinyin-init ()
   "Called when this im is turned on."
-  (make-local-variable 'zero-input-pinyin-state)
   (zero-input-pinyin-reset))
 
 (defun zero-input-pinyin-preedit-start ()
@@ -1243,24 +1197,17 @@ You can find the xml file locally at
   "Called when this im is turned off."
   (define-key zero-input-mode-map [remap digit-argument] nil))
 
-(defvar zero-input-pinyin--build-candidates-use-test-data nil
-  "If t, `zero-input-pinyin-build-candidates' will use `zero-input-pinyin-build-candidates-test'.")
-
 (defun zero-input-pinyin-build-candidates (preedit-str fetch-size)
   "Synchronously build candidates list.
 
 PREEDIT-STR the preedit string.
 FETCH-SIZE fetch at least this many candidates if possible."
-  (if zero-input-pinyin--build-candidates-use-test-data
-      (progn
-	(zero-input-pinyin-build-candidates-test preedit-str)
-	(setq zero-input-fetch-size (max fetch-size (length zero-input-candidates))))
-    (zero-input-debug "zero-input-pinyin building candidate list synchronously\n")
-    (let ((result (zero-input-pinyin-service-get-candidates preedit-str fetch-size)))
-      (setq zero-input-fetch-size (max fetch-size (length (cl-first result))))
-      (setq zero-input-pinyin-used-preedit-str-lengths (cl-second result))
-      (setq zero-input-pinyin-candidates-pinyin-indices (cl-third result))
-      (cl-first result))))
+  (zero-input-debug "zero-input-pinyin building candidate list synchronously\n")
+  (let ((result (zero-input-pinyin-service-get-candidates preedit-str fetch-size)))
+    (setq zero-input-fetch-size (max fetch-size (length (cl-first result))))
+    (setq zero-input-pinyin-used-preedit-str-lengths (cl-second result))
+    (setq zero-input-pinyin-candidates-pinyin-indices (cl-third result))
+    (cl-first result)))
 
 (defun zero-input-pinyin-build-candidates-async (preedit-str fetch-size complete-func)
   "Asynchronously build candidate list, when done call complete-func on it.
@@ -1483,26 +1430,6 @@ DIGIT 0 means delete 10th candidate."
 ;;============
 ;; public API
 ;;============
-
-;;===========
-;; test data
-;;===========
-
-(defun zero-input-pinyin-build-candidates-test (preedit-str)
-  "Test data for testing partial commit.
-
-PREEDIT-STR the preedit string."
-  (cond
-   ((equal preedit-str "liyifeng")
-    (setq zero-input-pinyin-used-preedit-str-lengths '(8 4 4 4 2 2 2))
-    '("李易峰" "利益" "礼仪" "离异" "里" "理" "力"))
-   ((equal preedit-str "feng")
-    (setq zero-input-pinyin-used-preedit-str-lengths '(4 4 4 4 4))
-    '("风" "封" "疯" "丰" "凤"))
-   ((equal preedit-str "yifeng")
-    (setq zero-input-pinyin-used-preedit-str-lengths '(6 6 2 2 2 2))
-    '("一封" "遗风" "艺" "依" "一" "以"))
-   (t nil)))
 
 (provide 'zero-input-pinyin)
 
