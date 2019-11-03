@@ -43,7 +43,7 @@ EVENT, ERROR are arguments passed to the handler."
 (add-hook 'dbus-event-error-functions 'zero-input-pinyin-service-error-handler)
 
 (defun zero-input-pinyin-service-async-call (method handler &rest args)
-  "Call METHOD on zero-input-pinin-service asynchronously.
+  "Call METHOD on `zero-input-pinyin-service' asynchronously.
 This is a wrapper around `dbus-call-method-asynchronously'.
 Argument HANDLER the handler function.
 Optional argument ARGS extra arguments to pass to the wrapped function."
@@ -54,7 +54,7 @@ Optional argument ARGS extra arguments to pass to the wrapped function."
 	 method handler :timeout 1000 args))
 
 (defun zero-input-pinyin-service-call (method &rest args)
-  "Call METHOD on zero-input-pinin-service synchronously.
+  "Call METHOD on `zero-input-pinyin-service' synchronously.
 This is a wrapper around `dbus-call-method'.
 Optional argument ARGS extra arguments to pass to the wrapped function."
   (apply 'dbus-call-method

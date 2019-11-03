@@ -19,9 +19,9 @@
 ;;   (add-to-list 'load-path "~/fromsource/zero")  ;; omit if install from melpa
 ;;   (require 'zero-input-pinyin)
 ;;   (zero-input-set-default-im 'pinyin)
-;;   ;; Now you may bind a key to zero-input-toggle to make it easy to
+;;   ;; Now you may bind a key to zero-input-mode to make it easy to
 ;;   ;; switch on/off the input method.
-;;   (global-set-key (kbd "<f5>") 'zero-input-toggle)
+;;   (global-set-key (kbd "<f5>") 'zero-input-mode)
 
 ;;; Code:
 
@@ -52,7 +52,9 @@ You can find the xml file locally at
   :type 'integer
   :group 'zero-input-pinyin)
 
-(defvar zero-input-pinyin-state nil "Zero-input-pinyin internal state.  could be nil or `zero-input-pinyin--state-im-partial-commit'.")
+(defvar-local zero-input-pinyin-state nil
+  "Zero-input-pinyin internal state.  could be nil or
+`zero-input-pinyin--state-im-partial-commit'.")
 (defconst zero-input-pinyin--state-im-partial-commit 'IM-PARTIAL-COMMIT)
 
 (defvar zero-input-pinyin-used-preedit-str-lengths nil
@@ -77,7 +79,6 @@ You can find the xml file locally at
 
 (defun zero-input-pinyin-init ()
   "Called when this im is turned on."
-  (make-local-variable 'zero-input-pinyin-state)
   (zero-input-pinyin-reset))
 
 (defun zero-input-pinyin-preedit-start ()
@@ -92,24 +93,17 @@ You can find the xml file locally at
   "Called when this im is turned off."
   (define-key zero-input-mode-map [remap digit-argument] nil))
 
-(defvar zero-input-pinyin--build-candidates-use-test-data nil
-  "If t, `zero-input-pinyin-build-candidates' will use `zero-input-pinyin-build-candidates-test'.")
-
 (defun zero-input-pinyin-build-candidates (preedit-str fetch-size)
   "Synchronously build candidates list.
 
 PREEDIT-STR the preedit string.
 FETCH-SIZE fetch at least this many candidates if possible."
-  (if zero-input-pinyin--build-candidates-use-test-data
-      (progn
-	(zero-input-pinyin-build-candidates-test preedit-str)
-	(setq zero-input-fetch-size (max fetch-size (length zero-input-candidates))))
-    (zero-input-debug "zero-input-pinyin building candidate list synchronously\n")
-    (let ((result (zero-input-pinyin-service-get-candidates preedit-str fetch-size)))
-      (setq zero-input-fetch-size (max fetch-size (length (cl-first result))))
-      (setq zero-input-pinyin-used-preedit-str-lengths (cl-second result))
-      (setq zero-input-pinyin-candidates-pinyin-indices (cl-third result))
-      (cl-first result))))
+  (zero-input-debug "zero-input-pinyin building candidate list synchronously\n")
+  (let ((result (zero-input-pinyin-service-get-candidates preedit-str fetch-size)))
+    (setq zero-input-fetch-size (max fetch-size (length (cl-first result))))
+    (setq zero-input-pinyin-used-preedit-str-lengths (cl-second result))
+    (setq zero-input-pinyin-candidates-pinyin-indices (cl-third result))
+    (cl-first result)))
 
 (defun zero-input-pinyin-build-candidates-async (preedit-str fetch-size complete-func)
   "Asynchronously build candidate list, when done call complete-func on it.
@@ -332,26 +326,6 @@ DIGIT 0 means delete 10th candidate."
 ;;============
 ;; public API
 ;;============
-
-;;===========
-;; test data
-;;===========
-
-(defun zero-input-pinyin-build-candidates-test (preedit-str)
-  "Test data for testing partial commit.
-
-PREEDIT-STR the preedit string."
-  (cond
-   ((equal preedit-str "liyifeng")
-    (setq zero-input-pinyin-used-preedit-str-lengths '(8 4 4 4 2 2 2))
-    '("李易峰" "利益" "礼仪" "离异" "里" "理" "力"))
-   ((equal preedit-str "feng")
-    (setq zero-input-pinyin-used-preedit-str-lengths '(4 4 4 4 4))
-    '("风" "封" "疯" "丰" "凤"))
-   ((equal preedit-str "yifeng")
-    (setq zero-input-pinyin-used-preedit-str-lengths '(6 6 2 2 2 2))
-    '("一封" "遗风" "艺" "依" "一" "以"))
-   (t nil)))
 
 (provide 'zero-input-pinyin)
 

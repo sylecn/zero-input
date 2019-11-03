@@ -14,7 +14,6 @@
 
 ;; Version: PKG_VERSION
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
-;; Package-Version: PKG_VERSION
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
 ;;; Commentary:
@@ -29,11 +28,11 @@
 ;; zero-input-pinyin is bundled with zero, to use pinyin input method, add to
 ;; ~/.emacs file:
 ;;
-;;   (require 'zero-input-pinyin)
+;;   (require 'zero-input)
 ;;   (zero-input-set-default-im 'pinyin)
-;;   ;; Now you may bind a key to zero-input-toggle to make it easy to
+;;   ;; Now you may bind a key to zero-input-mode to make it easy to
 ;;   ;; switch on/off the input method.
-;;   (global-set-key (kbd "<f5>") 'zero-input-toggle)
+;;   (global-set-key (kbd "<f5>") 'zero-input-mode)
 ;;
 ;; zero-input supports Chinese punctuation mapping.  There are three modes,
 ;; none, basic, and full.  The default is basic mode, which only map most
@@ -46,7 +45,7 @@
 ;; zero-input supports full-width mode.  You can toggle full-width mode in
 ;; current buffer by C-c , . You can enable full-width mode by default:
 ;;
-;;   (setq-default zero-input-full-width-mode t)
+;;   (setq-default zero-input-full-width-p t)
 ;;
 
 ;;; Code:

@@ -25,7 +25,7 @@
 ;; You can toggle full-width mode in current buffer by C-c , .
 ;; You can enable full-width mode by default:
 ;;
-;;   (setq-default zero-input-full-width-mode t)
+;;   (setq-default zero-input-full-width-p t)
 ;;
 
 ;;; Code:
@@ -132,7 +132,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.0.1")
+(setq zero-input-version "2.0.2")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -143,7 +143,7 @@ If item is not in lst, return nil."
 (defconst zero-input-punctuation-level-full 'FULL)
 (defconst zero-input-punctuation-level-none 'NONE)
 
-(defvar zero-input-im nil
+(defvar-local zero-input-im nil
   "Stores current input method.
 
 If nil, the empty input method will be used.  In the empty input
@@ -152,18 +152,18 @@ through")
 (defvar zero-input-ims nil
   "A list of registered input methods.")
 
-(defvar zero-input-buffer nil
+(defvar-local zero-input-buffer nil
   "Stores the associated buffer.
 this is used to help with buffer focus in/out events")
 
-(defvar zero-input-state zero-input--state-im-off)
-(defvar zero-input-full-width-mode nil
+(defvar-local zero-input-state zero-input--state-im-off)
+(defvar-local zero-input-full-width-p nil
   "Set to t to enable full-width mode.
 In full-width mode, commit ascii char will insert full-width char if there is a
 corresponding full-width char.  This full-width char map is
 independent from punctuation map.  You can change this via
 `zero-input-toggle-full-width-mode'")
-(defvar zero-input-punctuation-level zero-input-punctuation-level-basic
+(defvar-local zero-input-punctuation-level zero-input-punctuation-level-basic
   "Punctuation level.
 
 Should be one of
@@ -174,31 +174,33 @@ Should be one of
 				      zero-input-punctuation-level-full
 				      zero-input-punctuation-level-none)
   "Punctuation levels to use when `zero-input-cycle-punctuation-level'.")
-(defvar zero-input-double-quote-flag nil
+(defvar-local zero-input-double-quote-flag nil
   "Non-nil means next double quote insert close quote.
 
 Used when converting double quote to Chinese quote.
 If nil, next double quote insert open quote.
 Otherwise, next double quote insert close quote.")
-(defvar zero-input-single-quote-flag nil
+(defvar-local zero-input-single-quote-flag nil
   "Non-nil means next single quote insert close quote.
 
 Used when converting single quote to Chinese quote.
 If nil, next single quote insert open quote.
 Otherwise, next single quote insert close quote.")
-(defvar zero-input-preedit-str "")
-(defvar zero-input-candidates nil)
+(defvar-local zero-input-preedit-str "")
+(defvar-local zero-input-candidates nil)
 (defcustom zero-input-candidates-per-page 10
-  "How many candidates to show on each page."
+  "How many candidates to show on each page.
+
+Change will be effective only in new `zero-input-mode' buffer."
   :group 'zero
   :type 'integer)
-(defvar zero-input-current-page 0 "Current page number.  count from 0.")
-(defvar zero-input-initial-fetch-size 20
+(defvar-local zero-input-current-page 0 "Current page number.  count from 0.")
+(defvar-local zero-input-initial-fetch-size 20
   "How many candidates to fetch for the first call to GetCandidates.")
 ;; zero-input-fetch-size is reset to 0 when preedit-str changes.
 ;; zero-input-fetch-size is set to fetch-size in build-candidates-async complete-func
 ;; lambda.
-(defvar zero-input-fetch-size 0 "Last GetCandidates call's fetch-size.")
+(defvar-local zero-input-fetch-size 0 "Last GetCandidates call's fetch-size.")
 (defvar zero-input-previous-page-key ?\- "Previous page key.")
 (defvar zero-input-next-page-key ?\= "Next page key.")
 
@@ -213,25 +215,32 @@ Otherwise, next single quote insert close quote.")
 (defun zero-input-get-preedit-str-for-panel-default ()
   "Default implementation for `zero-input-get-preedit-str-for-panel-func'."
   zero-input-preedit-str)
-(defvar zero-input-build-candidates-func 'zero-input-build-candidates-default
+(defvar-local zero-input-build-candidates-func
+  'zero-input-build-candidates-default
   "Contains a function to build candidates from preedit-str.  The function accepts param preedit-str, fetch-size, returns candidate list.")
-(defvar zero-input-build-candidates-async-func 'zero-input-build-candidates-async-default
+(defvar-local zero-input-build-candidates-async-func
+  'zero-input-build-candidates-async-default
   "Contains a function to build candidates from preedit-str.  The function accepts param preedit-str, fetch-size, and a complete-func that should be called on returned candidate list.")
-(defvar zero-input-can-start-sequence-func 'zero-input-can-start-sequence-default
+(defvar-local zero-input-can-start-sequence-func
+  'zero-input-can-start-sequence-default
   "Contains a function to decide whether a char can start a preedit sequence.")
-(defvar zero-input-handle-preedit-char-func 'zero-input-handle-preedit-char-default
+(defvar-local zero-input-handle-preedit-char-func
+  'zero-input-handle-preedit-char-default
   "Contains a function to handle IM-PREEDITING state char insert.
 The function should return t if char is handled.
 This allow input method to override default logic.")
-(defvar zero-input-get-preedit-str-for-panel-func 'zero-input-get-preedit-str-for-panel-default
+(defvar-local zero-input-get-preedit-str-for-panel-func
+  'zero-input-get-preedit-str-for-panel-default
   "Contains a function that return preedit-str to show in zero-input-panel.")
-(defvar zero-input-backspace-func 'zero-input-backspace-default
+(defvar-local zero-input-backspace-func
+  'zero-input-backspace-default
   "Contains a function to handle <backward> char.")
-(defvar zero-input-handle-preedit-char-func 'zero-input-handle-preedit-char-default
+(defvar-local zero-input-handle-preedit-char-func
+  'zero-input-handle-preedit-char-default
   "Hanlde character insert in `zero-input--state-im-preediting' mode.")
-(defvar zero-input-preedit-start-func 'nil
+(defvar-local zero-input-preedit-start-func 'nil
   "Called when enter `zero-input--state-im-preediting' state.")
-(defvar zero-input-preedit-end-func 'nil
+(defvar-local zero-input-preedit-end-func 'nil
   "Called when leave `zero-input--state-im-preediting' state.")
 
 (defvar zero-input-enable-debug nil
@@ -363,12 +372,12 @@ If there is no full-width char for CH, return it unchanged."
   (concat (mapcar 'zero-input-convert-ch-to-full-width s)))
 
 (defun zero-input-convert-str-to-full-width-maybe (s)
-  "If in `zero-input-full-width-mode', convert char in S to their full-width char; otherwise, return s unchanged."
-  (if zero-input-full-width-mode (zero-input-convert-str-to-full-width s) s))
+  "If in `zero-input-full-width-p', convert char in S to their full-width char; otherwise, return s unchanged."
+  (if zero-input-full-width-p (zero-input-convert-str-to-full-width s) s))
 
 (defun zero-input-insert-full-width-char (ch)
-  "If in `zero-input-full-width-mode', insert full-width char for given CH and return true, otherwise just return nil."
-  (when zero-input-full-width-mode
+  "If in `zero-input-full-width-p', insert full-width char for given CH and return true, otherwise just return nil."
+  (when zero-input-full-width-p
     (let ((full-width-ch (zero-input-convert-ch-to-full-width ch)))
       (insert full-width-ch)
       full-width-ch)))
@@ -655,7 +664,7 @@ N is the argument passed to `self-insert-command'."
 
 If full-width mode is enabled, show ZeroF;
 Otherwise, show Zero."
-  (if zero-input-full-width-mode " ZeroF" " Zero"))
+  (if zero-input-full-width-p " ZeroF" " Zero"))
 
 (define-minor-mode zero-input-mode
   "a Chinese input method framework written as an emacs minor mode.
@@ -665,25 +674,13 @@ Otherwise, show Zero."
   (:eval (zero-input-modeline-string))
   zero-input-mode-map
   ;; local variables and variable init
-  (make-local-variable 'zero-input-state)
-  (zero-input-set-state  zero-input--state-im-off)
-  (make-local-variable 'zero-input-punctuation-level)
-  (make-local-variable 'zero-input-full-width-mode)
-  (make-local-variable 'zero-input-double-quote-flag)
-  (make-local-variable 'zero-input-single-quote-flag)
-  (set (make-local-variable 'zero-input-preedit-str) "")
-  (set (make-local-variable 'zero-input-candidates) nil)
+  (zero-input-reset)
   (make-local-variable 'zero-input-candidates-per-page)
-  (make-local-variable 'zero-input-current-page)
-  (make-local-variable 'zero-input-fetch-size)
-  (make-local-variable 'zero-input-im)
-  (make-local-variable 'zero-input-build-candidates-func)
-  (make-local-variable 'zero-input-can-start-sequence-func)
   (zero-input-set-im zero-input-im)
   ;; hooks
   (add-hook 'focus-in-hook 'zero-input-focus-in)
   (add-hook 'focus-out-hook 'zero-input-focus-out)
-  (set (make-local-variable 'zero-input-buffer) (current-buffer))
+  (setq zero-input-buffer (current-buffer))
   (add-hook 'buffer-list-update-hook 'zero-input-buffer-list-changed))
 
 ;;==================
@@ -723,11 +720,11 @@ registered input method is saved in `zero-input-ims'"
 ;; public API
 ;;============
 
-(defun zero-input-toggle-full-width-mode ()
-  "Toggle `zero-input-full-width-mode' on/off."
+(defun zero-input-toggle-full-width ()
+  "Toggle `zero-input-full-width-p' on/off."
   (interactive)
-  (setq zero-input-full-width-mode (not zero-input-full-width-mode))
-  (message (if zero-input-full-width-mode
+  (setq zero-input-full-width-p (not zero-input-full-width-p))
+  (message (if zero-input-full-width-p
 	       "Enabled full-width mode"
 	     "Enabled half-width mode")))
 
@@ -811,7 +808,7 @@ if IM-NAME is nil, use default empty input method"
 	      (let ((init-func (cdr (assq :init im-functions))))
 		(if (functionp init-func)
 		    (funcall init-func)))
-	      (set (make-local-variable 'zero-input-im) im-name))
+	      (setq zero-input-im im-name))
 	  (error "Input method %s not registered in zero" im-name)))
     (zero-input-debug "using default empty input method")
     (setq zero-input-build-candidates-func 'zero-input-build-candidates-default)
@@ -834,26 +831,15 @@ if IM-NAME is nil, use default empty input method"
 (defun zero-input-on ()
   "Turn on `zero-input-mode'."
   (interactive)
-  (zero-input-debug "zero-input-on\n")
-  (zero-input-mode 1)
-  (if (eq zero-input-state zero-input--state-im-off)
-      (zero-input-set-state zero-input--state-im-waiting-input)))
+  (zero-input-mode 1))
 
 (defun zero-input-off ()
   "Turn off `zero-input-mode'."
   (interactive)
-  (zero-input-debug "zero-input-off\n")
-  (zero-input-mode -1)
-  (zero-input-reset)
-  (zero-input-set-state zero-input--state-im-off))
+  (zero-input-mode -1))
 
-;;;###autoload
-(defun zero-input-toggle ()
-  "Toggle `zero-input-mode'."
-  (interactive)
-  (if zero-input-mode
-      (zero-input-off)
-    (zero-input-on)))
+(define-obsolete-function-alias 'zero-input-toggle 'zero-input-mode
+  "Zero-input v2.0.2" "Toggle `zero-input-mode'.")
 
 (provide 'zero-input-framework)
 

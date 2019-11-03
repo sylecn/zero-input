@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2019-10-28>
+Time-stamp: <2019-11-03>
 #+STARTUP: content
 * notes                                                               :entry:
 ** 2019-04-01 zero-el a Chinese IM framework in emacs; FSM              :doc:
@@ -83,9 +83,60 @@ cd ~/lisp/elisp/zero/
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
+** 2019-11-03 add completion support for zero-input-set-im
+complete registered im symbols.
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
 I can't run them in git pre-commit hook.
 * done                                                                :entry:
+** 2019-11-03 review advice from riscy.
+riscy, thanks for the review. Some quite good advice there.
+
+Here are changes I have made.
+
+- dropped Package-Version metadata. Version was there from the start.
+- zero-input-full-width-mode renamed to zero-input-full-width-p.
+- zero-input-toggle is now an obsolete alias for zero-input-mode.
+  updated docstring to suggest user bind key to zero-input-mode.
+- use defvar-local when variable is always buffer local.
+  git grep make-local-variable
+- moved test data to debug/test files.
+- Comments on keeping just one `provide' call for zero-input.el
+
+  It's easy to fix in build script. But I have kept multiple provide calls for
+  the following reasons:
+
+  - All features provided are in fact independent modules. They can be
+    optionally loaded, they could have alternative implementations, and some
+    can be reused in other emacs lisp projects.
+  - Test file for each feature only require that feature, not all of
+    zero-input.el. If only one provide is used, test file have to require the
+    whole thing, or I will need different require call for development code
+    and released code.
+  - The one file zero-input.el is only created for easier distribution. I
+    would like to switch to multi-file distribution when package-lint supports
+    multi-file packages.
+
+  If possible, I would like to keep the multiple provide calls.
+- fixed typo. zero-input-pinin-service > `zero-input-pinyin-service'.
+
+- implementation
+  - test zero-input-mode function works fine when bind to a key.
+- problems
+  - when use one `provide' call. tests (require 'zero-input-panel) won't work.
+  - test in emacs -Q. press f5 zero-input-mode, type anything result in
+    English text. M-x zero-on does work.
+
+    zero-input-on and zero-input-off have more to do than just set the minor
+    mode on and off.
+
+    Can I do those via hooks?
+
+    - zero-input-on, can just do it at minor mode definition.
+    - zero-input-off, it calls reset and set-state.
+    - all fixed. just use emacs generated zero-input-mode function.  always
+      reset when minor mode is enabled. there is no need to reset when minor
+      mode is turned off.
+
 ** 2019-10-15 make package-lint happy on all el files.
 - package-lint doesn't support multi-file package.
 
