@@ -132,7 +132,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.0.2")
+(setq zero-input-version "2.0.3")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -162,7 +162,7 @@ this is used to help with buffer focus in/out events")
 In full-width mode, commit ascii char will insert full-width char if there is a
 corresponding full-width char.  This full-width char map is
 independent from punctuation map.  You can change this via
-`zero-input-toggle-full-width-mode'")
+`zero-input-toggle-full-width'")
 (defvar-local zero-input-punctuation-level zero-input-punctuation-level-basic
   "Punctuation level.
 
@@ -633,7 +633,7 @@ N is the argument passed to `self-insert-command'."
     ;; build zero-input-prefix-map
     (defvar zero-input-prefix-map (define-prefix-command 'zero-input-prefix-map))
     (let ((bindings '(("," zero-input-cycle-punctuation-level)
-		      ("." zero-input-toggle-full-width-mode))))
+		      ("." zero-input-toggle-full-width))))
       (dolist (b bindings)
 	(define-key zero-input-prefix-map (car b) (cadr b))))
     ;; mount zero-input-prefix-map in C-c , prefix key.
