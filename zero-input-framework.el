@@ -132,7 +132,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.0.3")
+(setq zero-input-version "2.0.4")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -666,6 +666,7 @@ If full-width mode is enabled, show ZeroF;
 Otherwise, show Zero."
   (if zero-input-full-width-p " ZeroF" " Zero"))
 
+;;;###autoload
 (define-minor-mode zero-input-mode
   "a Chinese input method framework written as an emacs minor mode.
 
@@ -838,6 +839,7 @@ if IM-NAME is nil, use default empty input method"
   (interactive)
   (zero-input-mode -1))
 
+;;;###autoload
 (define-obsolete-function-alias 'zero-input-toggle 'zero-input-mode
   "Zero-input v2.0.2" "Toggle `zero-input-mode'.")
 
