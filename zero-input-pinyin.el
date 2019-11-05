@@ -1,4 +1,4 @@
-;;; zero-input-pinyin.el --- A pinyin input method for zero-input-framework -*- lexical-binding: t -*-
+;;; zero-input-pinyin.el --- A pinyin input method for zero-input framework -*- lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@
 ;; dependencies
 ;;==============
 
-(require 'zero-input-framework)
+(require 'zero-input)
 (require 'zero-input-pinyin-service)
 
 ;;===============================
@@ -220,7 +220,8 @@ Otherwise, just return nil."
 (defun zero-input-pinyin-page-down ()
   "Handle page down for zero-input-pinyin.
 
-This is different from zero-input-framework because I need to support partial commit"
+This is different from zero-input framework because I need to
+support partial commit"
   (let ((len (length zero-input-candidates))
 	(new-fetch-size (* zero-input-candidates-per-page (+ 2 zero-input-current-page))))
     (if (and (< len new-fetch-size)

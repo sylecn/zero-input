@@ -1,6 +1,4 @@
 #!/bin/sh
 set -e
-if git branch |grep '^\* master'; then
-	make dist-check
-	git add zero-input.el
-fi
+make check
+git add zero-input-pkg.el

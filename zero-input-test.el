@@ -1,4 +1,4 @@
-;;; zero-input-framework-test.el --- tests for zero-input-framework.el -*- lexical-binding: t -*-
+;;; zero-input-test.el --- tests for zero-input.el -*- lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
 
 ;;; Commentary:
 
-;; tests for zero-input-framework.el
+;; tests for zero-input.el
 
 ;;; Code:
 
-(require 'zero-input-framework)
+(require 'zero-input)
 (require 'ert)
 
 (ert-deftest zero-input-cycle-list ()
@@ -39,6 +39,6 @@
   (should (string-equal "ｈｅｈｅ" (zero-input-convert-str-to-full-width "hehe")))
   (should (string-equal "（Ａ）" (zero-input-convert-str-to-full-width "(A)"))))
 
-(provide 'zero-input-framework-test)
+(provide 'zero-input-test)
 
-;;; zero-input-framework-test.el ends here
+;;; zero-input-test.el ends here

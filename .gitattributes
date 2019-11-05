@@ -1,0 +1,6 @@
+*-test.el export-ignore
+*-debug.el export-ignore
+git-hooks/ export-ignore
+zero-input-reload-all.el export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore

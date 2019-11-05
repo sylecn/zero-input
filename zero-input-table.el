@@ -29,7 +29,7 @@
 ;; dependencies
 ;;==============
 
-(require 'zero-input-framework)
+(require 'zero-input)
 
 ;;===============================
 ;; basic data and emacs facility
