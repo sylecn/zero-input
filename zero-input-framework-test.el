@@ -29,7 +29,8 @@
   (should (eq (zero-input-cycle-list '(a b c) 'd) nil)))
 
 (ert-deftest zero-input-convert-ch-to-full-width ()
-  (should (= (zero-input-convert-ch-to-full-width ?\!) ?\！)))
+  (should (= (zero-input-convert-ch-to-full-width ?\!) ?\！))
+  (should (= (zero-input-convert-ch-to-full-width ?\s) ?\u3000)))
 
 (ert-deftest zero-input-convert-str-to-full-width ()
   (should (string-equal "！" (zero-input-convert-str-to-full-width "!")))

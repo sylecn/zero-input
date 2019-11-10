@@ -85,12 +85,20 @@ cd ~/lisp/elisp/zero/
 ** 2019-11-10 关于屏幕闪烁，我临时解决方案是中文输入时，当光标到达半屏的时候，自动跳到首行，这样也方便一些，不过还是期待后续版本能解决这个问题
 * current                                                             :entry:
 ** 
-** 2019-11-10 space doesn't work in full-width mode.
 ** 2019-11-03 add completion support for zero-input-set-im
 complete registered im symbols.
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
 I can't run them in git pre-commit hook.
 * done                                                                :entry:
+** 2019-11-10 space doesn't work in full-width mode.
+全角和半角 - 维基百科，自由的百科全书
+https://zh.wikipedia.org/wiki/%E5%85%A8%E5%BD%A2%E5%92%8C%E5%8D%8A%E5%BD%A2
+
+ascii   full-width unicode codepoint.
+0x20 	"　" 	U+3000
+
+- add a failing unit test.
+
 ** 2019-11-07 full width mode no longer works. why?
 C-c , . enabled full-width mode.
 but modeline is not changed.
