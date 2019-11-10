@@ -81,8 +81,6 @@ cd ~/lisp/elisp/zero/
   https://www.gnu.org/software/emacs/manual/html_mono/dbus.html
 
 * later                                                               :entry:
-** 2019-11-10 在ansi-term模式下面，不能使用zero输入法，这个功能可以实现吗
-** 2019-11-10 关于屏幕闪烁，我临时解决方案是中文输入时，当光标到达半屏的时候，自动跳到首行，这样也方便一些，不过还是期待后续版本能解决这个问题
 * current                                                             :entry:
 ** 
 ** 2019-11-03 add completion support for zero-input-set-im
