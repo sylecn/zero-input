@@ -132,7 +132,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.0.4")
+(setq zero-input-version "2.0.5")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -675,8 +675,9 @@ Otherwise, show Zero."
   (:eval (zero-input-modeline-string))
   zero-input-mode-map
   ;; local variables and variable init
-  (zero-input-reset)
   (make-local-variable 'zero-input-candidates-per-page)
+  (make-local-variable 'zero-input-full-width-mode)
+  (zero-input-reset)
   (zero-input-set-im zero-input-im)
   ;; hooks
   (add-hook 'focus-in-hook 'zero-input-focus-in)

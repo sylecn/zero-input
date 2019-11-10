@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2019-11-03>
+Time-stamp: <2019-11-10>
 #+STARTUP: content
 * notes                                                               :entry:
 ** 2019-04-01 zero-el a Chinese IM framework in emacs; FSM              :doc:
@@ -81,13 +81,70 @@ cd ~/lisp/elisp/zero/
   https://www.gnu.org/software/emacs/manual/html_mono/dbus.html
 
 * later                                                               :entry:
+** 2019-11-10 在ansi-term模式下面，不能使用zero输入法，这个功能可以实现吗
+** 2019-11-10 关于屏幕闪烁，我临时解决方案是中文输入时，当光标到达半屏的时候，自动跳到首行，这样也方便一些，不过还是期待后续版本能解决这个问题
 * current                                                             :entry:
 ** 
+** 2019-11-10 space doesn't work in full-width mode.
 ** 2019-11-03 add completion support for zero-input-set-im
 complete registered im symbols.
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
 I can't run them in git pre-commit hook.
 * done                                                                :entry:
+** 2019-11-07 full width mode no longer works. why?
+C-c , . enabled full-width mode.
+but modeline is not changed.
+type digit just insert half-width char.
+
+zero-input-full-width-p
+
+it's always nil.
+check zero-input-toggle-full-width
+
+- defvar-local and setq problem.
+  (defvar-local zero-input-full-width-p nil)
+  (setq zero-input-full-width-p (not zero-input-full-width-p))
+
+  maybe setq doesn't set buffer local variable when it is defined as
+  defvar-local.
+
+  eval (zero-input-toggle-full-width) inside zero buffer does work.
+  but press C-c ,. doesn't change the variable in zero buffer.
+
+  C-c ,, zero-input-cycle-punctuation-level does work.
+
+- read buffer-local variables.
+  Info: (elisp) Buffer-Local Variables
+
+  A variable can have buffer-local bindings in some buffers but not in other
+  buffers.  The default binding is shared by all the buffers that don’t have
+  their own bindings for the variable.
+
+- check how it is done in old code. before defvar-local.
+  git show a8e2341f978d64d6068bb564ad15e896e810e21b -- zero-input-framework.el
+
+  (make-local-variable 'zero-input-full-width-mode)
+  I think I need this back.
+  defvar-local only make variable buffer local when it is set for the first
+  time. maybe that's not enough.
+
+  first call to C-c,. should be "enabled full-width mode"
+
+- 2019-11-10 it's said 2.0.0 also have problem.
+
+  add (make-local-variable 'zero-input-full-width-mode) in minor mode init
+  works.
+
+  are there other similar problems for local variables?
+
+  defvar-local is not the same as make-local-variable.
+  because if you only read the variable, it will get a global value.
+
+  defvar-local is similar to make-variable-buffer-local. both only create a
+  buffer local binding on first set.
+
+  use setq-local is equivalent to make-local-variable and setq.
+
 ** 2019-11-03 review advice from riscy.
 riscy, thanks for the review. Some quite good advice there.
 
