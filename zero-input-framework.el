@@ -132,7 +132,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.0.7")
+(setq zero-input-version "2.1.0")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -539,7 +539,7 @@ N is the argument passed to `self-insert-command'."
       (self-insert-command n)))))
 
 (defun zero-input-get-initial-fetch-size ()
-  "return initial fetch size"
+  "Return initial fetch size."
   (cond
    ((<= zero-input-initial-fetch-size zero-input-candidates-per-page)
     (1+ zero-input-candidates-per-page))

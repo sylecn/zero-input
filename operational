@@ -76,6 +76,18 @@ cd ~/lisp/elisp/zero/
     without converting char to string.
 
     (zero-input-table-can-start-sequence) can use this.
+** 2020-02-04 how to make a release?					:doc:
+- update version number in zero-input-framework.el
+- run tests
+  make check
+- build a release .el file
+  make dist
+- check & fix styling issues
+  open zero-input.el file
+  M-x checkdoc
+  M-x package-lint-current-buffer
+- make a git commit.
+- push commits
 ** 2019-10-10 documents
 - Using of D-Bus
   https://www.gnu.org/software/emacs/manual/html_mono/dbus.html
@@ -88,6 +100,59 @@ complete registered im symbols.
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
 I can't run them in git pre-commit hook.
 * done                                                                :entry:
+** 2020-02-04 zero-input-pinyin, allow switch between sync and async mode in runtime.
+title was: zero-input-pinyin.el why sometimes it uses sync call and sometimes
+it uses async call?
+
+- debug log.
+
+  #+BEGIN_SRC sh
+    zero-input-pinyin building candidate list synchronously
+    zero-input-pinyin building candidate list asynchronously
+  #+END_SRC
+
+  zero-input-pinyin.el why sometimes it uses sync call and sometimes it
+  uses async call? I think every async call should chain back to sync
+  call.
+
+  I think when a call is triggered from zero-framework.el, it will always
+  be sync call. when a call is triggered from zero-pinyin.el, it MAY used
+  async call directly.
+
+  who calls zero-input-pinyin-build-candidates-async
+
+  - zero-input-pinyin-preedit-str-changed
+    calls framework's version. which use default async call. and chains to
+    zero-pinyin sync call.
+  - zero-input-pinyin-pending-preedit-str-changed
+    uses async call.
+  - zero-input-pinyin-page-down
+    uses async call.
+
+  No wonder zero-pinyin sync and async performance is on par. Because sync
+  call is not used much.
+- How to use sync or async call in all places? I don't want to mix it.
+  just enable async in IM register code? confirmed enable async will only
+  use async version.
+
+  how to switch to sync version only?
+- implementation
+  - added zero-input-pinyin-use-async-fetch flag variable.
+  - added zero-input-pinyin-build-candidates-unified, it will call sync or
+    async version based on the flag.
+- problems
+  - how to be able to switch between sync and async version in runtime?
+    now I can switch it in build time, but how to switch it in runtime?
+
+    It's mainly about the im register code.
+
+    I have to provide a method to do it. a variable is not enough.
+    Because I need to update the IM class method slot value.
+
+    M-x zero-input-pinyin-enable-async
+    M-x zero-input-pinyin-disable-async
+  - 
+
 ** 2020-02-03 部分词组，打字时只出现词组，不能选单字。
 zhiyuan 支援
 zhishi 知识
@@ -220,37 +285,6 @@ weiyi 卫衣
            ;; comment to use sync version, uncomment to use async version.
            ;; (:build-candidates-async . zero-input-pinyin-build-candidates-async)
       #+END_SRC
-
-    - debug log.
-
-      #+BEGIN_SRC sh
-        zero-input-pinyin building candidate list synchronously
-        zero-input-pinyin building candidate list asynchronously
-      #+END_SRC
-
-      zero-input-pinyin.el why sometimes it uses sync call and sometimes it
-      uses async call? I think every async call should chain back to sync
-      call.
-
-      I think when a call is triggered from zero-framework.el, it will always
-      be sync call. when a call is triggered from zero-pinyin.el, it MAY used
-      async call directly.
-
-      who calls zero-input-pinyin-build-candidates-async
-
-      - zero-input-pinyin-preedit-str-changed
-	calls framework's version. which use default async call. and chains to
-        zero-pinyin sync call.
-      - zero-input-pinyin-pending-preedit-str-changed
-	uses async call.
-      - zero-input-pinyin-page-down
-	uses async call.
-
-      No wonder zero-pinyin sync and async performance is on par. Because sync
-      call is not used much.
-    - How to use sync or async call in all places? I don't want to mix it.
-      just enable async in IM register code?
-    - 
 
 ** 2019-11-10 space doesn't work in full-width mode.
 全角和半角 - 维基百科，自由的百科全书
@@ -631,3 +665,114 @@ https://github.com/melpa/melpa/blob/master/CONTRIBUTING.org#preparing-a-pull-req
     fixed.
 
 * wontfix                                                             :entry:
+** 2020-02-04 zero-input-pinyin-pending-preedit-str="erduo" not correct?
+- zero-input-pinyin-pending-preedit-str="erduo"
+
+  zero-input-pinyin-pending-preedit-str
+  this variable may not be cleared at proper place.
+
+  #+BEGIN_SRC sh
+    synchronously
+    candidates: 摩尔, 莫尔, 末儿, 模, 默, 麽, 莫, 摸, 末, 磨
+    user typed: d
+    still preediting
+    appended d, preedit str is: moerd
+    zero-input-pinyin building candidate list synchronously
+    candidates: 摸耳朵, 莫尔德, 摩尔, 莫尔, 末儿, 模, 默, 麽, 莫, 摸
+    user typed: u
+    still preediting
+    appended u, preedit str is: moerdu
+    zero-input-pinyin building candidate list synchronously
+    candidates: 摩尔, 莫尔, 末儿, 模, 默, 麽, 莫, 摸, 末, 磨
+    user typed: o
+    still preediting
+    appended o, preedit str is: moerduo
+    zero-input-pinyin building candidate list synchronously
+    candidates: 摸耳朵, 摩尔, 莫尔, 末儿, 模, 默, 麽, 莫, 摸, 末
+    user typed:  
+    still preediting
+    zero-input-pinyin-commit-nth-candidate
+        n=0 candidate=摸耳朵 used-len=7 zero-input-pinyin-pending-preedit-str="erduo"
+    commit in full
+    set state to IM-WAITING-INPUT
+    zero-input-disable-preediting-map
+    commit text: 摸耳朵
+    hide candidate list
+    user typed: d
+    can start sequence, state=IM_PREEDITING
+    set state to IM-PREEDITING
+    zero-input-enable-preediting-map
+    appended d, preedit str is: d
+    zero-input-pinyin building candidate list synchronously
+    candidates: 的, 都, 到, 等, 第, 带, 大, 对, 当, 低
+    user typed: u
+    still preediting
+    appended u, preedit str is: du
+    zero-input-pinyin building candidate list synchronously
+    candidates: 度, 赌, 读, 独, 毒, 都, 肚, 督, 渡, 杜
+    user typed: i
+    still preediting
+    appended i, preedit str is: dui
+    zero-input-pinyin building candidate list synchronously
+    candidates: 对, 队, 堆, 對, 兑, 隊, 怼, 碓, 桘, 憝
+    user typed: b
+    still preediting
+    appended b, preedit str is: duib
+    zero-input-pinyin building candidate list synchronously
+    candidates: 对比, 对白, 对本, 对不, 对吧, 对被, 对表, 对半, 对把, 对边
+    user typed: u
+    still preediting
+    appended u, preedit str is: duibu
+    zero-input-pinyin building candidate list synchronously
+    candidates: 对不, 队部, 对, 队, 堆, 對, 兑, 隊, 怼, 碓
+    user typed: q
+    still preediting
+    appended q, preedit str is: duibuq
+    zero-input-pinyin building candidate list synchronously
+    candidates: 对不起, 对不, 队部, 对, 队, 堆, 對, 兑, 隊, 怼
+    user typed: i
+    still preediting
+    appended i, preedit str is: duibuqi
+    zero-input-pinyin building candidate list synchronously
+    candidates: 对不起, 对不, 队部, 对, 队, 堆, 對, 兑, 隊, 怼
+    user typed:  
+    still preediting
+    zero-input-pinyin-commit-nth-candidate
+        n=0 candidate=对不起 used-len=7 zero-input-pinyin-pending-preedit-str="erduo"
+    commit in full
+    set state to IM-WAITING-INPUT
+    zero-input-disable-preediting-map
+    commit text: 对不起
+    hide candidate list
+  #+END_SRC
+
+  I can redproduce it.
+  just delete the user phrase, then type it again.
+  #+BEGIN_SRC sh
+    user typed: o
+    still preediting
+    appended o, preedit str is: moerduo
+    zero-input-pinyin building candidate list synchronously
+    candidates: 摸耳朵, 摩尔, 莫尔, 末儿, 模, 默, 麽, 莫, 摸, 末
+    zero-input-pinyin building candidate list synchronously
+    candidates: 摩尔, 莫尔, 末儿, 模, 默, 麽, 莫, 摸, 末, 磨
+    user typed: 8
+    still preediting
+    zero-input-pinyin-commit-nth-candidate
+        n=7 candidate=摸 used-len=2 zero-input-pinyin-pending-preedit-str=""
+    partial commit, in partial commit mode now.
+    zero-input-pinyin building candidate list synchronously
+    candidates: 耳朵, 尔多, 而多, 尔, 耳, 而, 儿, 二, 兒, 爾
+    user typed:  
+    still preediting
+    zero-input-pinyin-commit-nth-candidate
+        n=0 candidate=耳朵 used-len=5 zero-input-pinyin-pending-preedit-str="erduo"
+    finishes partial commit
+    set state to IM-WAITING-INPUT
+    zero-input-disable-preediting-map
+    commit text: 摸耳朵
+    hide candidate list
+  #+END_SRC
+  This is not a bug. zero-input-pinyin-pending-preedit-str is not used
+  when IM has not go to partial commit mode. it will always be set to
+  correct value when it does go to partial commit mode.

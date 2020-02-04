@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 2.0.6
+;; Version: 2.1.0
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
@@ -243,7 +243,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.0.6")
+(setq zero-input-version "2.1.0")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -650,7 +650,7 @@ N is the argument passed to `self-insert-command'."
       (self-insert-command n)))))
 
 (defun zero-input-get-initial-fetch-size ()
-  "return initial fetch size"
+  "Return initial fetch size."
   (cond
    ((<= zero-input-initial-fetch-size zero-input-candidates-per-page)
     (1+ zero-input-candidates-per-page))
@@ -1182,6 +1182,9 @@ You can find the xml file locally at
 `zero-input-pinyin-service-interface-xml-url'."
   :type 'integer
   :group 'zero-input-pinyin)
+(defvar zero-input-pinyin-use-async-fetch nil
+  "Non-nil means use async dbus call to get candidates.")
+(setq zero-input-pinyin-use-async-fetch nil)
 
 (defvar-local zero-input-pinyin-state nil
   "Zero-input-pinyin internal state.  could be nil or
@@ -1228,7 +1231,9 @@ You can find the xml file locally at
   "Synchronously build candidates list.
 
 PREEDIT-STR the preedit string.
-FETCH-SIZE fetch at least this many candidates if possible."
+FETCH-SIZE fetch at least this many candidates if possible.
+
+Return candidates list"
   (zero-input-debug "zero-input-pinyin building candidate list synchronously\n")
   (let ((result (zero-input-pinyin-service-get-candidates preedit-str fetch-size)))
     ;; update zero-input-candidates and zero-input-fetch-size is done in async
@@ -1266,13 +1271,33 @@ COMPLETE-FUNC the callback function when async call completes.  it's called with
        (not (= ch ?u))
        (not (= ch ?v))))
 
+(defun zero-input-pinyin-build-candidates-unified (preedit-str fetch-size complete-func)
+  "Build candidate list, when done call complete-func on it.
+
+This may call sync or async dbus method depending on
+`zero-input-pinyin-use-async-fetch'.
+
+PREEDIT-STR the preedit string.
+FETCH-SIZE fetch at least this many candidates if possible.
+COMPLETE-FUNC the callback function when sync/async call completes.
+              it's called with fetched candidates list as parameter."
+  (if zero-input-pinyin-use-async-fetch
+      (zero-input-pinyin-build-candidates-async
+       preedit-str fetch-size complete-func)
+    (let ((candidates (zero-input-pinyin-build-candidates
+		       preedit-str fetch-size)))
+      (setq zero-input-candidates candidates)
+      (setq zero-input-fetch-size (max fetch-size (length candidates)))
+      (funcall complete-func candidates))))
+
 (defun zero-input-pinyin-pending-preedit-str-changed ()
   "Update zero states when pending preedit string changed."
   (setq zero-input-fetch-size 0)
   (setq zero-input-current-page 0)
-  (let ((new-fetch-size (zero-input-get-initial-fetch-size)))
-    (zero-input-pinyin-build-candidates-async
-     zero-input-pinyin-pending-preedit-str new-fetch-size
+  (let ((fetch-size (zero-input-get-initial-fetch-size))
+	(preedit-str zero-input-pinyin-pending-preedit-str))
+    (zero-input-pinyin-build-candidates-unified
+     preedit-str fetch-size
      #'zero-input-show-candidates)))
 
 (defun zero-input-pinyin-commit-nth-candidate (n)
@@ -1360,22 +1385,23 @@ Otherwise, just return nil."
 This is different from zero-input-framework because I need to support partial commit"
   (let ((len (length zero-input-candidates))
 	(new-fetch-size (1+ (* zero-input-candidates-per-page (+ 2 zero-input-current-page)))))
-    (zero-input-debug
-     "decide whether to fetch more candidates. on page %s, has %s candidates, last-fetch-size %s, new-fetch-size=%s\n"
-     zero-input-current-page len zero-input-fetch-size new-fetch-size)
+    ;; (zero-input-debug
+    ;;  "fetch more candidates? on page %s, has %s candidates, last-fetch-size=%s, new-fetch-size=%s\n"
+    ;;  zero-input-current-page len zero-input-fetch-size new-fetch-size)
     (if (and (< len new-fetch-size)
 	     (< zero-input-fetch-size new-fetch-size))
-	(progn
+	(let ((preedit-str (if (eq zero-input-pinyin-state
+				   zero-input-pinyin--state-im-partial-commit)
+			       zero-input-pinyin-pending-preedit-str
+			     zero-input-preedit-str)))
 	  (zero-input-debug
-	   "will fetch more candidates new-fetch-size=%s" new-fetch-size)
-	  (let ((preedit-str (if (eq zero-input-pinyin-state
-				     zero-input-pinyin--state-im-partial-commit)
-				 zero-input-pinyin-pending-preedit-str
-			       zero-input-preedit-str)))
-	    (zero-input-pinyin-build-candidates-async
-	     preedit-str
-	     new-fetch-size
-	     #'zero-input-just-page-down)))
+	   "will fetch more candidates new-fetch-size=%s\n" new-fetch-size)
+	  (zero-input-pinyin-build-candidates-unified
+	   preedit-str
+	   new-fetch-size
+	   (lambda (_candidates)
+	     (zero-input-just-page-down))))
+      (zero-input-debug "won't fetch more candidates\n")
       (zero-input-just-page-down))))
 
 (defun zero-input-pinyin-handle-preedit-char (ch)
@@ -1453,23 +1479,41 @@ DIGIT 0 means delete 10th candidate."
 ;; register IM to zero framework
 ;;===============================
 
-(zero-input-register-im
- 'pinyin
- '((:build-candidates . zero-input-pinyin-build-candidates)
-   ;; comment to use sync version, uncomment to use async version.
-   ;; (:build-candidates-async . zero-input-pinyin-build-candidates-async)
-   (:can-start-sequence . zero-input-pinyin-can-start-sequence)
-   (:handle-preedit-char . zero-input-pinyin-handle-preedit-char)
-   (:get-preedit-str-for-panel . zero-input-pinyin-get-preedit-str-for-panel)
-   (:handle-backspace . zero-input-pinyin-backspace)
-   (:init . zero-input-pinyin-init)
-   (:shutdown . zero-input-pinyin-shutdown)
-   (:preedit-start . zero-input-pinyin-preedit-start)
-   (:preedit-end . zero-input-pinyin-preedit-end)))
+(defun zero-input-pinyin-register-im ()
+  "Register pinyin input method in zero framework."
+  (zero-input-register-im
+   'pinyin
+   (append
+    (if zero-input-pinyin-use-async-fetch
+	'((:build-candidates-async . zero-input-pinyin-build-candidates-async))
+      nil)
+    '((:build-candidates . zero-input-pinyin-build-candidates)
+      (:can-start-sequence . zero-input-pinyin-can-start-sequence)
+      (:handle-preedit-char . zero-input-pinyin-handle-preedit-char)
+      (:get-preedit-str-for-panel . zero-input-pinyin-get-preedit-str-for-panel)
+      (:handle-backspace . zero-input-pinyin-backspace)
+      (:init . zero-input-pinyin-init)
+      (:shutdown . zero-input-pinyin-shutdown)
+      (:preedit-start . zero-input-pinyin-preedit-start)
+      (:preedit-end . zero-input-pinyin-preedit-end)))))
 
 ;;============
 ;; public API
 ;;============
+
+(defun zero-input-pinyin-enable-async ()
+  "Use async call to fetch candidates."
+  (interactive)
+  (setq zero-input-pinyin-use-async-fetch t)
+  (zero-input-pinyin-register-im)
+  (message "Enabled async mode"))
+
+(defun zero-input-pinyin-disable-async ()
+  "Use sync call to fetch candidates."
+  (interactive)
+  (setq zero-input-pinyin-use-async-fetch nil)
+  (zero-input-pinyin-register-im)
+  (message "Disabled async mode"))
 
 (provide 'zero-input-pinyin)
 
