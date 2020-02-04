@@ -40,6 +40,20 @@
   (should (string-equal "ｈｅｈｅ" (zero-input-convert-str-to-full-width "hehe")))
   (should (string-equal "（Ａ）" (zero-input-convert-str-to-full-width "(A)"))))
 
+(ert-deftest zero-input-get-initial-fetch-size ()
+  (let ((zero-input-initial-fetch-size 20))
+    (should (= 21 (zero-input-get-initial-fetch-size))))
+  (let ((zero-input-initial-fetch-size 19))
+    (should (= 19 (zero-input-get-initial-fetch-size))))
+  (let ((zero-input-initial-fetch-size 9))
+    (should (= 11 (zero-input-get-initial-fetch-size))))
+  (let ((zero-input-initial-fetch-size 10))
+    (should (= 11 (zero-input-get-initial-fetch-size))))
+  (let ((zero-input-initial-fetch-size 11))
+    (should (= 11 (zero-input-get-initial-fetch-size))))
+  (let ((zero-input-initial-fetch-size 12))
+    (should (= 12 (zero-input-get-initial-fetch-size)))))
+
 (provide 'zero-input-framework-test)
 
 ;;; zero-input-framework-test.el ends here

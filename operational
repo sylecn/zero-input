@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2019-11-10>
+Time-stamp: <2020-02-04>
 #+STARTUP: content
 * notes                                                               :entry:
 ** 2019-04-01 zero-el a Chinese IM framework in emacs; FSM              :doc:
@@ -88,6 +88,170 @@ complete registered im symbols.
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
 I can't run them in git pre-commit hook.
 * done                                                                :entry:
+** 2020-02-03 部分词组，打字时只出现词组，不能选单字。
+zhiyuan 支援
+zhishi 知识
+weishi 微湿
+weiyi 卫衣
+
+- zhiyuan，zhishi 已修复。
+  首次取词 21 个即可。
+  // 不过这是假修复。没有解决词不够时，没有继续获取新词的问题。
+- weishi，weiyi 还是有问题。
+- all problems fixed.
+- problems
+  - added some debug log.
+    zero-input-fetch-size is just wrong.
+    "already fetched size" is wrong. which result in zero not trying to fetch
+    more candidate when there is not enough to show in panel.
+  - weiyi 卫衣
+    50
+
+    debug log
+    #+BEGIN_SRC sh
+      user typed: y
+      still preediting
+      appended y, preedit str is: weiy
+      zero-input-pinyin building candidate list synchronously
+      set zero-input-fetch-size to (max 21 (卫衣 味业 唯一 尾页 位于 未有 为已 委员 伪影 为一 惟一 唯有 卫浴 惟有 位於 违约 伟业 为由 为宜 喂养 位元 为有 威严 未央 位移 维亚 未用 胃炎 为与 为以 胃液 尾翼 为友 微一 尾牙 为用 委以 微雨 未予 为要 为伊 未遇 为盈 为业 为也 为云 威远 为月 微有 威仪)) = 50
+      candidates: 卫衣, 味业, 唯一, 尾页, 位于, 未有, 为已, 委员, 伪影, 为一
+      user typed: i
+      still preediting
+      appended i, preedit str is: weiyi
+      zero-input-pinyin building candidate list synchronously
+      set zero-input-fetch-size to (max 21 (卫衣 唯一 为已 为一 惟一 为宜 位移 为以 尾翼 微一 委以 为伊 威仪 偎依 逶迤 为意 维一 唯以 维以 伟易 唯壹 苇一)) = 22
+      candidates: 卫衣, 唯一, 为已, 为一, 惟一, 为宜, 位移, 为以, 尾翼, 微一
+      candidates: 卫衣, 唯一, 为已, 为一, 惟一, 为宜, 位移, 为以, 尾翼, 微一
+      zero-input-enable-preediting-map
+      user typed: =
+      still preediting
+      decide whether to fetch more candidates, on page 0, has 22 candidates, already fetched 50, new-fetch-size=21
+      showing candidates on page 1
+      candidates: 委以, 为伊, 威仪, 偎依, 逶迤, 为意, 维一, 唯以, 维以, 伟易
+      candidates: 委以, 为伊, 威仪, 偎依, 逶迤, 为意, 维一, 唯以, 维以, 伟易
+      zero-input-enable-preediting-map
+      candidates: 委以, 为伊, 威仪, 偎依, 逶迤, 为意, 维一, 唯以, 维以, 伟易
+      zero-input-enable-preediting-map
+    #+END_SRC
+    also, why show candidates are called twice?
+  - can I trace zero-input-fetch-size variable in emacs lisp?
+
+    replace byte-compiled version with non-byte-compiled version.
+
+    Command: debug-on-entry function-name
+    Command: cancel-debug-on-entry &optional function-name
+  - I have a feeling of what's wrong.
+    since the value is last time's fetch size.
+    max of something, that something is not set properly.
+    not zero-input-fetch-size itself.
+
+    length of candidates. the candidates list is not updated in time or in
+    correct order.
+
+    yes. zero-input-pinyin-build-candidates doesn't set zero-input-candidates
+    variable in time.
+
+    who/when sets zero-input-candidates after fetching new candidates?
+
+    in zero-input-framework.el, zero-input-build-candidates.
+
+    it's override in zero-input-pinyin.el zero-input-pinyin-build-candidates.
+
+    why zero-input-pinyin-build-candidates return the candidates as result. I
+    think the return value is discarded. the return value is used by async
+    complete function, used in default async implementation.
+
+    how to distinguish between async and sync fetch?
+    in async fetch, should update zero-input-candidates when fetch finished.
+    in sync fetch, should update zero-input-candidates right away.
+    I don't need to distinguish them, if zero-input-pinyin-build-candidates is
+    called, it is using sync fetch. There is no time delay or async io.
+  - DONE when is sync version used, when is async version used?
+    // sync version is always called via async-func.
+
+    zero-input-pinyin-page-down always call async verison.
+    it relies on zero-input-build-candidates-complete to set
+    zero-input-candidates variable.
+
+    - when preedit-str changes.
+      zero-input-preedit-str-changed
+      calls zero-input-build-candidates-async-func
+
+    - when user press = goto next page.
+      zero-input-page-down
+      calls zero-input-build-candidates-async-func
+
+    - so sync version is always called via async-func.
+
+    - zero-input-build-candidates-complete is not used properly in
+      zero-input-page-down. do not reuse zero-input-build-candidates-complete
+      function, just inline what should be called.
+
+      #+BEGIN_SRC emacs-lisp
+        (defun zero-input-build-candidates-complete (candidates)
+          "Called when `zero-input-build-candidates-async' return.
+
+        CANDIDATES is returned candidates list from async call."
+          (setq zero-input-candidates candidates)
+          (zero-input-show-candidates candidates))
+      #+END_SRC
+      this is where two show-candidates calls are made.
+      now fixed.
+
+    - double check zero-input-pinyin-build-candidates-async doesn't do the
+      same thing that the callback function already did.
+
+      it has done it twice.
+      fixed.
+
+    - zero-input-framework.el sync/async version is not quite right.
+      zero-input-pinyin.el async version is not being used? It's okay.
+      does sync version work as expected?
+
+      the two "external" use case always call async version, so sync version
+      is only used to build candidates, and I confirm it doesn't need to
+      update metadata.
+
+      zero pinyin:
+      #+BEGIN_SRC emacs-lisp
+        (zero-input-register-im
+         'pinyin
+         '((:build-candidates . zero-input-pinyin-build-candidates)
+           ;; comment to use sync version, uncomment to use async version.
+           ;; (:build-candidates-async . zero-input-pinyin-build-candidates-async)
+      #+END_SRC
+
+    - debug log.
+
+      #+BEGIN_SRC sh
+        zero-input-pinyin building candidate list synchronously
+        zero-input-pinyin building candidate list asynchronously
+      #+END_SRC
+
+      zero-input-pinyin.el why sometimes it uses sync call and sometimes it
+      uses async call? I think every async call should chain back to sync
+      call.
+
+      I think when a call is triggered from zero-framework.el, it will always
+      be sync call. when a call is triggered from zero-pinyin.el, it MAY used
+      async call directly.
+
+      who calls zero-input-pinyin-build-candidates-async
+
+      - zero-input-pinyin-preedit-str-changed
+	calls framework's version. which use default async call. and chains to
+        zero-pinyin sync call.
+      - zero-input-pinyin-pending-preedit-str-changed
+	uses async call.
+      - zero-input-pinyin-page-down
+	uses async call.
+
+      No wonder zero-pinyin sync and async performance is on par. Because sync
+      call is not used much.
+    - How to use sync or async call in all places? I don't want to mix it.
+      just enable async in IM register code?
+    - 
+
 ** 2019-11-10 space doesn't work in full-width mode.
 全角和半角 - 维基百科，自由的百科全书
 https://zh.wikipedia.org/wiki/%E5%85%A8%E5%BD%A2%E5%92%8C%E5%8D%8A%E5%BD%A2

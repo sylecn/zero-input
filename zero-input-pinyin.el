@@ -100,7 +100,9 @@ PREEDIT-STR the preedit string.
 FETCH-SIZE fetch at least this many candidates if possible."
   (zero-input-debug "zero-input-pinyin building candidate list synchronously\n")
   (let ((result (zero-input-pinyin-service-get-candidates preedit-str fetch-size)))
-    (setq zero-input-fetch-size (max fetch-size (length (cl-first result))))
+    ;; update zero-input-candidates and zero-input-fetch-size is done in async
+    ;; complete callback. This function only care about building the
+    ;; candidates and updating zero-input-pinyin specific.
     (setq zero-input-pinyin-used-preedit-str-lengths (cl-second result))
     (setq zero-input-pinyin-candidates-pinyin-indices (cl-third result))
     (cl-first result)))
@@ -117,9 +119,10 @@ COMPLETE-FUNC the callback function when async call completes.  it's called with
    preedit-str
    fetch-size
    (lambda (candidates matched_preedit_str_lengths candidates_pinyin_indices)
+     (setq zero-input-candidates candidates)
+     (setq zero-input-fetch-size (max fetch-size (length candidates)))
      (setq zero-input-pinyin-used-preedit-str-lengths matched_preedit_str_lengths)
      (setq zero-input-pinyin-candidates-pinyin-indices candidates_pinyin_indices)
-     (setq zero-input-fetch-size (max fetch-size (length candidates)))
      ;; Note: with dynamic binding, this command result in (void-variable
      ;; complete-func) error.
      (funcall complete-func candidates))))
@@ -136,7 +139,10 @@ COMPLETE-FUNC the callback function when async call completes.  it's called with
   "Update zero states when pending preedit string changed."
   (setq zero-input-fetch-size 0)
   (setq zero-input-current-page 0)
-  (zero-input-pinyin-build-candidates-async zero-input-pinyin-pending-preedit-str zero-input-initial-fetch-size 'zero-input-build-candidates-complete))
+  (let ((new-fetch-size (zero-input-get-initial-fetch-size)))
+    (zero-input-pinyin-build-candidates-async
+     zero-input-pinyin-pending-preedit-str new-fetch-size
+     #'zero-input-show-candidates)))
 
 (defun zero-input-pinyin-commit-nth-candidate (n)
   "Commit Nth candidate and return true if it exists, otherwise, return false."
@@ -222,16 +228,25 @@ Otherwise, just return nil."
 
 This is different from zero-input-framework because I need to support partial commit"
   (let ((len (length zero-input-candidates))
-	(new-fetch-size (* zero-input-candidates-per-page (+ 2 zero-input-current-page))))
+	(new-fetch-size (1+ (* zero-input-candidates-per-page (+ 2 zero-input-current-page)))))
+    (zero-input-debug
+     "fetch more candidates? on page %s, has %s candidates, last-fetch-size=%s, new-fetch-size=%s\n"
+     zero-input-current-page len zero-input-fetch-size new-fetch-size)
     (if (and (< len new-fetch-size)
 	     (< zero-input-fetch-size new-fetch-size))
-	(let ((preedit-str (if (eq zero-input-pinyin-state zero-input-pinyin--state-im-partial-commit) zero-input-pinyin-pending-preedit-str zero-input-preedit-str)))
-	  (zero-input-pinyin-build-candidates-async
-	   preedit-str
-	   new-fetch-size
-	   (lambda (candidates)
-	     (zero-input-build-candidates-complete candidates)
-	     (zero-input-just-page-down))))
+	(progn
+	  (zero-input-debug
+	   "will fetch more candidates new-fetch-size=%s\n" new-fetch-size)
+	  (let ((preedit-str (if (eq zero-input-pinyin-state
+				     zero-input-pinyin--state-im-partial-commit)
+				 zero-input-pinyin-pending-preedit-str
+			       zero-input-preedit-str)))
+	    (zero-input-pinyin-build-candidates-async
+	     preedit-str
+	     new-fetch-size
+	     (lambda (_candidates)
+	       (zero-input-just-page-down)))))
+      (zero-input-debug "won't fetch more candidates\n")
       (zero-input-just-page-down))))
 
 (defun zero-input-pinyin-handle-preedit-char (ch)

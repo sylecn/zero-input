@@ -132,7 +132,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.0.6")
+(setq zero-input-version "2.0.7")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -195,11 +195,14 @@ Change will be effective only in new `zero-input-mode' buffer."
   :group 'zero
   :type 'integer)
 (defvar-local zero-input-current-page 0 "Current page number.  count from 0.")
-(defvar-local zero-input-initial-fetch-size 20
-  "How many candidates to fetch for the first call to GetCandidates.")
+(defvar-local zero-input-initial-fetch-size 21
+  "How many candidates to fetch for the first call to GetCandidates.
+
+It's best set to (1+ (* zero-input-candidates-per-page N)) where
+N is number of pages you want to fetch in initial fetch.")
 ;; zero-input-fetch-size is reset to 0 when preedit-str changes.
-;; zero-input-fetch-size is set to fetch-size in build-candidates-async complete-func
-;; lambda.
+;; zero-input-fetch-size is set to fetch-size in build-candidates-async
+;; complete-func lambda.
 (defvar-local zero-input-fetch-size 0 "Last GetCandidates call's fetch-size.")
 (defvar zero-input-previous-page-key ?\- "Previous page key.")
 (defvar zero-input-next-page-key ?\= "Next page key.")
@@ -308,8 +311,9 @@ enough elements, return lst as it is."
 
 (defun zero-input-show-candidates (&optional candidates)
   "Show CANDIDATES using zero-input-panel via IPC/RPC."
-  (let ((candidates-on-page (zero-input-candidates-on-page (or candidates
-							 zero-input-candidates))))
+  (let ((candidates-on-page
+	 (zero-input-candidates-on-page (or candidates
+					    zero-input-candidates))))
     (cl-destructuring-bind (x y) (zero-input-get-point-position)
       (zero-input-panel-show-candidates
        (funcall zero-input-get-preedit-str-for-panel-func)
@@ -327,19 +331,15 @@ enough elements, return lst as it is."
 (defun zero-input-build-candidates (preedit-str fetch-size)
   "Build candidates list synchronously.
 
-Try to find at least FETCH-SIZE number of candidates for PREEDIT-STR."
+Try to find at least FETCH-SIZE number of candidates for PREEDIT-STR.
+Return a list of candidates."
   ;; (zero-input-debug "zero-input-build-candidates\n")
   (unless (functionp zero-input-build-candidates-func)
     (signal 'wrong-type-argument (list 'functionp zero-input-build-candidates-func)))
-  (prog1 (funcall zero-input-build-candidates-func preedit-str fetch-size)
-    (setq zero-input-fetch-size (max fetch-size (length zero-input-candidates)))))
-
-(defun zero-input-build-candidates-complete (candidates)
-  "Called when `zero-input-build-candidates-async' return.
-
-CANDIDATES is returned candidates list from async call."
-  (setq zero-input-candidates candidates)
-  (zero-input-show-candidates candidates))
+  ;; Note that zero-input-candidates and zero-input-fetch-size is updated in
+  ;; async complete callback. This function only care about building the
+  ;; candidates.
+  (funcall zero-input-build-candidates-func preedit-str fetch-size))
 
 (defun zero-input-build-candidates-async-default (preedit-str fetch-size complete-func)
   "Build candidate list, when done show it via `zero-input-show-candidates'.
@@ -348,6 +348,7 @@ PREEDIT-STR the preedit-str.
 FETCH-SIZE try to find at least this many candidates for preedit-str.
 COMPLETE-FUNC the function to call when build candidates completes."
   ;; (zero-input-debug "zero-input-build-candidates-async-default\n")
+  ;; default implementation just call sync version `zero-input-build-candidates'.
   (let ((candidates (zero-input-build-candidates preedit-str fetch-size)))
     ;; update cache to make SPC and digit key selection possible.
     (funcall complete-func candidates)))
@@ -463,23 +464,27 @@ Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
   (let ((len (length zero-input-candidates)))
     (when (> len (* zero-input-candidates-per-page (1+ zero-input-current-page)))
       (setq zero-input-current-page (1+ zero-input-current-page))
+      (zero-input-debug "showing candidates on page %s\n" zero-input-current-page)
       (zero-input-show-candidates))))
 
 (defun zero-input-page-down ()
   "If there is still candidates to be displayed, show candidates on next page."
   (interactive)
   (let ((len (length zero-input-candidates))
-	(new-fetch-size (* zero-input-candidates-per-page (+ 2 zero-input-current-page))))
+	(new-fetch-size (1+ (* zero-input-candidates-per-page (+ 2 zero-input-current-page)))))
+    (zero-input-debug "decide whether to fetch more candidates, has %s candidates, last fetch size=%s, new-fetch-size=%s\n" len zero-input-fetch-size new-fetch-size)
     (if (and (< len new-fetch-size)
 	     (< zero-input-fetch-size new-fetch-size))
-	(funcall zero-input-build-candidates-async-func
-		 zero-input-preedit-str
-		 new-fetch-size
-		 (lambda (candidates)
-		   (zero-input-build-candidates-complete candidates)
-		   (setq zero-input-fetch-size (max new-fetch-size
-					      (length candidates)))
-		   (zero-input-just-page-down)))
+	(progn
+	  (zero-input-debug "will fetch more candidates")
+	  (funcall zero-input-build-candidates-async-func
+		   zero-input-preedit-str
+		   new-fetch-size
+		   (lambda (candidates)
+		     (setq zero-input-candidates candidates)
+		     (setq zero-input-fetch-size (max new-fetch-size
+						      (length candidates)))
+		     (zero-input-just-page-down))))
       (zero-input-just-page-down))))
 
 (defun zero-input-handle-preedit-char-default (ch)
@@ -533,11 +538,26 @@ N is the argument passed to `self-insert-command'."
       (zero-input-debug "unexpected state: %s\n" zero-input-state)
       (self-insert-command n)))))
 
+(defun zero-input-get-initial-fetch-size ()
+  "return initial fetch size"
+  (cond
+   ((<= zero-input-initial-fetch-size zero-input-candidates-per-page)
+    (1+ zero-input-candidates-per-page))
+   ((zerop (mod zero-input-initial-fetch-size zero-input-candidates-per-page))
+    (1+ zero-input-initial-fetch-size))
+   (t zero-input-initial-fetch-size)))
+
 (defun zero-input-preedit-str-changed ()
   "Called when preedit str is changed and not empty.  Update and show candidate list."
   (setq zero-input-fetch-size 0)
   (setq zero-input-current-page 0)
-  (funcall zero-input-build-candidates-async-func zero-input-preedit-str zero-input-initial-fetch-size 'zero-input-build-candidates-complete))
+  (let ((new-fetch-size (zero-input-get-initial-fetch-size)))
+    (funcall zero-input-build-candidates-async-func
+	     zero-input-preedit-str new-fetch-size
+	     (lambda (candidates)
+	       (setq zero-input-candidates candidates)
+	       (setq zero-input-fetch-size (max new-fetch-size (length candidates)))
+	       (zero-input-show-candidates candidates)))))
 
 (defun zero-input-backspace-default ()
   "Handle backspace key in `zero-input--state-im-preediting' state."

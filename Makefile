@@ -14,7 +14,7 @@ zip:
 dist: dist-check
 build:
 	if [ ! -x ~/.local/bin/pytest ]; then python3 -m pip install --user pytest; fi
-	~/.local/bin/pytest build.py
+	python3 -m pytest build.py
 	./build.py
 	sed -i "s/PKG_VERSION/$(VERSION)/g" zero-input.el
 dist-check: build

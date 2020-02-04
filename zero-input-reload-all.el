@@ -36,22 +36,23 @@ SOURCE-DIR where to find the zero source dir."
 		 ))
       (byte-compile-file (concat source-dir f) t))))
 
-(defun zero-input-reload-all ()
+(defun zero-input-reload-all (&optional source-dir)
   "Recompile and load all zero files."
   (interactive)
-  (byte-recompile-directory "~/lisp/elisp/zero/" 0)
-  (dolist (f '("zero-input-quickdial.elc"
-	       "zero-input-panel.elc"
-	       "zero-input-panel-test.elc"
-	       "zero-input-framework.elc"
-	       "zero-input-framework-test.elc"
-	       "zero-input-pinyin-service.elc"
-	       "zero-input-pinyin-service-test.elc"
-	       "zero-input-pinyin.elc"
-	       "zero-input-pinyin-test.elc"
-	       "zero-input-table.el"
-	       "zero-input-table-test.el"
-	       ))
-    (load-file f)))
+  (let ((source-dir (or source-dir "~/lisp/elisp/zero/")))
+    (byte-recompile-directory source-dir 0)
+    (dolist (f '("zero-input-quickdial.elc"
+		 "zero-input-panel.elc"
+		 "zero-input-panel-test.elc"
+		 "zero-input-framework.elc"
+		 "zero-input-framework-test.elc"
+		 "zero-input-pinyin-service.elc"
+		 "zero-input-pinyin-service-test.elc"
+		 "zero-input-pinyin.elc"
+		 "zero-input-pinyin-test.elc"
+		 "zero-input-table.el"
+		 "zero-input-table-test.el"
+		 ))
+      (load-file (concat source-dir f)))))
 
 ;;; zero-input-reload-all.el ends here
