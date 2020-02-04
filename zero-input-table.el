@@ -50,7 +50,7 @@
 
 (defun zero-input-table-build-candidates (preedit-str &optional _fetch-size)
   "Build candidates by looking up PREEDIT-STR in `zero-input-table-table'."
-  (mapcar 'cdr (sort (cl-remove-if-not (lambda (pair) (string-prefix-p preedit-str (car pair))) zero-input-table-table) 'zero-input-table-sort-key)))
+  (mapcar 'cdr (sort (cl-remove-if-not #'(lambda (pair) (string-prefix-p preedit-str (car pair))) zero-input-table-table) 'zero-input-table-sort-key)))
 
 ;; (defun zero-input-table-build-candidates-async (preedit-str)
 ;;   "build candidate list, when done show it via `zero-input-table-show-candidates'"
@@ -92,7 +92,7 @@ To use demo data, you can call:
    (\"address\" . \"123 Happy Street\")))"
   (setq zero-input-table-table alist)
   (setq zero-input-table-sequence-initials
-	(delete-dups (mapcar (lambda (pair) (substring (car pair) 0 1))
+	(delete-dups (mapcar #'(lambda (pair) (substring (car pair) 0 1))
 			     zero-input-table-table))))
 
 (provide 'zero-input-table)

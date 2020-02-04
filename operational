@@ -100,6 +100,106 @@ complete registered im symbols.
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
 I can't run them in git pre-commit hook.
 * done                                                                :entry:
+** 2020-02-02 zero-el: 如果输入“。”之前和之后输入的是数字，则自动将"。"转换为小数点"."。
+(setq zero-input-auto-fix-dot-between-numbers t)
+enabled by default.
+
+- is it easy to implement in elisp?
+
+  try it in self-insert-command hook.
+  post-self-insert-hook
+
+  (add-hook 'post-self-insert-hook #'t1-replace-chinese-dot-maybe nil t)
+
+  see ~/lisp/elisp/testing-only/auto-fix-typing-via-self-insert-command-hook.el
+
+  it works.
+  when I type 1a3 it will insert 1.3.
+
+- I think this can probably work outside zero-input.
+  nope. zero doesn't use self-insert-command for inserting Chinese dot.
+
+  what does it use?
+  zero-input-pinyin-handle-preedit-char
+
+  it should be easy to implement the same thing there.
+  - when commit digit, just also add digit in a ring buffer. and check whether
+    there is a Chinese dot to be replaced.
+  - when commit Chinese dot, add Chinese dot in a ring buffer.
+
+  // These digits and Chinese dot is not part of key IM logic.
+  // zero-input-can-start-sequence will return false for them.
+  // I don't even need to change zero-input-commit-text.
+
+- put the feature under a flag.
+  zero-input-auto-fix-dot-between-numbers
+
+- problems
+  - how to get last insert char?
+  - how to get last 3 char from a string?
+    (equal (substring "abcde" -3) "cde")
+    (equal (substring "abc" -3) "abc")
+    (equal (substring "ab" -3) "ab")
+
+    how to loop characters over a string?
+    (mapcar (lambda (ch) ch) "abc")
+  - in elisp, use #'(lambda (x) x) or (lambda (x) x)?
+    Anonymous Functions - GNU Emacs Lisp Reference Manual
+    https://www.gnu.org/software/emacs/manual/html_node/elisp/Anonymous-Functions.html
+    use #' is better. it is short for (function (lambda (x) ...)).
+  - DONE return key should also insert ?\n to ring buffer.
+    bug reproduce:
+    type
+    25。<ret>
+    6
+    it is converted to
+    25。.6
+
+    where is return key handled when not in preedit mode?
+
+    debug log:
+    user typed: .
+    cannot start sequence, state=IM_WAITING_INPUT
+    press <ret> doesn't get any debug output.
+
+    ret is handled here:
+    (define-key zero-input-mode-map (kbd "RET") 'zero-input-return)
+    (define-key zero-input-mode-map (kbd "RET") nil)
+
+    When not in preedit-mode, I use system default self-insert-command binding
+    for RET key. So I still need the hook.
+
+    (add-hook 'post-self-insert-hook #'zero-input-post-self-insert nil t)
+
+    - when I do this, digit key press will insert twice into ring.
+      fixed. only use post-self-insert-hook, drop my explicit call.
+    - when type 。 it is not added to ring buf.
+      // it is added, just doesn't have debug log. because it uses mapc to add ch
+      // to ring.
+
+      The hook function should handle auto fix Chinese dot in digits.
+      now it works.
+
+  - WONTFIX backspace should update ring buffer. Oh, I can't restore old char.
+    just remove the newest item in the ring buffer.
+
+    e.g. 1<backspace>。6 should not be converted to ".6".
+
+    (define-key zero-input-mode-map (kbd "<backspace>") 'zero-input-backspace)
+    // I don't do anything here. auto fix doesn't work with preedit mode.
+
+    (define-key zero-input-mode-map (kbd "<backspace>") nil)
+
+    backspace doesn't run self-insert-command in many major modes.
+    There is nothing I can do.
+    Is there a hook I can use?
+    delete-char
+
+  - DONE only do auto fix when zero-input-mode is on.
+
+  - DONE when zero is off, clear the ring buffer.
+    do it in zero-input-reset.
+
 ** 2020-02-04 zero-input-pinyin, allow switch between sync and async mode in runtime.
 title was: zero-input-pinyin.el why sometimes it uses sync call and sometimes
 it uses async call?

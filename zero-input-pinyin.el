@@ -29,6 +29,7 @@
 ;; dependencies
 ;;==============
 
+(require 'ring)
 (require 'zero-input-framework)
 (require 'zero-input-pinyin-service)
 
@@ -67,7 +68,7 @@ You can find the xml file locally at
 (defvar zero-input-pinyin-pending-str "")
 (defvar zero-input-pinyin-pending-preedit-str "")
 (defvar zero-input-pinyin-pending-pinyin-indices nil
-  "Stores `zero-input-pinyin-pending-str' corresponds pinyin indices.")
+  "Store `zero-input-pinyin-pending-str' corresponds pinyin indices.")
 
 ;;=====================
 ;; key logic functions
@@ -123,14 +124,14 @@ COMPLETE-FUNC the callback function when async call completes.  it's called with
   (zero-input-pinyin-service-get-candidates-async
    preedit-str
    fetch-size
-   (lambda (candidates matched_preedit_str_lengths candidates_pinyin_indices)
-     (setq zero-input-candidates candidates)
-     (setq zero-input-fetch-size (max fetch-size (length candidates)))
-     (setq zero-input-pinyin-used-preedit-str-lengths matched_preedit_str_lengths)
-     (setq zero-input-pinyin-candidates-pinyin-indices candidates_pinyin_indices)
-     ;; Note: with dynamic binding, this command result in (void-variable
-     ;; complete-func) error.
-     (funcall complete-func candidates))))
+   #'(lambda (candidates matched_preedit_str_lengths candidates_pinyin_indices)
+       (setq zero-input-candidates candidates)
+       (setq zero-input-fetch-size (max fetch-size (length candidates)))
+       (setq zero-input-pinyin-used-preedit-str-lengths matched_preedit_str_lengths)
+       (setq zero-input-pinyin-candidates-pinyin-indices candidates_pinyin_indices)
+       ;; Note: with dynamic binding, this command result in (void-variable
+       ;; complete-func) error.
+       (funcall complete-func candidates))))
 
 (defun zero-input-pinyin-can-start-sequence (ch)
   "Return t if char CH can start a preedit sequence."
@@ -268,8 +269,8 @@ This is different from zero-input-framework because I need to support partial co
 	  (zero-input-pinyin-build-candidates-unified
 	   preedit-str
 	   new-fetch-size
-	   (lambda (_candidates)
-	     (zero-input-just-page-down))))
+	   #'(lambda (_candidates)
+	       (zero-input-just-page-down))))
       (zero-input-debug "won't fetch more candidates\n")
       (zero-input-just-page-down))))
 

@@ -34,7 +34,8 @@
 ;; dependencies
 ;;==============
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'cl-lib) (require 'cl-macs))
+(require 'ring)
 (require 's)
 (require 'zero-input-panel)
 
@@ -132,7 +133,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.1.0")
+(setq zero-input-version "2.2.0")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -186,6 +187,15 @@ Otherwise, next double quote insert close quote.")
 Used when converting single quote to Chinese quote.
 If nil, next single quote insert open quote.
 Otherwise, next single quote insert close quote.")
+(defvar-local zero-input-recent-insert-chars (make-ring 3)
+  "Store recent insert characters.
+
+Used to handle Chinese dot in digit input.
+e.g. 1。3 could be converted to 1.3.")
+(defcustom zero-input-auto-fix-dot-between-numbers t
+  "Non-nil means zero should change 1。3 to 1.3."
+  :group 'zero
+  :type 'boolean)
 (defvar-local zero-input-preedit-str "")
 (defvar-local zero-input-candidates nil)
 (defcustom zero-input-candidates-per-page 10
@@ -268,6 +278,12 @@ STRING and OBJECTS are passed to `format'"
 ;; (zero-input-debug "msg2: %s\n" "some obj")
 ;; (zero-input-debug "msg3: %s\n" 24)
 ;; (zero-input-debug "msg4: %s %s\n" 24 1)
+
+(defun zero-input-add-recent-insert-char (ch)
+  "Insert CH to `zero-input-recent-insert-chars'."
+  ;; (cl-assert (and (characterp ch) (not (stringp ch))))
+  (zero-input-debug "add char to recent chars ring: %s\n" ch)
+  (ring-insert zero-input-recent-insert-chars ch))
 
 (defun zero-input-enter-preedit-state ()
   "Config keymap when enter preedit state."
@@ -385,6 +401,7 @@ If there is no full-width char for CH, return it unchanged."
   (when zero-input-full-width-p
     (let ((full-width-ch (zero-input-convert-ch-to-full-width ch)))
       (insert full-width-ch)
+      (zero-input-add-recent-insert-char full-width-ch)
       full-width-ch)))
 
 (defun zero-input-convert-punctuation-basic (ch)
@@ -437,6 +454,7 @@ Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
   (let ((str (zero-input-convert-punctuation ch)))
     (when str
       (insert str)
+      (mapc #'zero-input-add-recent-insert-char str)
       t)))
 
 (defun zero-input-append-char-to-preedit-str (ch)
@@ -480,11 +498,11 @@ Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
 	  (funcall zero-input-build-candidates-async-func
 		   zero-input-preedit-str
 		   new-fetch-size
-		   (lambda (candidates)
-		     (setq zero-input-candidates candidates)
-		     (setq zero-input-fetch-size (max new-fetch-size
-						      (length candidates)))
-		     (zero-input-just-page-down))))
+		   #'(lambda (candidates)
+		       (setq zero-input-candidates candidates)
+		       (setq zero-input-fetch-size (max new-fetch-size
+							(length candidates)))
+		       (zero-input-just-page-down))))
       (zero-input-just-page-down))))
 
 (defun zero-input-handle-preedit-char-default (ch)
@@ -554,10 +572,10 @@ N is the argument passed to `self-insert-command'."
   (let ((new-fetch-size (zero-input-get-initial-fetch-size)))
     (funcall zero-input-build-candidates-async-func
 	     zero-input-preedit-str new-fetch-size
-	     (lambda (candidates)
-	       (setq zero-input-candidates candidates)
-	       (setq zero-input-fetch-size (max new-fetch-size (length candidates)))
-	       (zero-input-show-candidates candidates)))))
+	     #'(lambda (candidates)
+		 (setq zero-input-candidates candidates)
+		 (setq zero-input-fetch-size (max new-fetch-size (length candidates)))
+		 (zero-input-show-candidates candidates)))))
 
 (defun zero-input-backspace-default ()
   "Handle backspace key in `zero-input--state-im-preediting' state."
@@ -582,6 +600,9 @@ N is the argument passed to `self-insert-command'."
   "Commit given TEXT, reset preedit str, hide candidate list."
   (zero-input-debug "commit text: %s\n" text)
   (insert text)
+  ;; insert last 3 characters (if possible) to zero-input-recent-insert-chars
+  (mapc #'zero-input-add-recent-insert-char
+	(if (>= (length text) 3) (substring text -3) text))
   (setq zero-input-preedit-str "")
   (setq zero-input-candidates nil)
   (setq zero-input-current-page 0)
@@ -629,6 +650,8 @@ N is the argument passed to `self-insert-command'."
   (setq zero-input-preedit-str "")
   (setq zero-input-candidates nil)
   (setq zero-input-current-page 0)
+  (while (not (ring-empty-p zero-input-recent-insert-chars))
+    (ring-remove zero-input-recent-insert-chars))
   (zero-input-hide-candidate-list))
 
 (defun zero-input-focus-in ()
@@ -707,7 +730,26 @@ Otherwise, show Zero."
   (add-hook 'focus-in-hook 'zero-input-focus-in)
   (add-hook 'focus-out-hook 'zero-input-focus-out)
   (setq zero-input-buffer (current-buffer))
+  (add-hook 'post-self-insert-hook #'zero-input-post-self-insert-command nil t)
   (add-hook 'buffer-list-update-hook 'zero-input-buffer-list-changed))
+
+(defun zero-input-post-self-insert-command (&optional ch)
+  "Run after a regular `self-insert-command' is run by zero-input.
+
+Argument CH the character that was inserted."
+  ;; `zero-input-auto-fix-dot-between-numbers' is the only feature that
+  ;; requires this ring, so for now if it is nil, no need to maintain the ring
+  ;; for `self-insert-command'.
+  (if (and zero-input-mode zero-input-auto-fix-dot-between-numbers)
+      (let ((ch (or ch (elt (this-command-keys-vector) 0))))
+	(zero-input-add-recent-insert-char ch)
+	;; if user typed digit “。” digit, auto convert “。” to “.”
+	(cl-flet ((my-digit-char-p (ch) (and (>= ch ?0) (<= ch ?9))))
+	  (when (and (my-digit-char-p (ring-ref zero-input-recent-insert-chars 0))
+		     (equal ?。 (ring-ref zero-input-recent-insert-chars 1))
+		     (my-digit-char-p (ring-ref zero-input-recent-insert-chars 2)))
+	    (delete-char -2)
+	    (insert "." (car (ring-elements zero-input-recent-insert-chars))))))))
 
 ;;==================
 ;; IM developer API

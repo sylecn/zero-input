@@ -51,7 +51,10 @@
 ;;; Code:
 
 (require 'dbus)
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'cl-macs))
+(require 'ring)
 (require 's)
 
 INCLUDE_ZERO_INPUT_PANEL_EL
