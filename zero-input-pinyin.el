@@ -367,6 +367,8 @@ DIGIT 0 means delete 10th candidate."
       (:preedit-start . zero-input-pinyin-preedit-start)
       (:preedit-end . zero-input-pinyin-preedit-end)))))
 
+(zero-input-pinyin-register-im)
+
 ;;============
 ;; public API
 ;;============

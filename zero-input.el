@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 2.2.0
+;; Version: 2.2.1
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
@@ -246,7 +246,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.2.0")
+(setq zero-input-version "2.2.1")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -1540,6 +1540,8 @@ DIGIT 0 means delete 10th candidate."
       (:shutdown . zero-input-pinyin-shutdown)
       (:preedit-start . zero-input-pinyin-preedit-start)
       (:preedit-end . zero-input-pinyin-preedit-end)))))
+
+(zero-input-pinyin-register-im)
 
 ;;============
 ;; public API
