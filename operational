@@ -86,8 +86,24 @@ cd ~/lisp/elisp/zero/
   open zero-input.el file
   M-x checkdoc
   M-x package-lint-current-buffer
-- make a git commit.
-- push commits
+- test zero-input.el in a fresh emacs -Q window.
+
+  (load-file "~/.emacs.d/elpa/s-1.11.0/s.elc")
+  (byte-compile-file "~/lisp/elisp/zero/zero-input.el" t)
+  (global-set-key (kbd "<f1>") 'zero-input-mode)
+  (zero-input-set-default-im 'pinyin)
+
+  now in some buffer,
+  press F1 and start typing.
+
+- make a git commit in master branch.
+- copy zero-input.el over to pkg branch.
+  make a git commit in pkg branch.
+  tag it if it is a stable release.
+
+- push commits.
+  push tags if it is a stable release.
+
 ** 2019-10-10 documents
 - Using of D-Bus
   https://www.gnu.org/software/emacs/manual/html_mono/dbus.html
