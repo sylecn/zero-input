@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 2.3.0
+;; Version: 2.3.1
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
@@ -246,7 +246,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.3.0")
+(setq zero-input-version "2.3.1")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -1473,7 +1473,9 @@ CH the character user typed."
    ((= ch zero-input-next-page-key)
     (zero-input-pinyin-page-down))
    (t (let ((str (zero-input-convert-punctuation ch)))
-	(if str
+	;; ?' is used as pinyin substring separator, never auto commit on ?'
+	;; insert when pre-editing.
+	(if (and str (not (eq ch ?')))
 	    (when (zero-input-pinyin-commit-first-candidate-in-full)
 	      (zero-input-set-state zero-input--state-im-waiting-input)
 	      (insert str))

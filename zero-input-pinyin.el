@@ -295,7 +295,9 @@ CH the character user typed."
    ((= ch zero-input-next-page-key)
     (zero-input-pinyin-page-down))
    (t (let ((str (zero-input-convert-punctuation ch)))
-	(if str
+	;; ?' is used as pinyin substring separator, never auto commit on ?'
+	;; insert when pre-editing.
+	(if (and str (not (eq ch ?')))
 	    (when (zero-input-pinyin-commit-first-candidate-in-full)
 	      (zero-input-set-state zero-input--state-im-waiting-input)
 	      (insert str))
