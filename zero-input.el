@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 2.3.1
+;; Version: 2.4.0
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
@@ -246,7 +246,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.3.1")
+(setq zero-input-version "2.4.0")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -271,23 +271,37 @@ through")
 this is used to help with buffer focus in/out events")
 
 (defvar-local zero-input-state zero-input--state-im-off)
-(defvar-local zero-input-full-width-p nil
+(defcustom zero-input-full-width-p nil
   "Set to t to enable full-width mode.
 In full-width mode, commit ascii char will insert full-width char if there is a
 corresponding full-width char.  This full-width char map is
 independent from punctuation map.  You can change this via
-`zero-input-toggle-full-width'")
-(defvar-local zero-input-punctuation-level zero-input-punctuation-level-basic
-  "Punctuation level.
+`zero-input-toggle-full-width'"
+  :group 'zero-input
+  :safe t
+  :type 'boolean)
+(make-variable-buffer-local 'zero-input-full-width-p)
+(defcustom zero-input-punctuation-level zero-input-punctuation-level-basic
+  "Default punctuation level.
 
 Should be one of
 `zero-input-punctuation-level-basic'
 `zero-input-punctuation-level-full'
-`zero-input-punctuation-level-none'")
+`zero-input-punctuation-level-none'"
+  :group 'zero-input
+  :safe t
+  :type `(choice (const :tag "zero-input-punctuation-level-basic"
+			,zero-input-punctuation-level-basic)
+		 (const :tag "zero-input-punctuation-level-full"
+			,zero-input-punctuation-level-full)
+		 (const :tag "zero-input-punctuation-level-none"
+			,zero-input-punctuation-level-none)))
+(make-variable-buffer-local 'zero-input-punctuation-level)
 (defvar zero-input-punctuation-levels (list zero-input-punctuation-level-basic
-				      zero-input-punctuation-level-full
-				      zero-input-punctuation-level-none)
+					    zero-input-punctuation-level-full
+					    zero-input-punctuation-level-none)
   "Punctuation levels to use when `zero-input-cycle-punctuation-level'.")
+
 (defvar-local zero-input-double-quote-flag nil
   "Non-nil means next double quote insert close quote.
 
@@ -306,7 +320,7 @@ Otherwise, next single quote insert close quote.")
 Used to handle Chinese dot in digit input.
 e.g. 1。3 could be converted to 1.3.")
 (defcustom zero-input-auto-fix-dot-between-numbers t
-  "Non-nil means zero should change 1。3 to 1.3."
+  "Non-nil means zero should change 1。3 to 1.3, H。264 to H.264."
   :group 'zero-input
   :type 'boolean)
 (defvar-local zero-input-preedit-str "")
@@ -1215,21 +1229,23 @@ DELETE-CANDIDATE-COMPLETE the async handler function."
 ;; basic data and emacs facility
 ;;===============================
 
-;; these two var is only used in docstring to avoid checkdoc line-too-long
-;; error.
-(defvar zero-input-pinyin-service-interface-xml-file
-  "/usr/share/dbus-1/interfaces/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml")
-(defvar zero-input-pinyin-service-interface-xml-url
-  "https://gitlab.emacsos.com/sylecn/zero-input-pinyin-service/blob/master/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml")
 (defcustom zero-input-pinyin-fuzzy-flag 0
-  "Non-nil means use this value as GetCandidatesV2 fuzzy_flag param.
-see zero-input-pinyin-service dbus interface xml for document.
+  "Non-nil means enable fuzzy pinyin when calling zero pinyin service.
+
+Fuzzy pinyin means some shengmu and some yunmu could be used
+interchangeably, such as zh <-> z, l <-> n.
+
+For supported values, please see zero-input-pinyin-service dbus
+interface xml comment for GetCandidatesV2 method fuzzy_flag param.
 
 You can find the xml file locally at
-`zero-input-pinyin-service-interface-xml-file' or online at
-`zero-input-pinyin-service-interface-xml-url'."
-  :type 'integer
-  :group 'zero-input-pinyin)
+/usr/share/dbus-1/interfaces/\
+com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml
+or online at
+https://gitlab.emacsos.com/sylecn/zero-pinyin-service/\
+blob/master/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml"
+  :group 'zero-input-pinyin
+  :type 'integer)
 (defvar zero-input-pinyin-use-async-fetch nil
   "Non-nil means use async dbus call to get candidates.")
 (setq zero-input-pinyin-use-async-fetch nil)

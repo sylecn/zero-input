@@ -111,14 +111,30 @@ cd ~/lisp/elisp/zero/
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
-** 2020-02-16 declare zero-input-punctuation-level, zero-input-full-width-p using defcustom
-use setq-default to set the value.
-
 ** 2019-11-03 add completion support for zero-input-set-im
 complete registered im symbols.
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
 I can't run them in git pre-commit hook.
 * done                                                                :entry:
+** 2020-02-16 declare zero-input-punctuation-level, zero-input-full-width-p using defcustom
+use set-default to set the value.
+
+set-default is the default setter. no problem.
+
+- also for
+  zero-input-pinyin-fuzzy-flag
+  INVALID zero-input-auto-fix-dot-between-numbers, already via defcustom.
+
+- problems
+  - search: defvar-local vs defcustom
+
+    just add
+    (make-variable-buffer-local 'zero-input-punctuation-level)
+
+  - DONE zero-input-pinyin-fuzzy-flag, why links in doctstring doesn't work?
+    use raw string there.
+    80 width can be avoided by using \ escape at line end.
+
 ** 2020-02-15 zero-el：中文标点full模式下，无法输入 fan'gai 翻盖
 因为'会自动变成左引号。
 而'在zps里面还有分词字符的含义。

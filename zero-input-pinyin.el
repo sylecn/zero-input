@@ -37,21 +37,23 @@
 ;; basic data and emacs facility
 ;;===============================
 
-;; these two var is only used in docstring to avoid checkdoc line-too-long
-;; error.
-(defvar zero-input-pinyin-service-interface-xml-file
-  "/usr/share/dbus-1/interfaces/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml")
-(defvar zero-input-pinyin-service-interface-xml-url
-  "https://gitlab.emacsos.com/sylecn/zero-input-pinyin-service/blob/master/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml")
 (defcustom zero-input-pinyin-fuzzy-flag 0
-  "Non-nil means use this value as GetCandidatesV2 fuzzy_flag param.
-see zero-input-pinyin-service dbus interface xml for document.
+  "Non-nil means enable fuzzy pinyin when calling zero pinyin service.
+
+Fuzzy pinyin means some shengmu and some yunmu could be used
+interchangeably, such as zh <-> z, l <-> n.
+
+For supported values, please see zero-input-pinyin-service dbus
+interface xml comment for GetCandidatesV2 method fuzzy_flag param.
 
 You can find the xml file locally at
-`zero-input-pinyin-service-interface-xml-file' or online at
-`zero-input-pinyin-service-interface-xml-url'."
-  :type 'integer
-  :group 'zero-input-pinyin)
+/usr/share/dbus-1/interfaces/\
+com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml
+or online at
+https://gitlab.emacsos.com/sylecn/zero-pinyin-service/\
+blob/master/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml"
+  :group 'zero-input-pinyin
+  :type 'integer)
 (defvar zero-input-pinyin-use-async-fetch nil
   "Non-nil means use async dbus call to get candidates.")
 (setq zero-input-pinyin-use-async-fetch nil)
