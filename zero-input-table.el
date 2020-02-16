@@ -69,7 +69,7 @@
 ;;===============================
 
 (zero-input-register-im
- 'zero-input-table
+ "zero-input-table"
  '((:build-candidates . zero-input-table-build-candidates)
    (:can-start-sequence . zero-input-table-can-start-sequence)))
 

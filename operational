@@ -111,11 +111,58 @@ cd ~/lisp/elisp/zero/
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
-** 2019-11-03 add completion support for zero-input-set-im
-complete registered im symbols.
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
 I can't run them in git pre-commit hook.
 * done                                                                :entry:
+** 2019-11-03 add completion support for zero-input-set-im
+complete registered im symbols.
+
+- 2020-02-16
+  Function: completing-read prompt collection &optional predicate
+
+  make sure non-interactively usage still works.
+  (zero-input-set-im 'pinyin)
+
+- DONE allow input method name to be string.
+  to add backward compatibility, symbol is also supported.
+  symbol is auto converted to lower case string.
+
+  string is a better fit for names. it can include unicode strings easier.
+
+- problems
+  - how to call completing-read when call interactively?
+
+    search: use completing-read with interactive function
+
+    just call the function when &optional arg is nil.
+
+  - (zero-input-set-im 'pinyin)
+    this doesn't allow input pinyin after switching to table and back。
+
+    if then else issue.
+    fixed.
+
+  - DONE when im name is string, alist eq comparison won't work.
+    change to string-equal based compare.
+
+    search: assq-delete-all but with string-equal
+
+    emacs - Elisp: How to delete an element from an association list with string key - Stack Overflow
+    https://stackoverflow.com/questions/9812393/elisp-how-to-delete-an-element-from-an-association-list-with-string-key
+
+  - (zero-input-set-im 'pinyin)
+    method not registered.
+
+    (assq im-name zero-input-ims)
+    (assoc im-name zero-input-ims)
+
+  - try switch to empty and back.
+
+    (zero-input-set-im 'pinyin)
+    (zero-input-set-im 'empty)
+
+    it works.
+
 ** 2020-02-16 declare zero-input-punctuation-level, zero-input-full-width-p using defcustom
 use set-default to set the value.
 

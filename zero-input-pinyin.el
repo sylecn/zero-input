@@ -356,7 +356,7 @@ DIGIT 0 means delete 10th candidate."
 (defun zero-input-pinyin-register-im ()
   "Register pinyin input method in zero framework."
   (zero-input-register-im
-   'pinyin
+   "pinyin"
    (append
     (if zero-input-pinyin-use-async-fetch
 	'((:build-candidates-async . zero-input-pinyin-build-candidates-async))

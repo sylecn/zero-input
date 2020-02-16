@@ -133,7 +133,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.4.0")
+(setq zero-input-version "2.5.0")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -797,10 +797,13 @@ virtual functions                   corresponding variable
 
 registered input method is saved in `zero-input-ims'"
   ;; add or replace entry in `zero-input-ims'
-  (unless (symbolp im-name)
-    (signal 'wrong-type-argument (list 'symbolp im-name)))
-  (setq zero-input-ims (assq-delete-all im-name zero-input-ims))
+  (unless (stringp im-name)
+    (signal 'wrong-type-argument (list 'stringp im-name)))
+  (setq zero-input-ims (delq (assoc im-name zero-input-ims) zero-input-ims))
   (setq zero-input-ims (push (cons im-name im-functions-alist) zero-input-ims)))
+
+;; Built-in empty input method. It only handles Chinese punctuation.
+(zero-input-register-im "empty" nil)
 
 ;;============
 ;; public API
@@ -845,21 +848,32 @@ LEVEL the level to set to."
   (message "punctuation level set to %s" zero-input-punctuation-level))
 
 ;;;###autoload
-(defun zero-input-set-im (im-name)
+(defun zero-input-set-im (&optional im-name)
   "Select zero input method for current buffer.
 
-if IM-NAME is nil, use default empty input method"
-  ;; TODO provide auto completion for im-name
-  (interactive "SSet input method to: ")
+IM-NAME (a string) should be a registered input method in zero-input."
+  (interactive)
   ;; when switch away from an IM, run last IM's :shutdown function.
   (if zero-input-im
-      (let ((shutdown-func (cdr (assq :shutdown (cdr (assq zero-input-im zero-input-ims))))))
+      (let ((shutdown-func (cdr (assq :shutdown (cdr (assoc zero-input-im zero-input-ims))))))
 	(if (functionp shutdown-func)
 	    (funcall shutdown-func))))
-  (if im-name
-      (let ((im-functions (cdr (assq im-name zero-input-ims))))
-	(if im-functions
+  (cond
+   ((null im-name)
+    ;; TODO is there an easier way to provide auto complete in mini buffer?
+    ;; I used a recursive call to the same function.
+    (let ((im-name-str (completing-read "Set input method to: " zero-input-ims)))
+      (if (s-blank? im-name-str)
+	  (error "Input method name is required")
+	(zero-input-set-im im-name-str))))
+   ((symbolp im-name)
+    ;; for backward compatibility
+    (zero-input-set-im (symbol-name im-name)))
+   (t (let* ((im-slot (assoc im-name zero-input-ims))
+	     (im-functions (cdr im-slot)))
+	(if im-slot
 	    (progn
+	      (zero-input-debug "switching to %s input method" im-name)
 	      ;; TODO create a macro to reduce code duplication and human
 	      ;; error.
 	      ;;
@@ -895,16 +909,7 @@ if IM-NAME is nil, use default empty input method"
 		(if (functionp init-func)
 		    (funcall init-func)))
 	      (setq zero-input-im im-name))
-	  (error "Input method %s not registered in zero" im-name)))
-    (zero-input-debug "using default empty input method")
-    (setq zero-input-build-candidates-func 'zero-input-build-candidates-default)
-    (setq zero-input-build-candidates-async-func 'zero-input-build-candidates-async-default)
-    (setq zero-input-can-start-sequence-func 'zero-input-can-start-sequence-default)
-    (setq zero-input-handle-preedit-char-func 'zero-input-handle-preedit-char-default)
-    (setq zero-input-get-preedit-str-for-panel-func 'zero-input-get-preedit-str-for-panel-default)
-    (setq zero-input-backspace-func 'zero-input-backspace-default)
-    (setq zero-input-preedit-start-func nil)
-    (setq zero-input-preedit-end-func nil)))
+	  (error "Input method %S not registered in zero" im-name))))))
 
 ;;;###autoload
 (defun zero-input-set-default-im (im-name)
