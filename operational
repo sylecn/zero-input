@@ -98,6 +98,8 @@ cd ~/lisp/elisp/zero/
 
 - make a git commit in master branch.
 - copy zero-input.el over to pkg branch.
+  cp zero-input.el ../zero-pkg/
+
   make a git commit in pkg branch.
   tag it if it is a stable release.
 
