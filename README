@@ -35,10 +35,10 @@ M-x customize-group zero-input-pinyin
   user phrase db.
 - To delete system phrase or user phrase, type C-<digit> when candidate is
   shown in zero-panel.
-- Auto period for digits and English letter and digit mixed words. For
-  example, to type "3.6" when zero-input-mode is on, type "3." will insert "3。
-  ", just continue type 6, it will be converted to "3.6". Same thing for "H。
-  265" -> "H.265".
+- Auto convert Chinese period to dot for digits and English letter and digit
+  mixed words. For example, to type "3.6" when zero-input-mode is on, type
+  "3." will insert "3。", just continue type 6, it will be converted to
+  "3.6". Same thing for "H。265" -> "H.265".
 
 * File list
 - zero-input.el

@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 2.2.2
+;; Version: 2.3.0
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
@@ -246,7 +246,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.2.2")
+(setq zero-input-version "2.3.0")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -856,11 +856,15 @@ Argument CH the character that was inserted."
   (if (and zero-input-mode zero-input-auto-fix-dot-between-numbers)
       (let ((ch (or ch (elt (this-command-keys-vector) 0))))
 	(zero-input-add-recent-insert-char ch)
-	;; if user typed digit “。” digit, auto convert “。” to “.”
-	(cl-flet ((my-digit-char-p (ch) (and (>= ch ?0) (<= ch ?9))))
-	  (when (and (my-digit-char-p (ring-ref zero-input-recent-insert-chars 0))
+	;; if user typed "[0-9A-Z]。[0-9]", auto convert “。” to “.”
+	(cl-flet ((my-digit-char-p (ch) (and (>= ch ?0) (<= ch ?9)))
+		  (my-capital-letter-p (ch) (and (>= ch ?A) (<= ch ?Z))))
+	  ;; ring-ref index 2 is least recent inserted char.
+	  (when (and (let ((ch (ring-ref zero-input-recent-insert-chars 2)))
+		       (or (my-digit-char-p ch)
+			   (my-capital-letter-p ch)))
 		     (equal ?。 (ring-ref zero-input-recent-insert-chars 1))
-		     (my-digit-char-p (ring-ref zero-input-recent-insert-chars 2)))
+		     (my-digit-char-p (ring-ref zero-input-recent-insert-chars 0)))
 	    (delete-char -2)
 	    (insert "." (car (ring-elements zero-input-recent-insert-chars))))))))
 

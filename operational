@@ -111,6 +111,12 @@ cd ~/lisp/elisp/zero/
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
+** 2020-02-15 zero-el：中文标点full模式下，无法输入 fan'gai 翻盖
+因为'会自动变成左引号。
+而'在zps里面还有分词字符的含义。
+
+- 建议取消 preedit 状态下'的自动 commit 1st candidate 并插入引号的功能。
+
 ** 2020-02-16 declare zero-input-punctuation-level, zero-input-full-width-p using defcustom
 use setq-default to set the value.
 
@@ -119,6 +125,9 @@ complete registered im symbols.
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
 I can't run them in git pre-commit hook.
 * done                                                                :entry:
+** 2020-02-14 zero-el: H。265 > H.265
+除了数字+小数点+数字，大写英文+小数点+数字也可以自动转换。
+
 ** 2020-02-02 zero-el: 如果输入“。”之前和之后输入的是数字，则自动将"。"转换为小数点"."。
 (setq zero-input-auto-fix-dot-between-numbers t)
 enabled by default.

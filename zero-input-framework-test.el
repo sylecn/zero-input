@@ -54,6 +54,23 @@
   (let ((zero-input-initial-fetch-size 12))
     (should (= 12 (zero-input-get-initial-fetch-size)))))
 
+(ert-deftest zero-input-add-recent-insert-char ()
+  (let ((test-ring (make-ring 3)))
+    (ring-insert test-ring 'a)
+    (ring-insert test-ring 'b)
+    (ring-insert test-ring 'c)
+    (should (eq 'c (ring-ref test-ring 0)))
+    (should (eq 'b (ring-ref test-ring 1)))
+    (should (eq 'a (ring-ref test-ring 2))))
+  (let ((test-ring (make-ring 3)))
+    (ring-insert test-ring 'a)
+    (ring-insert test-ring 'b)
+    (ring-insert test-ring 'c)
+    (ring-insert test-ring 'd)
+    (should (eq 'd (ring-ref test-ring 0)))
+    (should (eq 'c (ring-ref test-ring 1)))
+    (should (eq 'b (ring-ref test-ring 2)))))
+
 (provide 'zero-input-framework-test)
 
 ;;; zero-input-framework-test.el ends here
