@@ -1,11 +1,44 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-09-01
-Time-stamp: <2019-10-28>
+Time-stamp: <2020-02-16>
 
 * zero-el
 
 zero-el provides zero-input-pinyin, an Emacs pinyin input method for Chinese
 and zero-input-framework, which is an emacs Chinese input method framework.
+
+* An introduction to zero-el, including how to install and config zero-el.
+https://blog.emacsos.com/zero-el.html
+
+For normal configurable variables, see
+M-x customize-group zero-input
+M-x customize-group zero-input-pinyin
+
+* Zero Pinyin Usage
+- Enable zero-input minor mode in emacs buffer.
+  M-x zero-input-mode
+
+  You should bind a global hotkey for this function for easier switch, e.g.
+  (global-set-key (kbd "<f1>") 'zero-input-mode)
+
+- Type pinyin string, for example, "zhongwen", zero will show candidates
+  matches this pinyin string. You may choose first candidate by space. You may
+  choose other candidates by digit keys. You may page down, page up by =/-
+  key.
+
+  Some notes on pinyin string,
+  - There is no ü on US keyboard, type v instead. For example lve 略.
+  - Use ' to separate pinyin substring like xi'an 西安
+
+* Zero Framework features
+- Auto save user phrases. When you type a new phrase, it will be remembered in
+  user phrase db.
+- To delete system phrase or user phrase, type C-<digit> when candidate is
+  shown in zero-panel.
+- Auto period for digits and English letter and digit mixed words. For
+  example, to type "3.6" when zero-input-mode is on, type "3." will insert "3。
+  ", just continue type 6, it will be converted to "3.6". Same thing for "H。
+  265" -> "H.265".
 
 * File list
 - zero-input.el
@@ -42,9 +75,6 @@ and zero-input-framework, which is an emacs Chinese input method framework.
 
   serves as an example of how to use zero framework to create new input
   methods.
-
-* introduce to zero-el
-https://blog.emacsos.com/zero-el.html
 
 * License
 zero-el is under Apache License 2.0

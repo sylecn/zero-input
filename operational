@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2020-02-04>
+Time-stamp: <2020-02-16>
 #+STARTUP: content
 * notes                                                               :entry:
 ** 2019-04-01 zero-el a Chinese IM framework in emacs; FSM              :doc:
@@ -111,6 +111,9 @@ cd ~/lisp/elisp/zero/
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
+** 2020-02-16 declare zero-input-punctuation-level, zero-input-full-width-p using defcustom
+use setq-default to set the value.
+
 ** 2019-11-03 add completion support for zero-input-set-im
 complete registered im symbols.
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.

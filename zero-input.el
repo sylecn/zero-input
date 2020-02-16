@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 2.2.1
+;; Version: 2.2.2
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
@@ -246,7 +246,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.2.1")
+(setq zero-input-version "2.2.2")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -307,7 +307,7 @@ Used to handle Chinese dot in digit input.
 e.g. 1。3 could be converted to 1.3.")
 (defcustom zero-input-auto-fix-dot-between-numbers t
   "Non-nil means zero should change 1。3 to 1.3."
-  :group 'zero
+  :group 'zero-input
   :type 'boolean)
 (defvar-local zero-input-preedit-str "")
 (defvar-local zero-input-candidates nil)
@@ -315,7 +315,7 @@ e.g. 1。3 could be converted to 1.3.")
   "How many candidates to show on each page.
 
 Change will be effective only in new `zero-input-mode' buffer."
-  :group 'zero
+  :group 'zero-input
   :type 'integer)
 (defvar-local zero-input-current-page 0 "Current page number.  count from 0.")
 (defvar-local zero-input-initial-fetch-size 21
