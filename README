@@ -4,13 +4,16 @@ Time-stamp: <2020-02-20>
 
 * zero-el
 
+[[http://www.melpa.org/#/zero-input][file:http://www.melpa.org/packages/zero-input-badge.svg]]
+[[https://stable.melpa.org/#/zero-input][file:https://stable.melpa.org/packages/zero-input-badge.svg]]
+
 zero-el provides zero-input-pinyin, an Emacs pinyin input method for Chinese
 and zero-input-framework, which is an emacs Chinese input method framework.
 
 * An introduction to zero-el, including how to install and config zero-el.
 https://blog.emacsos.com/zero-el.html
 
-For normal configurable variables, see
+For user configurable variables, see
 M-x customize-group zero-input
 M-x customize-group zero-input-pinyin
 
@@ -27,7 +30,7 @@ M-x customize-group zero-input-pinyin
   key.
 
   Some notes on pinyin string,
-  - There is no ü on US keyboard, type v instead. For example lve 略.
+  - There is no ü on US keyboard, type v instead. For example lv 绿.
   - Use ' to separate pinyin substring like xi'an 西安
 
 * Zero Framework features
@@ -39,6 +42,11 @@ M-x customize-group zero-input-pinyin
   mixed words. For example, to type "3.6" when zero-input-mode is on, type
   "3." will insert "3。", just continue type 6, it will be converted to
   "3.6". Same thing for "H。265" -> "H.265".
+
+* Bug Report and Feature Request
+Please report bugs at [[https://github.com/sylecn/zero-el/issues][github issues]]. Note that development (and melpa pkg)
+still happens on gitlab repo. The github repo is an official mirror to make
+reporting issue easier.
 
 * Changelog
 - see ./ChangeLog

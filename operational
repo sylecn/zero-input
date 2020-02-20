@@ -114,6 +114,13 @@ cd ~/lisp/elisp/zero/
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
+** 2020-02-20 add github issue system support.
+- create issue templates online. then merge into master.
+  git remote add github git@github.com:sylecn/zero-el.git
+  git fetch github sylecn-patch-1
+  gco github/sylecn-patch-1 .github/
+- update README, add bug report doc.
+- 
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
 I can't run them in git pre-commit hook.
 * done                                                                :entry:
