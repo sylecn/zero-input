@@ -117,6 +117,8 @@ cd ~/lisp/elisp/zero/
   https://docs.travis-ci.com/user/installing-dependencies
   Customizing the Build - Travis CI
   https://docs.travis-ci.com/user/customizing-the-build#build-matrix
+  Testing Your Project on Multiple Operating Systems - Travis CI
+  https://docs.travis-ci.com/user/multi-os/
 
 * later                                                               :entry:
 * current                                                             :entry:
@@ -126,6 +128,9 @@ I don't know it should recommend or suggest.
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
 I can't run them in git pre-commit hook.
 * done                                                                :entry:
+** 2020-02-21 org-mode, click badge should link to the pkg. not the image file.
+need to drop ?branch=master
+it works.
 ** 2020-02-20 integrate travis CI support.
 just run "make dist-check".
 

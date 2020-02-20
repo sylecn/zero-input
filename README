@@ -1,11 +1,12 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-09-01
-Time-stamp: <2020-02-20>
+Time-stamp: <2020-02-21>
 
 * zero-el
 
 [[http://www.melpa.org/#/zero-input][file:http://www.melpa.org/packages/zero-input-badge.svg]]
 [[https://stable.melpa.org/#/zero-input][file:https://stable.melpa.org/packages/zero-input-badge.svg]]
+[[https://travis-ci.org/sylecn/zero-el][file:https://travis-ci.org/sylecn/zero-el.svg]]
 
 zero-el provides zero-input-pinyin, an Emacs pinyin input method for Chinese
 and zero-input-framework, which is an emacs Chinese input method framework.
