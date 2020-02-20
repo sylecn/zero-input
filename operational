@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2020-02-20>
+Time-stamp: <2020-02-21>
 #+STARTUP: content
 * notes                                                               :entry:
 ** 2019-04-01 zero-el a Chinese IM framework in emacs; FSM              :doc:
@@ -110,15 +110,98 @@ cd ~/lisp/elisp/zero/
 ** 2019-10-10 documents
 - Using of D-Bus
   https://www.gnu.org/software/emacs/manual/html_mono/dbus.html
+- Travis CI
+  The Ubuntu 18.04 Build Environment - Travis CI
+  https://docs.travis-ci.com/user/reference/bionic/
+  Installing Dependencies - Travis CI
+  https://docs.travis-ci.com/user/installing-dependencies
+  Customizing the Build - Travis CI
+  https://docs.travis-ci.com/user/customizing-the-build#build-matrix
 
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
-** 2020-02-20 integrate travis CI support.
-just run "make dist-check".
+** 2020-02-21 zero-pinyin-service and zero-panel should recommend or suggest dbus pkg.
+I don't know it should recommend or suggest.
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
 I can't run them in git pre-commit hook.
 * done                                                                :entry:
+** 2020-02-20 integrate travis CI support.
+just run "make dist-check".
+
+- problems
+  - how to run on both debian 9, 10 and ubuntu 18.04?
+
+    The Ubuntu 18.04 Build Environment - Travis CI
+    https://docs.travis-ci.com/user/reference/bionic/
+    There is no debian image on Travis CI.
+
+  - how to install s pkg when run on travis CI?
+    if ~/.emacs.d/elpa/s-1.11.0/s.el doesn't exist, install s and load it first.
+
+    how to use package-install with package-desc?
+
+    (package-install "s")
+    (package-install "s-1.12.0")
+
+    search: (error "Package `s-' is unavailable")
+
+    Package 's-' is unavailable · Issue #373 · cask/cask
+    https://github.com/cask/cask/issues/373
+
+    elisp - Emacs's package-install inserts an extra dash at the end of the package - Stack Overflow
+    https://stackoverflow.com/questions/36338528/emacss-package-install-inserts-an-extra-dash-at-the-end-of-the-package
+    wat?
+    I don't think this is the problem. In my setup, melpa is not the first element.
+
+    I will cheat. Just download the file from github when run on travis CI.
+    https://github.com/magnars/s.el
+
+  - how to run it on emacs24, emacs25, emacs26?
+    emacs24-nox is on xenial 16.04
+    emacs25-nox is on bionic 18.04
+    emacs26 is not in ubuntu yet.
+
+    How to Install GNU Emacs 26.1 in Ubuntu 18.04, 16.04, 18.10 | UbuntuHandbook
+    http://ubuntuhandbook.org/index.php/2019/02/install-gnu-emacs-26-1-ubuntu-18-04-16-04-18-10/
+    https://launchpad.net/~kelleyk/+archive/ubuntu/emacs
+    sudo add-apt-repository ppa:kelleyk/emacs
+    sudo apt update
+    sudo apt install emacs26
+    I will ignore emacs26 for now.
+
+  - travis forces venv, doesn't allow install to user site-packages.
+
+    https://docs.travis-ci.com/user/languages/python/
+    to use --user you just need to not use "language: python".
+    I will use language: python and fix the command.
+
+  - DONE elisp tests need access to GetCandidatesV2 dbus method.
+    zero-input-pinyin-service-get-candidates
+    why?
+
+    this is good. I can install the deb in travis container.
+
+  - DONE emacs run ert test doesn't exit with non-zero code when there are errors.
+    it needs a wrapper function.
+
+    ert-run-tests-batch
+    Returns the stats object.
+    ert-run-tests-batch-and-exit
+    nice.
+
+  - travis: no access to session bus.
+    how to start dbus session bus when x is not running?
+    search: travis start dbus session bus
+
+    Testing with PulseAudio server in Travis · Issue #20 · favonia/pulse
+    https://github.com/favonia/pulse/issues/20
+
+  - MOVED zero-pinyin-service and zero-panel should recommend or suggest dbus pkg.
+    I don't know it should recommend or suggest.
+
+  - travis CI test works. great. integrate to master branch.
+
 ** 2020-02-20 add github issue system support.
 - create issue templates online. then merge into master.
   git remote add github git@github.com:sylecn/zero-el.git

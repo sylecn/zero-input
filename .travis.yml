@@ -1,0 +1,17 @@
+language: python
+jobs:
+  include:
+    - os: linux
+      dist: xenial
+      env: EMACS=emacs24
+    - os: linux
+      dist: bionic
+      env: EMACS=emacs25
+before_install:
+  - curl https://deb.emacsos.com/apt-pub.key | sudo apt-key add -
+  - echo 'deb http://deb.emacsos.com/ debian main' | sudo tee -a /etc/apt/sources.list
+  - sudo apt-get -q update
+  - sudo apt-get install -y $EMACS-nox make python3-pip dbus-x11 zero-pinyin-service
+  - mkdir -p ~/.emacs.d/elpa/s-1.11.0/
+  - wget -O ~/.emacs.d/elpa/s-1.11.0/s.el https://raw.githubusercontent.com/magnars/s.el/1.12.0/s.el
+script: dbus-launch make dist-check EMACS=$EMACS
