@@ -1,4 +1,4 @@
-2020-02-20  Yuanle Song  <root@emacsos.com>
+2020-02-20  Yuanle Song  <sylecn@gmail.com>
 
 	zero-input v2.6.0
 	- allow customize Chinese punctuation mapping via M-x customize-variable
@@ -7,7 +7,7 @@
 	- add melpa badge in README
 	- add punctuation doc in README
 
-2020-02-16  Yuanle Song  <root@emacsos.com>
+2020-02-16  Yuanle Song  <sylecn@gmail.com>
 
 	zero-input v2.5.0
 	- support auto convert H。265 to H.265
@@ -18,7 +18,7 @@
 	zero-pinyin-service v1.10.0
 	- enable ue -> ve fuzzy by default. now lue -> lve -> 略。
 
-2020-02-04  Yuanle Song  <root@emacsos.com>
+2020-02-04  Yuanle Song  <sylecn@gmail.com>
 
 	zero-input v2.2.1
 	- zero pinyin supports sync and async mode.
@@ -33,7 +33,7 @@
 	- bugfix: should call (zero-input-pinyin-register-im) once when the code
           is moved into a function.
 
-2020-02-04  Yuanle Song  <root@emacsos.com>
+2020-02-04  Yuanle Song  <sylecn@gmail.com>
 
 	zero-input v2.0.7
 	- bugfix on zero-input-pinyin
@@ -42,19 +42,19 @@
 	  zero-input-candidates is not updated. This was because the async
 	  function callback didn't update the metadata in some places.
 
-2019-10-23  Yuanle Song  <root@emacsos.com>
+2019-10-23  Yuanle Song  <sylecn@gmail.com>
 
 	zero-input v1.3.0
 	- zero-pinyin now support fuzzy flag.
 	  requires zero-pinyin-service v0.9.0 or later to use this feature.
           see `zero-pinyin-fuzzy-flag' variable.
 
-2019-10-16  Yuanle Song  <root@emacsos.com>
+2019-10-16  Yuanle Song  <sylecn@gmail.com>
 
 	zero-input v1.2.6
 	- use a single file distribution for melpa.
 
-2019-10-08  Yuanle Song  <root@emacsos.com>
+2019-10-08  Yuanle Song  <sylecn@gmail.com>
 
 	zero-input v1.2.0
 	- zero-framework supports full-width mode
