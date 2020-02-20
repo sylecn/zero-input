@@ -44,20 +44,20 @@ M-x customize-group zero-input-pinyin
   | ,       | ，          |
   | .       | 。          |
   | ?       | ？          |
-  | \!      | ！          |
+  | !       | ！          |
   | \       | 、          |
   | :       | ：          |
   | =full=  |             |
-  | \_      | ——          |
+  | _       | ——          |
   | < >     | 《 》       |
   | ( )     | （ ）       |
   | [ ]     | 【 】       |
-  | \^      | ……          |
+  | ^       | ……          |
   | " "     | “ ”         |
   | ' '     | ‘ ’         |
   | ~       | ～          |
   | ;       | ；          |
-  | \$      | ￥          |
+  | $       | ￥          |
 
   You may customize punctuation mapping via
   zero-input-convert-punctuation-basic and zero-input-punctuation-full-map.
