@@ -92,7 +92,7 @@ cd ~/lisp/elisp/zero/
   (load-file "~/.emacs.d/elpa/s-1.11.0/s.elc")
   (byte-compile-file "~/lisp/elisp/zero/zero-input.el" t)
   (global-set-key (kbd "<f1>") 'zero-input-mode)
-  (zero-input-set-default-im 'pinyin)
+  (zero-input-set-default-im "pinyin")
 
   now in some buffer,
   press F1 and start typing.
@@ -114,16 +114,24 @@ cd ~/lisp/elisp/zero/
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
+** 2020-02-20 integrate travis CI support.
+just run "make dist-check".
+** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
+I can't run them in git pre-commit hook.
+* done                                                                :entry:
 ** 2020-02-20 add github issue system support.
 - create issue templates online. then merge into master.
   git remote add github git@github.com:sylecn/zero-el.git
   git fetch github sylecn-patch-1
   gco github/sylecn-patch-1 .github/
+
+  drop the feature branch on github
+  git push github :sylecn-patch-1
+  git push github :pkg
+  git push github :multi-file-pkg
+
 - update README, add bug report doc.
 - 
-** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
-I can't run them in git pre-commit hook.
-* done                                                                :entry:
 ** 2019-11-03 add completion support for zero-input-set-im
 complete registered im symbols.
 
@@ -868,6 +876,18 @@ https://github.com/melpa/melpa/blob/master/CONTRIBUTING.org#preparing-a-pull-req
     fixed.
 
 * wontfix                                                             :entry:
+** 2020-02-20 gitlab doesn't render README as org-mode file.
+github does render it.
+should I name it README.org?
+- does gitlab newer version support parsing mode line?
+  search: gitlab parse mode line from README file
+  search: gitlab render README file without suffix
+
+  gitlab only support markdown, ascii doc and rst. org-mode is not supported.
+  add .org suffix won't help gitlab.
+  Either keep it or rewrite it as markdown or rst.
+  I will keep it.
+
 ** 2020-02-04 zero-input-pinyin-pending-preedit-str="erduo" not correct?
 - zero-input-pinyin-pending-preedit-str="erduo"
 

@@ -1,7 +1,11 @@
 2020-02-20  Yuanle Song  <root@emacsos.com>
 
-	zero-pinyin-service v1.10.0
-	- enable ue -> ve fuzzy by default. now lue -> lve -> 略。
+	zero-input v2.6.0
+	- allow customize Chinese punctuation mapping via M-x customize-variable
+	- add bug report link in README
+	- update intro doc for melpa
+	- add melpa badge in README
+	- add punctuation doc in README
 
 2020-02-16  Yuanle Song  <root@emacsos.com>
 
@@ -10,6 +14,9 @@
 	- support auto complete in M-x zero-input-set-im
 	- some variables declared using defcustom
 	- bugfix: use 'zero-input instead of 'zero as customize group name
+
+	zero-pinyin-service v1.10.0
+	- enable ue -> ve fuzzy by default. now lue -> lve -> 略。
 
 2020-02-04  Yuanle Song  <root@emacsos.com>
 

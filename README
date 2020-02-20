@@ -34,6 +34,32 @@ M-x customize-group zero-input-pinyin
   - Use ' to separate pinyin substring like xi'an 西安
 
 * Zero Framework features
+- Chinese punctuation mapping. Type the char will insert the corresponding
+  Chinese punctuation when zero-input-punctuation-level is basic or full.
+
+  | char    | punctuation |
+  |---------+-------------|
+  | =basic= |             |
+  | ,       | ，          |
+  | .       | 。          |
+  | ?       | ？          |
+  | \!      | ！          |
+  | \       | 、          |
+  | :       | ：          |
+  | =full=  |             |
+  | \_      | ——          |
+  | < >     | 《 》       |
+  | ( )     | （ ）       |
+  | [ ]     | 【 】       |
+  | \^      | ……          |
+  | " "     | “ ”         |
+  | ' '     | ‘ ’         |
+  | ~       | ～          |
+  | ;       | ；          |
+  | \$      | ￥          |
+
+  You may customize punctuation mapping via
+  zero-input-convert-punctuation-basic and zero-input-punctuation-full-map.
 - Auto save user phrases. When you type a new phrase, it will be remembered in
   user phrase db.
 - To delete system phrase or user phrase, type C-<digit> when candidate is
@@ -65,8 +91,8 @@ reporting issue easier.
 
 - zero-input-framework.el
 
-  zero framework source code. This provides the framework and user interface
-  for zero-el.
+  zero input framework source code. This provides the framework and user
+  interface for zero-el.
 
 - zero-input-panel.el
 
@@ -78,7 +104,7 @@ reporting issue easier.
 
 - zero-input-pinyin.el
 
-  Pinyin input method implemented using zero.el
+  Pinyin input method implemented using zero-input-framework.el
 
 - zero-input-quickdial.el
 

@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 2.5.0
+;; Version: 2.6.0
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
@@ -30,7 +30,7 @@
 ;;   ;; switch on/off the input method.
 ;;   (global-set-key (kbd "<f5>") 'zero-input-mode)
 ;;
-;; Now in any emacs buffer, you may press F5 and start typing pinyin string.
+;; Now in any Emacs buffer, you may press F5 and start typing pinyin string.
 ;;
 ;; zero-input supports Chinese punctuation mapping.  There are three modes,
 ;; none, basic, and full.  The default is basic mode, which only map most
@@ -48,9 +48,9 @@
 ;; For other features, you may check README file at
 ;; https://gitlab.emacsos.com/sylecn/zero-el/
 ;;
-;; zero-input.el is auto-generated from multiple other files.  see
+;; zero-input.el is auto-generated from multiple other files.  See
 ;; zero-input.el.in and build.py for details.  It's created because
-;; package-lint doesn't support multi-file package yet. See issue #111 at
+;; package-lint doesn't support multi-file package yet.  See issue #111 at
 ;; https://github.com/purcell/package-lint/issues/111
 
 ;;; Code:
@@ -251,7 +251,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.5.0")
+(setq zero-input-version "2.6.0")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -286,6 +286,35 @@ independent from punctuation map.  You can change this via
   :safe t
   :type 'boolean)
 (make-variable-buffer-local 'zero-input-full-width-p)
+
+(defcustom zero-input-punctuation-basic-map
+  '((?, "，")
+    (?, "，")
+    (?. "。")				; 0x3002
+    (?? "？")
+    (?! "！")
+    (?\\ "、")				; 0x3001
+    (?: "："))
+  "Punctuation map used when `zero-input-punctuation-level' is not 'NONE."
+  :group 'zero-input
+  :type '(alist :key-type character :value-type (group string)))
+
+(defcustom zero-input-punctuation-full-map
+  '((?_ "——")
+    (?< "《")				;0x300A
+    (?> "》")				;0x300B
+    (?\( "（")
+    (?\) "）")
+    (?\[ "【")				;0x3010
+    (?\] "】")				;0x3011
+    (?^ "……")
+    (?~ "～")
+    (?\; "；")
+    (?$ "￥"))
+  "Additional punctuation map used when `zero-input-punctuation-level' is 'FULL."
+  :group 'zero-input
+  :type '(alist :key-type character :value-type (group string)))
+
 (defcustom zero-input-punctuation-level zero-input-punctuation-level-basic
   "Default punctuation level.
 
@@ -540,36 +569,19 @@ If there is no full-width char for CH, return it unchanged."
   "Convert punctuation for `zero-input-punctuation-level-basic'.
 
 Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
-  (cl-case ch
-    (?, "，")
-    (?. "。")				; 0x3002
-    (?? "？")
-    (?! "！")
-    (?\\ "、")				; 0x3001
-    (?: "：")
-    (otherwise nil)))
+  (cadr (assq ch zero-input-punctuation-basic-map)))
 
 (defun zero-input-convert-punctuation-full (ch)
   "Convert punctuation for `zero-input-punctuation-level-full'.
 
 Return CH's Chinese punctuation if CH is converted.  Return nil otherwise"
   (cl-case ch
-    (?_ "——")
-    (?< "《")				;0x300A
-    (?> "》")				;0x300B
-    (?\( "（")
-    (?\) "）")
-    (?\[ "【")				;0x3010
-    (?\] "】")				;0x3011
-    (?^ "……")
     (?\" (setq zero-input-double-quote-flag (not zero-input-double-quote-flag))
 	 (if zero-input-double-quote-flag "“" "”"))
     (?\' (setq zero-input-single-quote-flag (not zero-input-single-quote-flag))
 	 (if zero-input-single-quote-flag "‘" "’"))
-    (?~ "～")
-    (?\; "；")
-    (?$ "￥")
-    (t (zero-input-convert-punctuation-basic ch))))
+    (t (or (cadr (assq ch zero-input-punctuation-full-map))
+	   (zero-input-convert-punctuation-basic ch)))))
 
 (defun zero-input-convert-punctuation (ch)
   "Convert punctuation based on `zero-input-punctuation-level'.
@@ -985,7 +997,7 @@ IM-NAME (a string) should be a registered input method in zero-input."
 	  (error "Input method name is required")
 	(zero-input-set-im im-name-str))))
    ((symbolp im-name)
-    ;; for backward compatibility
+    ;; symbol is allowed for backward compatibility.
     (zero-input-set-im (symbol-name im-name)))
    (t (let* ((im-slot (assoc im-name zero-input-ims))
 	     (im-functions (cdr im-slot)))
@@ -1032,9 +1044,13 @@ IM-NAME (a string) should be a registered input method in zero-input."
 ;;;###autoload
 (defun zero-input-set-default-im (im-name)
   "Set given IM-NAME as default zero input method."
-  (unless (symbolp im-name)
-    (signal 'wrong-type-argument (list 'symbolp im-name)))
-  (setq-default zero-input-im im-name))
+  ;; symbol is allowed for backward compatibility.
+  (unless (or (stringp im-name) (symbolp im-name))
+    (signal 'wrong-type-argument (list 'string-or-symbolp im-name)))
+  (let ((im-name-str (if (symbolp im-name) (symbol-name im-name) im-name)))
+    (setq-default zero-input-im im-name-str)
+    (unless (assoc im-name-str zero-input-ims)
+      (warn "Input method %s is not registered with zero-input" im-name-str))))
 
 ;;;###autoload
 (defun zero-input-on ()
