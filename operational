@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2020-02-16>
+Time-stamp: <2020-02-20>
 #+STARTUP: content
 * notes                                                               :entry:
 ** 2019-04-01 zero-el a Chinese IM framework in emacs; FSM              :doc:
@@ -78,6 +78,7 @@ cd ~/lisp/elisp/zero/
     (zero-input-table-can-start-sequence) can use this.
 ** 2020-02-04 how to make a release?					:doc:
 - update version number in zero-input-framework.el
+- update ./ChangeLog, add user visible changes
 - run tests
   make check
 - build a release .el file

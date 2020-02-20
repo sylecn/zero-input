@@ -1,0 +1,59 @@
+2020-02-20  Yuanle Song  <root@emacsos.com>
+
+	zero-pinyin-service v1.10.0
+	- enable ue -> ve fuzzy by default. now lue -> lve -> 略。
+
+2020-02-16  Yuanle Song  <root@emacsos.com>
+
+	zero-input v2.5.0
+	- support auto convert H。265 to H.265
+	- support auto complete in M-x zero-input-set-im
+	- some variables declared using defcustom
+	- bugfix: use 'zero-input instead of 'zero as customize group name
+
+2020-02-04  Yuanle Song  <root@emacsos.com>
+
+	zero-input v2.2.1
+	- zero pinyin supports sync and async mode.
+	  to switch between them, run
+          M-x zero-input-pinyin-enable-async
+          M-x zero-input-pinyin-disable-async
+	- support auto convert 1。3 to 1.3.
+          This feature is enabled by default.
+          To turn off this feature,
+            (setq zero-input-auto-fix-dot-between-numbers nil)
+	  You can also modify it in M-x customize-group zero-input
+	- bugfix: should call (zero-input-pinyin-register-im) once when the code
+          is moved into a function.
+
+2020-02-04  Yuanle Song  <root@emacsos.com>
+
+	zero-input v2.0.7
+	- bugfix on zero-input-pinyin
+
+	  sometimes after GetCandidate dbus call, zero-input-fetch-size and
+	  zero-input-candidates is not updated. This was because the async
+	  function callback didn't update the metadata in some places.
+
+2019-10-23  Yuanle Song  <root@emacsos.com>
+
+	zero-input v1.3.0
+	- zero-pinyin now support fuzzy flag.
+	  requires zero-pinyin-service v0.9.0 or later to use this feature.
+          see `zero-pinyin-fuzzy-flag' variable.
+
+2019-10-16  Yuanle Song  <root@emacsos.com>
+
+	zero-input v1.2.6
+	- use a single file distribution for melpa.
+
+2019-10-08  Yuanle Song  <root@emacsos.com>
+
+	zero-input v1.2.0
+	- zero-framework supports full-width mode
+
+2019-09-01  Yuanle Song  <sylecn@gmail.com>
+
+	zero-input v1.0.0
+	- initial release
+	- applied Apache License, code made public

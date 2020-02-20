@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-09-01
-Time-stamp: <2020-02-16>
+Time-stamp: <2020-02-20>
 
 * zero-el
 
@@ -39,6 +39,15 @@ M-x customize-group zero-input-pinyin
   mixed words. For example, to type "3.6" when zero-input-mode is on, type
   "3." will insert "3。", just continue type 6, it will be converted to
   "3.6". Same thing for "H。265" -> "H.265".
+
+* Changelog
+- see ./ChangeLog
+- The change log include change log from all sub projects.
+  - zero-input is the emacs lisp package that provide user interface for zero
+    input method.
+  - zero-pinyin-service offers pinyin service such as find candidates and
+    saving user phrases. used by zero-pinyin.
+  - zero-panel offers gtk panel to show candidates.
 
 * File list
 - zero-input.el
