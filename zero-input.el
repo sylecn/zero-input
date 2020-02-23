@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 2.7.0
+;; Version: 2.7.1
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
@@ -251,7 +251,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.7.0")
+(setq zero-input-version "2.7.1")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -576,13 +576,13 @@ Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
   "Convert punctuation for `zero-input-punctuation-level-full'.
 
 Return CH's Chinese punctuation if CH is converted.  Return nil otherwise"
-  (cl-case ch
-    (?\" (setq zero-input-double-quote-flag (not zero-input-double-quote-flag))
-	 (if zero-input-double-quote-flag "“" "”"))
-    (?\' (setq zero-input-single-quote-flag (not zero-input-single-quote-flag))
-	 (if zero-input-single-quote-flag "‘" "’"))
-    (t (or (cadr (assq ch zero-input-punctuation-full-map))
-	   (zero-input-convert-punctuation-basic ch)))))
+  (or (zero-input-convert-punctuation-basic ch)
+      (cadr (assq ch zero-input-punctuation-full-map))
+      (cl-case ch
+	(?\" (setq zero-input-double-quote-flag (not zero-input-double-quote-flag))
+	     (if zero-input-double-quote-flag "“" "”"))
+	(?\' (setq zero-input-single-quote-flag (not zero-input-single-quote-flag))
+	     (if zero-input-single-quote-flag "‘" "’")))))
 
 (defun zero-input-convert-punctuation (ch)
   "Convert punctuation based on `zero-input-punctuation-level'.
