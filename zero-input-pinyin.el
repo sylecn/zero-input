@@ -18,7 +18,7 @@
 ;;
 ;;   (add-to-list 'load-path "~/fromsource/zero")  ;; omit if install from melpa
 ;;   (require 'zero-input-pinyin)
-;;   (zero-input-set-default-im 'pinyin)
+;;   (zero-input-set-default-im "pinyin")
 ;;   ;; Now you may bind a key to zero-input-mode to make it easy to
 ;;   ;; switch on/off the input method.
 ;;   (global-set-key (kbd "<f5>") 'zero-input-mode)
