@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-09-01
-Time-stamp: <2020-02-21>
+Time-stamp: <2020-02-23>
 
 * zero-el
 
@@ -38,26 +38,27 @@ M-x customize-group zero-input-pinyin
 - Chinese punctuation mapping. Type the char will insert the corresponding
   Chinese punctuation when zero-input-punctuation-level is basic or full.
 
-  | char    | punctuation |
-  |---------+-------------|
-  | =basic= |             |
-  | ,       | ，          |
-  | .       | 。          |
-  | ?       | ？          |
-  | !       | ！          |
-  | \       | 、          |
-  | :       | ：          |
-  | =full=  |             |
-  | _       | ——          |
-  | < >     | 《 》       |
-  | ( )     | （ ）       |
-  | [ ]     | 【 】       |
-  | ^       | ……          |
-  | " "     | “ ”         |
-  | ' '     | ‘ ’         |
-  | ~       | ～          |
-  | ;       | ；          |
-  | $       | ￥          |
+  | char    | punctuation    |
+  |---------+----------------|
+  | =basic= |                |
+  | ,       | ，             |
+  | .       | 。             |
+  | ?       | ？             |
+  | !       | ！             |
+  | \       | 、             |
+  | :       | ：             |
+  | =full=  |                |
+  | _       | ——             |
+  | < >     | 《 》          |
+  | ( )     | （ ）          |
+  | [ ]     | 【 】          |
+  | ^       | ……             |
+  | " "     | “ ”            |
+  | ' '     | ‘ ’            |
+  | ~       | ～             |
+  | ;       | ；             |
+  | $       | ￥             |
+  | `       | · (middle dot) |
 
   You may customize punctuation mapping via
   zero-input-convert-punctuation-basic and zero-input-punctuation-full-map.
