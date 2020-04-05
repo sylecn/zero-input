@@ -1,3 +1,10 @@
+2020-04-05  Yuanle Song  <sylecn@gmail.com>
+
+	zero-input v2.8.0
+	- add ` -> · mapping in punctuation full map.
+	- allow user overwrite quote mapping in zero-input-punctuation-full-map
+	- 1.<space> should convert 。 to .
+
 2020-02-20  Yuanle Song  <sylecn@gmail.com>
 
 	zero-input v2.6.0
