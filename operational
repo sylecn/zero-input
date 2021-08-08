@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2020-04-05>
+Time-stamp: <2021-08-08>
 #+STARTUP: content
 * notes                                                               :entry:
 ** 2019-04-01 zero-el a Chinese IM framework in emacs; FSM              :doc:
@@ -124,6 +124,10 @@ cd ~/lisp/elisp/zero/
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
+** 2021-08-08 create a panel for wayland display server.
+currently zero-panel doesn't position itself correctly in wayland on debian 11
+bullseye.
+
 ** 2020-02-23 support typing ±, ≥, ≤ easier.
 when user type +-, it is converted to ±.
 use a flag to control conversion.
