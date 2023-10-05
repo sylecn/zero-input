@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2021-08-08>
+Time-stamp: <2023-08-16>
 #+STARTUP: content
 * notes                                                               :entry:
 ** 2019-04-01 zero-el a Chinese IM framework in emacs; FSM              :doc:
@@ -120,13 +120,112 @@ cd ~/lisp/elisp/zero/
   https://docs.travis-ci.com/user/customizing-the-build#build-matrix
   Testing Your Project on Multiple Operating Systems - Travis CI
   https://docs.travis-ci.com/user/multi-os/
+** 2023-08-16 architecture                                         :arch:doc:
+see https://blog.emacsos.com/zero-el.html#org8e45833
+
+#+BEGIN_SRC text
+	   emacs zero-input-mode
+		   |
+		   |
+	     zero-input-pinyin
+		  /\
+		 /  \
+		/    \
+	       /      \
+	 dbus /        \ dbus
+	     /          \                         
+	    /            \ 
+	   /              \ 
+	  /                \
+  zero-pinyin-service     zero-panel
+#+END_SRC
 
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
+** 2023-08-16 create a panel using emacs facility.
+make it work in terminal emacs.
+
+- yasnippet when select snippet can show a dropdown list.
+- check the arch. how is dbus message sent to different component?
+  zero-input call zero-panel service directly from emacs lisp code.
+
+  so I only need to register a new service and select which service to publish
+  message to. this is not as flexible.
+
+  try this instead:
+  still use the same service name and spec.
+
+  in emacs lisp, allow user to stop (kill) existing service and choose which
+  panel service to start.
+
+  worry about this later. first make it work in terminal emacs.
+- create a zero-panel service in raw emacs.
+
+  ~/.emacs.d/site-lisp/yasnippet/dropdown-list.el
+
+  According to Jaeyoun Chung, "overlay code stolen from company-mode.el."
+
+  search: emacs lisp which overlay drop down menu to use?
+
+  which one does pyim use?
+
+  GitHub - tumashu/pyim: 一个 emacs 中文输入法，支持全拼，双拼，五笔，仓颉和Rime，pyim 是 GNU elpa 包。
+  https://github.com/tumashu/pyim
+  GNU ELPA - pyim
+  https://elpa.gnu.org/packages/pyim.html
+
+  让选词框跟随光标
+  https://github.com/tumashu/pyim#%E8%AE%A9%E9%80%89%E8%AF%8D%E6%A1%86%E8%B7%9F%E9%9A%8F%E5%85%89%E6%A0%87
+  overlay solutions to show candidates
+
+  - popup
+    (require 'popup)
+
+    GitHub - auto-complete/popup-el: Visual Popup Interface Library for Emacs
+    https://github.com/auto-complete/popup-el
+
+    popup is in melpa.
+    last release is 20221231.1634
+
+  - popon
+    (require 'popon)
+
+    akib/emacs-popon: "Pop" floating text "on" a window - emacs-popon - Codeberg.org
+    https://codeberg.org/akib/emacs-popon
+
+    It is not on GNU elpa or melpa. out.
+
+  - posframe
+    (require 'posframe)
+
+    GitHub - tumashu/posframe: Pop a posframe (just a child-frame) at point, posframe is a **GNU ELPA** package!
+    https://github.com/tumashu/posframe
+    GNU ELPA - posframe
+    https://elpa.gnu.org/packages/posframe.html
+
+    posframe is both in GNU elpa and melpa.
+
+  none is included in emacs.
+
+- evaluate which overlay solution has best performance and is easy to use.
+
+  I will try both popup and posframe.
+
+  just show the same thing as zero-panel-client-demo.
+
+  see test code in ./test-popup.el
+
 ** 2021-08-08 create a panel for wayland display server.
 currently zero-panel doesn't position itself correctly in wayland on debian 11
 bullseye.
+
+- 2023-08-16 panel flash on GNOME 40 Wayland in RHEL 9.
+  see ~/projects/zero-panel/operational
+
+  There are two problems of zero-panel on Wayland.
+  1. zero-panel window keeps getting focus and unfocused. e.g. flashing.
+  2. zero-panel window is not positioned at emacs (point) location.
 
 ** 2020-02-23 support typing ±, ≥, ≤ easier.
 when user type +-, it is converted to ±.
