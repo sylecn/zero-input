@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 2.8.0
+;; Version: 2.9.0
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
@@ -80,6 +80,8 @@ EVENT and ERROR are error-handler arguments."
 
 (add-hook 'dbus-event-error-functions 'zero-input-panel-error-handler)
 
+(defvar zero-input-panel-dbus-service-known-name "com.emacsos.zero.Panel1")
+
 (defun zero-input-panel-async-call (method _handler &rest args)
   "Call METHOD on zero-input-panel service asynchronously.
 
@@ -87,7 +89,7 @@ This is a wrapper around `dbus-call-method-asynchronously'.
 ARGS optional extra args to pass to the wrapped function."
   (apply 'dbus-call-method-asynchronously
 	 :session
-	 "com.emacsos.zero.Panel1"	; well known name
+	 zero-input-panel-dbus-service-known-name	; well known name
 	 "/com/emacsos/zero/Panel1"	; object path
 	 "com.emacsos.zero.Panel1.PanelInterface" ; interface name
 	 method nil :timeout 500 args))
@@ -99,14 +101,14 @@ ARGS optional extra args to pass to the wrapped function."
 (defun zero-input-alist-to-asv (hints)
   "Convert Lisp alist to dbus a{sv} data structure.
 
-HINTS should be an alist of form '((k1 [v1type] v1) (k2 [v2type] v2)).
+HINTS should be an alist of form \\='((k1 [v1type] v1) (k2 [v2type] v2)).
 
 For example,
 \(zero-input-alist-to-asv
-  '((\"name\" \"foo\")
+  \\='((\"name\" \"foo\")
     (\"timeout\" :int32 10)))
 =>
-'(:array
+\\='(:array
   (:dict-entry \"name\" (:variant \"foo\"))
   (:dict-entry \"timeout\" (:variant :int32 10)))"
   (if (null hints)
@@ -251,7 +253,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.8.0")
+(setq zero-input-version "2.9.0")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -811,6 +813,15 @@ N is the argument passed to `self-insert-command'."
     (zero-input-hide-candidate-list)
     (zero-input-leave-preedit-state)))
 
+(defun zero-input-focus-changed ()
+  "A callback function used in `after-focus-change-function'."
+  (when (eq zero-input-state zero-input--state-im-preediting)
+    (let ((state (frame-focus-state)))
+      (cond
+       ((null state) (zero-input-focus-out))
+       ((eq state t) (zero-input-focus-in))
+       (t nil)))))
+
 (defun zero-input-buffer-list-changed ()
   "A hook function, run when buffer list has changed.  This includes user has switched buffer."
   (if (eq (car (buffer-list)) zero-input-buffer)
@@ -860,20 +871,23 @@ Otherwise, show Zero."
 
 ;;;###autoload
 (define-minor-mode zero-input-mode
-  "a Chinese input method framework written as an emacs minor mode.
+  "A Chinese input method framework written as an Emacs minor mode.
 
 \\{zero-input-mode-map}"
-  nil
-  (:eval (zero-input-modeline-string))
-  zero-input-mode-map
+  :init-value nil
+  :lighter (:eval (zero-input-modeline-string))
+  :keymap zero-input-mode-map
   ;; local variables and variable init
   (make-local-variable 'zero-input-candidates-per-page)
   (make-local-variable 'zero-input-full-width-mode)
   (zero-input-reset)
   (zero-input-set-im zero-input-im)
   ;; hooks
-  (add-hook 'focus-in-hook 'zero-input-focus-in)
-  (add-hook 'focus-out-hook 'zero-input-focus-out)
+  (if (boundp 'after-focus-change-function)
+      (add-function :after (local 'after-focus-change-function)
+		    #'zero-input-focus-changed)
+    (add-hook 'focus-in-hook 'zero-input-focus-in)
+    (add-hook 'focus-out-hook 'zero-input-focus-out))
   (setq zero-input-buffer (current-buffer))
   (add-hook 'post-self-insert-hook #'zero-input-post-self-insert-command nil t)
   (add-hook 'buffer-list-update-hook 'zero-input-buffer-list-changed))
@@ -914,7 +928,7 @@ After registration, you can use `zero-input-set-default-im' and
 
 IM-NAME should be a symbol.
 IM-FUNCTIONS-ALIST should be a list of form
-  '((:virtual-function-name . implementation-function-name))
+  \\='((:virtual-function-name . implementation-function-name))
 
 virtual functions                   corresponding variable
 ===========================================================================

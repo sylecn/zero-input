@@ -36,6 +36,8 @@ EVENT and ERROR are error-handler arguments."
 
 (add-hook 'dbus-event-error-functions 'zero-input-panel-error-handler)
 
+(defvar zero-input-panel-dbus-service-known-name "com.emacsos.zero.Panel1")
+
 (defun zero-input-panel-async-call (method _handler &rest args)
   "Call METHOD on zero-input-panel service asynchronously.
 
@@ -43,7 +45,7 @@ This is a wrapper around `dbus-call-method-asynchronously'.
 ARGS optional extra args to pass to the wrapped function."
   (apply 'dbus-call-method-asynchronously
 	 :session
-	 "com.emacsos.zero.Panel1"	; well known name
+	 zero-input-panel-dbus-service-known-name	; well known name
 	 "/com/emacsos/zero/Panel1"	; object path
 	 "com.emacsos.zero.Panel1.PanelInterface" ; interface name
 	 method nil :timeout 500 args))
@@ -55,14 +57,14 @@ ARGS optional extra args to pass to the wrapped function."
 (defun zero-input-alist-to-asv (hints)
   "Convert Lisp alist to dbus a{sv} data structure.
 
-HINTS should be an alist of form '((k1 [v1type] v1) (k2 [v2type] v2)).
+HINTS should be an alist of form \\='((k1 [v1type] v1) (k2 [v2type] v2)).
 
 For example,
 \(zero-input-alist-to-asv
-  '((\"name\" \"foo\")
+  \\='((\"name\" \"foo\")
     (\"timeout\" :int32 10)))
 =>
-'(:array
+\\='(:array
   (:dict-entry \"name\" (:variant \"foo\"))
   (:dict-entry \"timeout\" (:variant :int32 10)))"
   (if (null hints)

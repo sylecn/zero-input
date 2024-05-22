@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2023-08-16>
+Time-stamp: <2024-05-22>
 #+STARTUP: content
 * notes                                                               :entry:
 ** 2019-04-01 zero-el a Chinese IM framework in emacs; FSM              :doc:
@@ -83,11 +83,17 @@ cd ~/lisp/elisp/zero/
 - run tests
   make check
 - build a release .el file
+  make
+  or
   make dist
 - check & fix styling issues
   open zero-input.el file
   M-x checkdoc
   M-x package-lint-current-buffer
+
+  open zero-input-panel-posframe.el file
+  M-x checkdoc
+
 - test zero-input.el in a fresh emacs -Q window.
 
   (load-file "~/.emacs.d/elpa/s-1.11.0/s.elc")
@@ -140,9 +146,58 @@ see https://blog.emacsos.com/zero-el.html#org8e45833
   zero-pinyin-service     zero-panel
 #+END_SRC
 
+** 2024-05-22 how is zero-input.el build?
+- run make to build this file.
+- in the Makefile,
+  ./build.py runs to create zero-input.el from zero-input.el.in
+
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
+** 2021-08-08 create a panel for wayland display server.
+currently zero-panel doesn't position itself correctly in wayland on debian 11
+bullseye.
+
+- 2023-08-16 panel flash on GNOME 40 Wayland in RHEL 9.
+  see ~/projects/zero-panel/operational
+
+  There are two problems of zero-panel on Wayland.
+  1. zero-panel window keeps getting focus and unfocused. e.g. flashing.
+  2. zero-panel window is not positioned at emacs (point) location.
+
+** 2020-02-23 support typing ±, ≥, ≤ easier.
+when user type +-, it is converted to ±.
+use a flag to control conversion.
+zero-input-auto-symbol-p default value is 'FULL, means only enable when
+punctuation mode is 'FULL. if set to t, always convert char to symbol. if set
+to nil, never convert char to symbol.
+
+Non-nil means auto convert some consective character to related symbol.
+
+#+BEGIN_SRC elisp
+  (defcustom zero-input-auto-symbol-alist
+    '(((?+ ?-) "±")
+      ((?> ?=) "≥")
+      ((?< ?=) "≤")
+      ((?* ?x) "×")
+      ((?< ?>) "≠")
+      ((?! ?=) "≠"))
+    "When user type chars in key, convert it to symbol in the value."
+    :group 'zero-input
+    :type 'TODO)
+#+END_SRC
+((?* ?x) "×") this one is different. x will be preedit str.
+it's better if this is wrapped in a new mode.
+like v mode used in some IM.
+type v > = will show ≥ in candidate list.
+
+- rethink about it later.
+
+** 2020-02-21 zero-pinyin-service and zero-panel should recommend or suggest dbus pkg.
+I don't know it should recommend or suggest.
+** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
+I can't run them in git pre-commit hook.
+* done                                                                :entry:
 ** 2023-08-16 create a panel using emacs facility.
 make it work in terminal emacs.
 
@@ -216,50 +271,186 @@ make it work in terminal emacs.
 
   see test code in ./test-popup.el
 
-** 2021-08-08 create a panel for wayland display server.
-currently zero-panel doesn't position itself correctly in wayland on debian 11
-bullseye.
+- 2024-05-21 using emacs facility as panel can also make zero-input usable in
+  wayland session, which is one of the blockers for me to run wayland session.
 
-- 2023-08-16 panel flash on GNOME 40 Wayland in RHEL 9.
-  see ~/projects/zero-panel/operational
+- steps
+  - DONE show panel with candidates using posframe.
 
-  There are two problems of zero-panel on Wayland.
-  1. zero-panel window keeps getting focus and unfocused. e.g. flashing.
-  2. zero-panel window is not positioned at emacs (point) location.
+    posframe works on first try.
+    but I think it requires gtk to work.
+    does it work with lucid? yes.
+    does it work in terminal? nope.
 
-** 2020-02-23 support typing ±, ≥, ≤ easier.
-when user type +-, it is converted to ±.
-use a flag to control conversion.
-zero-input-auto-symbol-p default value is 'FULL, means only enable when
-punctuation mode is 'FULL. if set to t, always convert char to symbol. if set
-to nil, never convert char to symbol.
+    since it's trivial to implement, I can support multiple backends.
+    auto fallback based on running environment and what's available.
 
-Non-nil means auto convert some consective character to related symbol.
+  - DONE position panel properly.
+  - DONE implement dbus service so it auto update UI with zero-input pkg.
 
-#+BEGIN_SRC elisp
-  (defcustom zero-input-auto-symbol-alist
-    '(((?+ ?-) "±")
-      ((?> ?=) "≥")
-      ((?< ?=) "≤")
-      ((?* ?x) "×")
-      ((?< ?>) "≠")
-      ((?! ?=) "≠"))
-    "When user type chars in key, convert it to symbol in the value."
-    :group 'zero-input
-    :type 'TODO)
-#+END_SRC
-((?* ?x) "×") this one is different. x will be preedit str.
-it's better if this is wrapped in a new mode.
-like v mode used in some IM.
-type v > = will show ≥ in candidate list.
+- refine the service.
+  - DONE make UI less flick-y.
+    set minimum width.
+  - DONE use proper bg color and fg color on the panel buffer.
+    make it pop out from regular buffer.
+  - DONE add next/prev page indicator
 
-- rethink about it later.
+    - problems
+      - (t nil 1 2985 651)
+	position hints is wrong.
 
-** 2020-02-21 zero-pinyin-service and zero-panel should recommend or suggest dbus pkg.
-I don't know it should recommend or suggest.
-** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
-I can't run them in git pre-commit hook.
-* done                                                                :entry:
+	(if (and move-x move-y)
+          (cons move-x move-y)
+          (point))
+
+	maybe it's delay issue. just use (point). ignore hints.
+
+  - WONTFIX use move_x, move_y position in hints.
+  - DONE how to add some padding below preedit-str and above pagination?
+
+    try insert text with properties. smaller font size.
+
+    search: emacs posframe add padding below text
+
+    Info: (elisp) Text Props and Strings
+
+    in a test buffer with foobar on first line,
+    (set-text-properties 1 7 '(line-height 30 face "italic"))
+    didn't work at all.
+
+    search: set-text-properties didn't work in emacs
+
+    If font-lock-mode is turned on in the target buffer of insertion, the face
+    property will be reset once the fontification kicks in. I
+
+    yes. when font-lock-mode is off, italic works.
+    how about line-height?
+
+    (set-text-properties 1 7 '(face (:height 300 :foreground "red")))
+    (insert (propertize "foobar" 'face '(:height 300 :foreground "red")))
+    this works. I will just use face. disable font-lock-mode.
+
+    - if less than 5 candidates, grow it to at least 5 candidate lines.
+      so pagination is always at bottom.
+
+      always use 10 candidate list.
+
+  - auto start this service when zero-input is loaded.
+    if it can replace zero-panel.
+
+    when implement this, if I call zero-input-panel-posframe-init before
+    making the first dbus panel service call, it will use posframe. otherwise,
+    it will use zero-panel gtk UI. try control which server to start in elisp
+    side.
+
+    (zero-input-panel-quit)
+    (zero-input-panel-posframe-init)
+
+    // when running in wayland, auto choose posframe.
+    // wait. does posframe frame positioning work in wayland? try it.
+
+    test it in bs02 VM.
+    no. bs02 doesn't have wayland session.
+
+    test it in fedora01 VM.
+
+    DONE before I do that, build zero-input.el and check for errors.
+    make
+
+    zero-pinyin-service has no RPM package for fedora yet.
+    need to build from source.
+
+    I can test panel without zero-pinyin-service.
+
+    (zero-input-panel-posframe-show-candidates "he" 3 '("和" "喝" "核") nil)
+    (zero-input-panel-posframe-hide)
+    it works in wayland.
+
+    DONE check whether move method work in wayland.
+
+    (zero-input-panel-posframe-move 400 500)
+
+    yes. it works.
+
+  - make posframe an optional dependency. don't error if it's NA.
+
+    ./zero-input-panel.el
+    (setq 
+
+    search: how to optionally depend on some package in emacs?
+
+    (locate-library "posframe")
+
+    should I create a separate package for this feature?
+
+    check how yasnippet support multiple backends.
+
+    https://github.com/joaotavora/yasnippet/blob/master/yasnippet.el
+    Prompting method
+
+    The function is guarded by (when (fboundp 'dropdown-list) ...) to prevent
+    error.
+
+    (when (bound-and-true-p ido-mode) ...)
+
+- problems
+  - should I implement dbus service in emacs or just do synchronous elisp call
+    to update the panel?
+
+    // turns out implementing dbus service in elisp is easy. so I keep the
+    interface. However, make it talk in elisp directly is also possible in the
+    future.
+
+  - how to implement dbus service in emacs lisp?
+
+    will arg types auto cast to elisp types?
+      <arg type="as" name="candidates"/>
+      <arg type="a{sv}" name="hints"/>
+
+    Info: (dbus) Register Objects
+    Info: (dbus) Type Conversion
+
+  - error: posframe-show: Args out of range: 0, 1, 1 [9 times]
+    fixed. run posframe-show outside with-current-buffer block.
+
+  - dbus-method-return-internal: Wrong type argument: D-Bus, #<frame  0x55a2c58aabe8> [27 times]
+
+    probably missing return value.
+
+    should return :ignore
+
+  - works on first try. how cool is that.
+    I didn't even do type casting myself. the default works.
+
+    确实足够好用。
+    当然还是有一点闪。可以接受。
+    可以把最小宽度设置大一点，这样应该不会闪的那么厉害。
+
+  - DONE how to disable this warning when I already handle it by if check?
+
+    #+begin_quote
+    zero-input.el:889:16: Warning: ‘focus-in-hook’ is an obsolete variable (as of 27.1); after-focus-change-function
+    zero-input.el:890:16: Warning: ‘focus-out-hook’ is an obsolete variable (as of 27.1); after-focus-change-function
+    #+end_quote
+
+    search: emacs how to disable obsolete variable output when I handle it with if
+
+    see ./byte-compile-flags.el
+    use byte-compile-not-obsolete-vars
+
+** 2024-05-22 fix style issues and warnings
+- ./zero-input-framework.el
+  zero-input.el:982:14: Warning: ‘focus-in-hook’ is an obsolete variable (as of 27.1); after-focus-change-function
+  zero-input.el:983:14: Warning: ‘focus-out-hook’ is an obsolete variable (as of 27.1); after-focus-change-function
+
+  after-focus-change-function
+
+  This function is called with no arguments when Emacs notices that the set of
+  focused frames may have changed.  Code wanting to do something when frame
+  focus changes should use ‘add-function’ to add a function to this one, and
+  in this added function, re-scan the set of focused frames, calling
+  ‘frame-focus-state’ to retrieve the last known focus state of each frame.
+
 ** 2020-02-21 org-mode, click badge should link to the pkg. not the image file.
 need to drop ?branch=master
 it works.

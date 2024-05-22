@@ -1,3 +1,10 @@
+2024-05-22  Yuanle Song  <sylecn@gmail.com>
+
+	zero-input v2.9.0
+	- add an optional panel based on ELPA posframe package.
+	  it provides a panel that works in Wayland session. see
+	  `zero-input-panel-posframe.el' for more information.
+
 2020-04-05  Yuanle Song  <sylecn@gmail.com>
 
 	zero-input v2.8.0

@@ -1,5 +1,7 @@
 VERSION := $(shell grep 'setq zero-input-version' zero-input-framework.el | cut -d'"' -f2)
 EMACS := emacs
+S_EL := ~/.emacs.d/elpa/s-20220902.1511/s.el
+POSFRAME_EL := ~/.emacs.d/elpa/posframe-1.4.3/posframe.el
 
 default: dist
 #===============
@@ -20,9 +22,10 @@ build:
 	sed -i "s/PKG_VERSION/$(VERSION)/g" zero-input.el
 dist-check: build
 	@echo "testing byte-compile is clean..."
-	$(EMACS) -Q --batch -l ~/.emacs.d/elpa/s-1.11.0/s.el --eval='(byte-compile-file "zero-input.el")'
+	$(EMACS) -Q --batch -l $(S_EL) -l ./byte-compile-flags.el --eval='(byte-compile-file "zero-input.el")'
+	$(EMACS) -Q --batch -l $(S_EL) -l $(POSFRAME_EL) -l ./byte-compile-flags.el -l ./zero-input.el --eval='(byte-compile-file "zero-input-panel-posframe.el")'
 	@echo "running unit tests..."
-	$(EMACS) -Q --batch -l ~/.emacs.d/elpa/s-1.11.0/s.el -l zero-input.el -l zero-input-panel-test.el -l zero-input-pinyin-service-test.el -l zero-input-framework-test.el -l zero-input-pinyin-test.el -l zero-input-table.el -l zero-input-table-test.el -f ert-run-tests-batch-and-exit
+	$(EMACS) -Q --batch -l $(S_EL) -l $(POSFRAME_EL) -l zero-input.el -l zero-input-panel-test.el -l zero-input-pinyin-service-test.el -l zero-input-framework-test.el -l zero-input-pinyin-test.el -l zero-input-table.el -l zero-input-table-test.el -f ert-run-tests-batch-and-exit
 #====================
 # other make targets
 #====================

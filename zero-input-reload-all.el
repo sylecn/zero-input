@@ -23,7 +23,8 @@ SOURCE-DIR where to find the zero source dir."
   (interactive)
   ;; for loading s
   (package-initialize)
-  (let ((source-dir (or source-dir "~/lisp/elisp/zero/")))
+  (let ((source-dir (or source-dir "~/lisp/elisp/zero/"))
+	(byte-compile-warnings nil))
     (dolist (f '("zero-input-quickdial.el"
 		 "zero-input-panel.el"
 		 "zero-input-panel-test.el"
@@ -34,12 +35,15 @@ SOURCE-DIR where to find the zero source dir."
 		 "zero-input-pinyin.el"
 		 "zero-input-pinyin-test.el"
 		 ))
+      (byte-compile-disable-warning 'docstrings)
       (byte-compile-file (concat source-dir f) t))))
 
 (defun zero-input-reload-all (&optional source-dir)
   "Recompile and load all zero files."
   (interactive)
-  (let ((source-dir (or source-dir "~/lisp/elisp/zero/")))
+  (let ((source-dir (or source-dir "~/lisp/elisp/zero/"))
+	(byte-compile-warnings nil))
+    (byte-compile-disable-warning 'docstrings)
     (byte-recompile-directory source-dir 0)
     (dolist (f '("zero-input-quickdial.elc"
 		 "zero-input-panel.elc"

@@ -49,9 +49,9 @@
 
 (define-minor-mode zero-input-quickdial-mode
   "a simple input method written as an emacs minor mode"
-  nil
-  " Quickdial"
-  zero-input-quickdial-mode-map)
+  :init-value nil
+  :lighter " Quickdial"
+  :keymap zero-input-quickdial-mode-map)
 
 (provide 'zero-input-quickdial)
 
