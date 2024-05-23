@@ -34,6 +34,7 @@ SOURCE-DIR where to find the zero source dir."
 		 "zero-input-pinyin-service-test.el"
 		 "zero-input-pinyin.el"
 		 "zero-input-pinyin-test.el"
+		 "zero-input-panel-posframe.el"
 		 ))
       (byte-compile-disable-warning 'docstrings)
       (byte-compile-file (concat source-dir f) t))))

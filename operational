@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2024-05-22>
+Time-stamp: <2024-05-23>
 #+STARTUP: content
 * notes                                                               :entry:
 ** 2019-04-01 zero-el a Chinese IM framework in emacs; FSM              :doc:
@@ -96,10 +96,16 @@ cd ~/lisp/elisp/zero/
 
 - test zero-input.el in a fresh emacs -Q window.
 
-  (load-file "~/.emacs.d/elpa/s-1.11.0/s.elc")
+  (load-file "~/.emacs.d/elpa/s-20220902.1511/s.el")
+  (load-file "~/lisp/elisp/zero/byte-compile-flags.el")
   (byte-compile-file "~/lisp/elisp/zero/zero-input.el" t)
   (global-set-key (kbd "<f1>") 'zero-input-mode)
   (zero-input-set-default-im "pinyin")
+
+  ;; to test posframe panel
+  (load-file "~/.emacs.d/elpa/posframe-1.4.3/posframe.el")
+  (byte-compile-file "~/lisp/elisp/zero/zero-input-panel-posframe.el" t)
+  (zero-input-panel-posframe-init)
 
   now in some buffer,
   press F1 and start typing.
@@ -154,6 +160,28 @@ see https://blog.emacsos.com/zero-el.html#org8e45833
 * later                                                               :entry:
 * current                                                             :entry:
 ** 
+** 2024-05-22 issues when testing in emacs -Q.
+- DONE frame bg color and fg color doesn't stand out.
+  easy to confuse with user's buffer content.
+
+  to make it easier to customize the theme, create a function that user can
+  advice or redefine.
+
+- DONE should handle service already :exists case.
+  just run quit and retry.
+  if retry still fail, then fail.
+
+- when two standalone emacs are running.
+  only one posframe panel service can run.
+  which means I can not type in two standalone emacs.
+
+  currently when I start posframe panel service in one emacs, and type in the
+  other emacs, the panel will show at point in the first emacs instance.
+
+  can I fix this? can each emacs has its own posframe panel service?
+
+  well, get rid of dbus and this can work.
+
 ** 2021-08-08 create a panel for wayland display server.
 currently zero-panel doesn't position itself correctly in wayland on debian 11
 bullseye.

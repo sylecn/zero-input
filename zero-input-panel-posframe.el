@@ -43,10 +43,12 @@
 (defvar zero-input-panel-posframe-buffer " *zero-input-panel-posframe-buffer*"
   "The posframe buffer used to show candidates.")
 
-(defun zero-input-panel-posframe-show-candidates (preedit-str _candidate-count candidates hints)
-  "Show CANDIDATES using posframe package.
-Argument PREEDIT-STR user typed characters."
-  (interactive)
+(defun zero-input-panel-posframe-show-candidates-prepare-buffer (preedit-str _candidate-count candidates hints)
+  "Prepare posframe buffer for showing CANDIDATES.
+
+Argument PREEDIT-STR user typed characters.
+Argument CANDIDATES a list of candidates to show to user.
+Argument HINTS extra key value pairs from dbus method call."
   (when (posframe-workable-p)
     ;; example hints:
     ;; ((in_emacs (t)) (filename ()) (page_number (1)) (has_next_page (t)) (has_previous_page (nil)) (move_x (2951)) (move_y (93)))
@@ -55,7 +57,9 @@ Argument PREEDIT-STR user typed characters."
 	  (has-previous-page (caadr (assoc "has_previous_page" hints)))
 	  (page-number (caadr (assoc "page_number" hints)))
 	  (hr-half (propertize "\n" 'face '(:height 25)))
-	  (hr (propertize "\n" 'face '(:height 50))))
+	  (hr (propertize "\n" 'face '(:height 50)))
+	  (user-fg-color (frame-parameter nil 'foreground-color))
+	  (_user-bg-color (frame-parameter nil 'background-color)))
       (with-current-buffer (get-buffer-create zero-input-panel-posframe-buffer)
 	(font-lock-mode -1)
 	(erase-buffer)
@@ -69,20 +73,29 @@ Argument PREEDIT-STR user typed characters."
 	  ;; only using "\n", line height is different than when the line
 	  ;; containers Chinese characters.
 	  (dotimes (_ (max 0 (- 10 i)))
-	    (insert (propertize "占\n" 'face '(:foreground "#FFFFFF")))))
+	    (insert (propertize "占\n" 'face (list :foreground user-fg-color)))))
 	(insert hr)
 	(insert (format " %s  %s  %s "
 			(if has-previous-page "<" " ")
 			(or page-number " ")
-			(if has-next-page ">" " "))))
-      (posframe-show zero-input-panel-posframe-buffer
-                     :position (point)
-		     ;; min-width/min-height is character width and height of
-		     ;; posframe, not pixels.
-		     :min-width 10
-		     :min-height 10
-		     :background-color "#FFFFFF"
-		     :foreground-color "#000000")))
+			(if has-next-page ">" " ")))))))
+
+(defun zero-input-panel-posframe-show-candidates (preedit-str candidate-count candidates hints)
+  "Show CANDIDATES using posframe package.
+Argument PREEDIT-STR user typed characters.
+Argument CANDIDATE-COUNT how many candidates to show."
+  (interactive)
+  (when (posframe-workable-p)
+    (zero-input-panel-posframe-show-candidates-prepare-buffer
+     preedit-str candidate-count candidates hints)
+    (posframe-show zero-input-panel-posframe-buffer
+                   :position (point)
+		   ;; min-width/min-height is character width and height of
+		   ;; posframe, not pixels.
+		   :min-width 10
+		   :min-height 10
+		   :background-color (frame-parameter nil 'foreground-color)
+		   :foreground-color (frame-parameter nil 'background-color)))
   :ignore)
 
 (defun zero-input-panel-posframe-move (x y)
@@ -120,6 +133,12 @@ Argument PREEDIT-STR user typed characters."
   (let ((service-name zero-input-panel-dbus-service-known-name))
     (let ((res (dbus-register-service :session service-name
 				      :do-not-queue)))
+      (when (eq res :exists)
+	;; replace existing panel service with posframe based service.
+	(zero-input-panel-quit)
+	;; async dbus call will return before server handle it.
+	(sleep-for 0.1)
+	(setq res (dbus-register-service :session service-name :do-not-queue)))
       (if (not (member res '(:primary-owner :already-owner)))
 	  (error "Register dbus service failed: %s" res))
       (dolist (method (list
