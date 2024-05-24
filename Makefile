@@ -19,13 +19,23 @@ build:
 	if ! python3 -m pytest --version; then python3 -m pip install --user pytest; fi
 	python3 -m pytest build.py
 	./build.py
-	sed -i "s/PKG_VERSION/$(VERSION)/g" zero-input.el
 dist-check: build
 	@echo "testing byte-compile is clean..."
 	$(EMACS) -Q --batch -l $(S_EL) -l ./byte-compile-flags.el --eval='(byte-compile-file "zero-input.el")'
 	$(EMACS) -Q --batch -l $(S_EL) -l $(POSFRAME_EL) -l ./byte-compile-flags.el -l ./zero-input.el --eval='(byte-compile-file "zero-input-panel-posframe.el")'
+	$(EMACS) -Q --batch -l $(S_EL) -l $(POSFRAME_EL) -l ./byte-compile-flags.el -l ./zero-input.el --eval='(byte-compile-file "zero-input-panel-minibuffer.el")'
 	@echo "running unit tests..."
-	$(EMACS) -Q --batch -l $(S_EL) -l $(POSFRAME_EL) -l zero-input.el -l zero-input-panel-test.el -l zero-input-pinyin-service-test.el -l zero-input-framework-test.el -l zero-input-pinyin-test.el -l zero-input-table.el -l zero-input-table-test.el -f ert-run-tests-batch-and-exit
+	$(EMACS) -Q --batch -l $(S_EL) -l $(POSFRAME_EL) \
+		-l zero-input.el \
+		-l zero-input-panel-test.el \
+		-l zero-input-pinyin-service-test.el \
+		-l zero-input-framework-test.el \
+		-l zero-input-pinyin-test.el \
+		-l zero-input-table.el \
+		-l zero-input-table-test.el \
+		-l zero-input-panel-posframe.el \
+		-l zero-input-panel-minibuffer.el \
+		-f ert-run-tests-batch-and-exit
 #====================
 # other make targets
 #====================

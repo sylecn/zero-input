@@ -5,6 +5,7 @@
 build zero-input.el from zero-input.el.in and other el files
 """
 
+import re
 import logging
 
 logger = logging.getLogger(__name__)
@@ -54,12 +55,25 @@ def expand_placeholder_for_files(old_content, filenames):
     return result
 
 
+def get_zero_input_version():
+    """get zero-input-version from zero-input-framework.el file.
+
+    """
+    with open("zero-input-framework.el", encoding='utf-8') as f:
+        for line in f:
+            mo = re.match('^\\(setq zero-input-version "(.*)"', line)
+            if mo:
+                return mo.group(1)
+    raise RuntimeError("get zero-input-version failed.")
+
+
 def main():
     logging.basicConfig(
         format='%(asctime)s [%(module)s] %(levelname)-8s %(message)s',
         level=logging.INFO)
+    zero_input_version = get_zero_input_version()
     with open("zero-input.el.in") as tpl:
-        content = tpl.read()
+        content = tpl.read().replace('PKG_VERSION', zero_input_version)
     expanded_content = expand_placeholder_for_files(content, [
         "zero-input-panel.el",
         "zero-input-framework.el",
@@ -67,8 +81,11 @@ def main():
         "zero-input-pinyin-service.el",
         "zero-input-pinyin.el",
         ])
-    with open('zero-input.el', 'w') as out:
-        out.write(expanded_content)
+    with open('zero-input.el', 'r', encoding="utf-8") as fin:
+        old_content = fin.read()
+    if expanded_content != old_content:
+        with open('zero-input.el', 'w', encoding="utf-8") as out:
+            out.write(expanded_content)
 
 
 if __name__ == '__main__':

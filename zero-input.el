@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 2.9.1
+;; Version: 2.10.0
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
 ;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
 
@@ -253,7 +253,18 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.9.1")
+(setq zero-input-version "2.10.0")
+
+(defvar zero-input-panel-is-ephemeral nil
+  "Stores whether the panel service is ephemeral or not.
+
+When a zero-input panel service can not persist its content on
+key strokes, it should set this to t, so zero-input-framework
+will call `zero-input-panel-show-candidates' on every keystroke
+to refresh the candidates list even when no change is needed.
+
+A zero-input panel service should revert this variable to nil on
+exit.")
 
 ;; FSM state
 (defconst zero-input--state-im-off 'IM-OFF)
@@ -372,7 +383,7 @@ Change will be effective only in new `zero-input-mode' buffer."
 (defvar-local zero-input-initial-fetch-size 21
   "How many candidates to fetch for the first call to GetCandidates.
 
-It's best set to (1+ (* zero-input-candidates-per-page N)) where
+It\\='s best set to \\=(1+ (* zero-input-candidates-per-page N)) where
 N is number of pages you want to fetch in initial fetch.")
 ;; zero-input-fetch-size is reset to 0 when preedit-str changes.
 ;; zero-input-fetch-size is set to fetch-size in build-candidates-async
@@ -471,7 +482,7 @@ STRING and OBJECTS are passed to `format'"
 
 (defun zero-input-candidates-on-page (candidates)
   "Return candidates on current page for given CANDIDATES list."
-  (cl-flet ((take (n lst)
+  (cl-flet ((my-take (n lst)
 	       "take the first n element from lst. if there is not
 enough elements, return lst as it is."
 	       (cl-loop
@@ -486,7 +497,7 @@ enough elements, return lst as it is."
 		for n* = n then (1- n*)
 		until (or (zerop n*) (null lst*))
 		finally (return lst*))))
-    (take zero-input-candidates-per-page
+    (my-take zero-input-candidates-per-page
 	  (drop (* zero-input-candidates-per-page zero-input-current-page) candidates))))
 
 (defun zero-input-show-candidates (&optional candidates)
@@ -620,17 +631,23 @@ Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
 (defun zero-input-page-up ()
   "If not at first page, show candidates on previous page."
   (interactive)
-  (when (> zero-input-current-page 0)
-    (setq zero-input-current-page (1- zero-input-current-page))
-    (zero-input-show-candidates)))
+  (if (> zero-input-current-page 0)
+      (progn
+	(setq zero-input-current-page (1- zero-input-current-page))
+	(zero-input-show-candidates))
+    (when zero-input-panel-is-ephemeral
+      (zero-input-show-candidates))))
 
 (defun zero-input-just-page-down ()
   "Just page down using existing candidates."
   (let ((len (length zero-input-candidates)))
-    (when (> len (* zero-input-candidates-per-page (1+ zero-input-current-page)))
-      (setq zero-input-current-page (1+ zero-input-current-page))
-      (zero-input-debug "showing candidates on page %s\n" zero-input-current-page)
-      (zero-input-show-candidates))))
+    (if (> len (* zero-input-candidates-per-page (1+ zero-input-current-page)))
+	(progn
+	  (setq zero-input-current-page (1+ zero-input-current-page))
+	  (zero-input-debug "showing candidates on page %s\n" zero-input-current-page)
+	  (zero-input-show-candidates))
+      (when zero-input-panel-is-ephemeral
+	(zero-input-show-candidates)))))
 
 (defun zero-input-page-down ()
   "If there is still candidates to be displayed, show candidates on next page."
@@ -831,7 +848,14 @@ N is the argument passed to `self-insert-command'."
 ;; minor mode
 ;;============
 
-(defvar zero-input-mode-map
+(defun zero-input-keyboard-quit ()
+  "Handle `keyboard-quit' when `zero-input-mode' is on."
+  (interactive)
+  (when (and (boundp 'zero-input-mode) zero-input-mode)
+    (zero-input-reset))
+  (keyboard-quit))
+
+(defvar zero-input-mode-map-init
   (let ((map (make-sparse-keymap)))
     ;; build zero-input-prefix-map
     (defvar zero-input-prefix-map (define-prefix-command 'zero-input-prefix-map))
@@ -845,13 +869,19 @@ N is the argument passed to `self-insert-command'."
     ;; other keybindings
     (define-key map [remap self-insert-command]
       'zero-input-self-insert-command)
+    (define-key map [remap keyboard-quit]
+      'zero-input-keyboard-quit)
     map)
+  "Initial keymap for `zero-input-mode'.")
+
+(defvar zero-input-mode-map zero-input-mode-map-init
   "Keymap for `zero-input-mode'.")
 
 (defun zero-input-enable-preediting-map ()
   "Enable preediting keymap in `zero-input-mode-map'."
   (zero-input-debug "zero-input-enable-preediting-map\n")
   (define-key zero-input-mode-map (kbd "<backspace>") 'zero-input-backspace)
+  (define-key zero-input-mode-map (kbd "DEL") 'zero-input-backspace)
   (define-key zero-input-mode-map (kbd "RET") 'zero-input-return)
   (define-key zero-input-mode-map (kbd "<escape>") 'zero-input-reset))
 
@@ -859,6 +889,7 @@ N is the argument passed to `self-insert-command'."
   "Disable preediting keymap in `zero-input-mode-map'."
   (zero-input-debug "zero-input-disable-preediting-map\n")
   (define-key zero-input-mode-map (kbd "<backspace>") nil)
+  (define-key zero-input-mode-map (kbd "DEL") nil)
   (define-key zero-input-mode-map (kbd "RET") nil)
   (define-key zero-input-mode-map (kbd "<escape>") nil))
 
@@ -877,20 +908,24 @@ Otherwise, show Zero."
   :init-value nil
   :lighter (:eval (zero-input-modeline-string))
   :keymap zero-input-mode-map
-  ;; local variables and variable init
-  (make-local-variable 'zero-input-candidates-per-page)
-  (make-local-variable 'zero-input-full-width-mode)
-  (zero-input-reset)
-  (zero-input-set-im zero-input-im)
-  ;; hooks
-  (if (boundp 'after-focus-change-function)
-      (add-function :after (local 'after-focus-change-function)
-		    #'zero-input-focus-changed)
-    (add-hook 'focus-in-hook 'zero-input-focus-in)
-    (add-hook 'focus-out-hook 'zero-input-focus-out))
-  (setq zero-input-buffer (current-buffer))
-  (add-hook 'post-self-insert-hook #'zero-input-post-self-insert-command nil t)
-  (add-hook 'buffer-list-update-hook 'zero-input-buffer-list-changed))
+  ;; body, it's run when mode is activated or deactivated.
+  (if zero-input-mode
+      (progn
+	;; local variables and variable init
+	(make-local-variable 'zero-input-candidates-per-page)
+	(make-local-variable 'zero-input-full-width-mode)
+	(zero-input-reset)
+	(zero-input-set-im zero-input-im)
+	;; hooks
+	(if (boundp 'after-focus-change-function) ; emacs 27.1
+	    (add-function :after (local 'after-focus-change-function)
+			  #'zero-input-focus-changed)
+	  (add-hook 'focus-in-hook 'zero-input-focus-in)
+	  (add-hook 'focus-out-hook 'zero-input-focus-out))
+	(setq zero-input-buffer (current-buffer))
+	(add-hook 'post-self-insert-hook #'zero-input-post-self-insert-command nil t)
+	(add-hook 'buffer-list-update-hook 'zero-input-buffer-list-changed))
+    (zero-input-reset)))
 
 (defun zero-input-post-self-insert-command (&optional ch)
   "Run after a regular `self-insert-command' is run by zero-input.

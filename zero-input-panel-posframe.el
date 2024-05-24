@@ -125,6 +125,7 @@ Argument CANDIDATE-COUNT how many candidates to show."
   (interactive)
   (when (posframe-workable-p)
     (dbus-unregister-service :session zero-input-panel-dbus-service-known-name))
+  (setq zero-input-panel-is-ephemeral nil)
   :ignore)
 
 (defun zero-input-panel-posframe-init ()
@@ -153,7 +154,8 @@ Argument CANDIDATE-COUNT how many candidates to show."
 	 "/com/emacsos/zero/Panel1"
 	 "com.emacsos.zero.Panel1.PanelInterface"
 	 (car method)
-	 (cdr method))))))
+	 (cdr method)))
+      (setq zero-input-panel-is-ephemeral nil))))
 
 (provide 'zero-input-panel-posframe)
 

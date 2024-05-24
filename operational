@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2024-05-23>
+Time-stamp: <2024-05-26>
 #+STARTUP: content
 * notes                                                               :entry:
 ** 2019-04-01 zero-el a Chinese IM framework in emacs; FSM              :doc:
@@ -107,6 +107,10 @@ cd ~/lisp/elisp/zero/
   (byte-compile-file "~/lisp/elisp/zero/zero-input-panel-posframe.el" t)
   (zero-input-panel-posframe-init)
 
+  ;; to test minibuffer panel
+  (byte-compile-file "~/lisp/elisp/zero/zero-input-panel-minibuffer.el" t)
+  (zero-input-panel-minibuffer-init)
+
   now in some buffer,
   press F1 and start typing.
 
@@ -158,19 +162,17 @@ see https://blog.emacsos.com/zero-el.html#org8e45833
 - in the Makefile,
   ./build.py runs to create zero-input.el from zero-input.el.in
 
+** 2024-05-25 issues with popup panel
+- zero-input-panel-popup.el
+- it didn't work at all in tty emacs.
+
+  // since I want a panel that works in tty emacs, I discontinued work on
+  popup panel.
+- popup-tip width is not consistent across string lines.
+- has glitches in xorg session. too many redraws.
 * later                                                               :entry:
-* current                                                             :entry:
-** 
-** 2024-05-22 issues when testing in emacs -Q.
-- DONE frame bg color and fg color doesn't stand out.
-  easy to confuse with user's buffer content.
-
-  to make it easier to customize the theme, create a function that user can
-  advice or redefine.
-
-- DONE should handle service already :exists case.
-  just run quit and retry.
-  if retry still fail, then fail.
+** 2024-05-22 posframe based panel bug: when two standalone emacs are running, panel
+may show in the wrong instance.
 
 - when two standalone emacs are running.
   only one posframe panel service can run.
@@ -183,6 +185,17 @@ see https://blog.emacsos.com/zero-el.html#org8e45833
 
   well, get rid of dbus and this can work.
 
+** 2024-05-26 minibuffer based panel, how to properly re-display when minibuffer is used by other package?
+- when some other package/function shows information in minibuffer, zero-input
+  can't re-display candidates without user interaction (e.g. keep typing
+  preedit string).
+
+  should there be a timed checker to implement sticky minibuffer? when user is
+  preediting, check minibuffer content and refresh it if necessary.
+  // that is close to sticky minibuffer, which I hate in the first place though.
+
+* current                                                             :entry:
+** 
 ** 2021-08-08 create a panel for wayland display server.
 currently zero-panel doesn't position itself correctly in wayland on debian 11
 bullseye.
@@ -227,6 +240,260 @@ I don't know it should recommend or suggest.
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
 I can't run them in git pre-commit hook.
 * done                                                                :entry:
+** 2024-05-26 fix package lint issues
+6 issues found:
+
+- WONTFIX 61:12: warning: This file is not in the `cl-lib' ELPA compatibility package: require `cl-lib' instead.
+- INVALID 216:38: error: You should depend on (emacs "25.1") if you need `window-absolute-pixel-position'.
+- INVALID 221:4: error: You should depend on (emacs "25.1") if you need `frame-edges'.
+- DONE 500:5: error: You should depend on (emacs "29.1") or the compat package if you need `take'.
+
+  I included my own definition in cl-flet.
+  rename it to avoid shadow function definition.
+
+- INVALID 836:18: error: You should depend on (emacs "27.1") if you need `frame-focus-state'.
+- INVALID 921:6: error: You should depend on (emacs "24.4") if you need `add-function'.
+
+** 2024-05-22 issues when testing in emacs -Q.
+- DONE frame bg color and fg color doesn't stand out.
+  easy to confuse with user's buffer content.
+
+  to make it easier to customize the theme, create a function that user can
+  advice or redefine.
+
+- DONE should handle service already :exists case.
+  just run quit and retry.
+  if retry still fail, then fail.
+
+- MOVED when two standalone emacs are running.
+  only one posframe panel service can run.
+  which means I can not type in two standalone emacs.
+
+  currently when I start posframe panel service in one emacs, and type in the
+  other emacs, the panel will show at point in the first emacs instance.
+
+  can I fix this? can each emacs has its own posframe panel service?
+
+  well, get rid of dbus and this can work.
+
+** 2024-05-25 make minibuffer based panel work.
+- DONE press - in page one should not clear the candidates.
+  press = in last page should not clear the candidates.
+
+  just do early exit?
+  check how zero-panel and posframe did it.
+
+  ~/c/zero-panel/server.c
+  if (candidate_count > 0) {
+  }
+
+  when I add this in zero-input-panel-minibuffer.el, minibuffer is still empty
+  when I press - on first page.
+  it's because minibuffer is cleared when I type any character.
+  I need to redraw last candidates.
+
+- DONE redraw last candidates didn't work.
+  try add some debug log.
+
+  when - key triggers no pagination, no panel async call is done.
+  minibuffer is erased because I typed any key. emacs auto erase minibuffer.
+
+  either do a sticky minibuffer, or update zero-input to trigger another
+  refresh event, with hint {"no-change": t}.
+
+  but I never liked sticky minibuffer.
+  so just trigger another refresh event.
+
+  in zero-panel or posframe panel, when no-change hint is true, ignore the
+  call/event. in minibuffer panel, redraw the minibuffer.
+
+  zero-input-page-up
+  zero-input-page-down
+
+  just always redraw is easy in zero-input-framework.el, will it cause flick
+  in zero-panel or posframe?
+  (zero-input-panel-quit)
+  (zero-input-panel-posframe-init)
+  no flick in zero-panel or posframe.
+  just always redraw then.
+
+  could also add a variable so redraw can be omit.
+  zero-input-panel-is-ephemeral
+  yeah, this is cheap, do it.
+
+  document this variable.
+
+- DONE auto set minibuffer height to 2 when zero-input minor mode is enabled.
+  this will reduce flick when typing.
+
+  auto revert it when zero-input mode is disabled, or panel exit.
+  auto enable when zero-input mode is enabled and the panel is 'minibuffer
+  based. I need a variable to store the current panel implementation name.
+
+  zero-input-panel-name
+
+  (let ((w (minibuffer-window)))
+    (if (window-size w)
+      
+    (setq resize-mini-windows nil)
+    (window-resize w 1))
+  (setq resize-mini-windows 'grow-only)
+
+  (zero-input-panel-minibuffer-init)
+
+  // the panel can use a hook on mode activate/deactivate.
+
+- DONE bug: ESC can't clear preedit string when using tty emacs.    // use C-g
+  ESC is meta escape by default.
+
+  C-g can't clear preedit string either.
+  I think C-g should clear preedit string.
+
+  reproduce the bug:
+  f1
+  ruguo
+  C-g
+  woshuo
+
+  // now ruguo is still in preedit string. C-g doesn't cancel anything in
+  zero-input preedit.
+
+  how ESC key work with zero-panel and posframe?
+  (define-key zero-input-mode-map (kbd "<escape>") 'zero-input-reset)
+
+  backspace also didn't work in tty emacs.
+  it is mapped to DEL key in tty emacs.
+
+  DONE so the real problem is <backspace> and <escape> key event is NA in tty emacs.
+
+  DONE fixed <backspace> issue. I also bind it to DEL key.
+
+  how about <escape>?
+  search: capture escape key in tty emacs
+
+  this is a problem. in tty, escape key is send as C-[, emacs doesn't know
+  about escape.
+
+  just handle C-g maybe.
+  keyboard-quit
+
+  there is no hook when this happen?
+
+  search: emacs elisp run something when user C-g keyboard-quit
+
+  I can use function advice. enable advice when enter preedit, disable advice
+  when exit preedit. or just always enable advice and use if checks.
+
+  Info: (elisp) Advising Named Functions
+
+  it's not recommend to use advice in library code.
+  try use hook or other ways.
+
+  In my case, I can remap keyboard-quit to another function to accomplish the
+  same. just like org-mode remap newline-and-indent to org-newline-and-indent.
+
+  so avoid advice.
+
+  remap works.
+
+- MOVED when some other package/function shows information in minibuffer, zero-input
+  can't re-display candidates without user interaction.
+
+  should there be a timed checker to implement sticky minibuffer? when user is
+  preediting, check minibuffer content and refresh it if necessary.
+  // that is close to sticky minibuffer, which I hate in the first place though.
+
+- problems
+  - zero-input-panel-minibuffer-show-candidates
+    (if (eql candidate-count 0)
+      (message "%s" zero-input-panel-minibuffer-last-candidates)
+
+    I think this logic is wrong.
+    if I type a English word where there is no matching pinyin, I could get an
+    empty candidate list.
+
+    I can't think of such a pinyin.
+
+** 2024-05-26 "make build" should not regenerate zero-input.el when content doesn't change.
+- use build.py to replace PKG_VERSION
+  was using Makefile to do it.
+  sed -i "s/PKG_VERSION/$(VERSION)/g" zero-input.el
+- if regenerate content would be the same, don't touch/write the file.
+
+** 2024-05-24 create a panel that works in tty.
+- posframe require X/wayland to work.
+- popup works in tty.
+  auto-complete/popup-el: Visual Popup Interface Library for Emacs
+  https://github.com/auto-complete/popup-el?tab=readme-ov-file
+
+  (require 'popup)
+  (setq popup (popup-create (point) 10 10))
+  (popup-set-list popup '("abc" "def" "ghi" "dfjsf"))
+  (popup-draw popup)
+  (popup-hide popup)
+
+  (popup-hidden-p popup)
+  (popup-delete popup)
+
+- can I move a popup after creation?
+
+  Info: (cl) Structures
+
+  (setf (popup-point popup) (point))
+  this didn't work.
+
+  check source code of popup-draw.
+  it's not a good fit for my usage.
+
+  try emacs overlay instead.
+  Info: (elisp) Overlays
+
+  too low level.
+
+- (popup-tip "abc\ndef\nghi\n>")
+  (setq popup (popup-tip "abc\ndef\nghi\n>" :nowait t))
+  (popup-hide popup)
+
+- problems
+  - newline in popup-tip is not working.
+    (popup-tip "abc\ndef\nghi\n>")
+    this works. why not in my code?
+
+    #+begin_src elisp
+      (popup-tip "1.人
+      2.让
+      3.日
+      4.热
+      5.如
+      6.壬
+      7.认
+      8.软
+      9.肉
+      0.瑞
+      < 1 >" :margin 1)
+    #+end_src
+    it's :width issue. when width is big, \n is not honored.
+
+    popup-tip width issue
+
+  - popup didn't work in tty emacs.
+    I tried in rh902 VM.
+
+    the popup texts keeps recurring and is not usable.
+    not sure why.
+    performance is not good either. too many unnecessary refresh.
+
+    use a regular buffer would be much better.
+    or just try use the minibuffer.
+
+    minibuffer works on first try.
+    but it also has refresh glitch in xorg session.
+
+    try tty.
+    it works even better in tty.
+
+    continue make it work. I think it is useful to have a panel for tty emacs.
+
 ** 2023-08-16 create a panel using emacs facility.
 make it work in terminal emacs.
 
@@ -1316,6 +1583,22 @@ https://github.com/melpa/melpa/blob/master/CONTRIBUTING.org#preparing-a-pull-req
     fixed.
 
 * wontfix                                                             :entry:
+** 2024-05-25 zero-input bug:
+haikeyi
+=
+=
+=
+=
+when there is no next page, press = should stay at candidate page 3.
+
+haikeyi
+-
+when there is no prev page, press - should stay at page 1.
+
+- not reproducible in posframe panel.
+- not reproducible in zero-panel.
+- it's a specific bug in popup panel.
+
 ** 2020-02-20 gitlab doesn't render README as org-mode file.
 github does render it.
 should I name it README.org?

@@ -35,12 +35,14 @@ SOURCE-DIR where to find the zero source dir."
 		 "zero-input-pinyin.el"
 		 "zero-input-pinyin-test.el"
 		 "zero-input-panel-posframe.el"
+		 "zero-input-panel-minibuffer.el"
 		 ))
       (byte-compile-disable-warning 'docstrings)
       (byte-compile-file (concat source-dir f) t))))
 
 (defun zero-input-reload-all (&optional source-dir)
-  "Recompile and load all zero files."
+  "Recompile and load all zero files.
+Optional argument SOURCE-DIR path to zero-input source dir."
   (interactive)
   (let ((source-dir (or source-dir "~/lisp/elisp/zero/"))
 	(byte-compile-warnings nil))
@@ -57,6 +59,8 @@ SOURCE-DIR where to find the zero source dir."
 		 "zero-input-pinyin-test.elc"
 		 "zero-input-table.el"
 		 "zero-input-table-test.el"
+		 "zero-input-panel-posframe.elc"
+		 "zero-input-panel-minibuffer.elc"
 		 ))
       (load-file (concat source-dir f)))))
 

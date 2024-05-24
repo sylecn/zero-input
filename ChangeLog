@@ -1,3 +1,10 @@
+2024-05-26  Yuanle Song  <sylecn@gmail.com>
+
+	zero-input v2.10.0
+	- add an optional panel based on Emacs minibuffer.
+	  it provides a panel that works everywhere Emacs runs. see
+	  `zero-input-panel-minibuffer.el' for more information.
+
 2024-05-22  Yuanle Song  <sylecn@gmail.com>
 
 	zero-input v2.9.0
