@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "24.4"))
 
 ;;; Commentary:
 

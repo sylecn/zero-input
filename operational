@@ -207,9 +207,11 @@ may show in the wrong instance.
   https://github.com/melpa/melpa?tab=readme-ov-file#example-multiple-packages-in-one-repository
 
   yeah, should create a new package.
-  zero-input-posframe-panel
+  zero-input-panel-posframe
 
   create a pull request.
+
+- update blog post, add some screenshot of different panels.
 
 ** 2021-08-08 create a panel for wayland display server.
 currently zero-panel doesn't position itself correctly in wayland on debian 11
