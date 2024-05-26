@@ -118,6 +118,7 @@ cd ~/lisp/elisp/zero/
 - copy zero-input.el and optional feature files over to pkg branch.
   cp zero-input.el ../zero-pkg/
   cp zero-input-panel-posframe.el ../zero-pkg/
+  cp zero-input-panel-minibuffer.el ../zero-pkg/
 
   make a git commit in pkg branch.
   tag it if it is a stable release.
