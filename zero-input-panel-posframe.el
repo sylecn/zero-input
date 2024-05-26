@@ -13,6 +13,7 @@
 ;; limitations under the License.
 
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
+;; Version: 1.0.0
 ;; Package-Requires: ((emacs "24.4") (zero-input "2.9.0") (posframe "1.4.3"))
 
 ;;; Commentary:

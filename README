@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-09-01
-Time-stamp: <2020-02-23>
+Time-stamp: <2024-05-26>
 
 * zero-el
 
@@ -33,6 +33,50 @@ M-x customize-group zero-input-pinyin
   Some notes on pinyin string,
   - There is no ü on US keyboard, type v instead. For example lv 绿.
   - Use ' to separate pinyin substring like xi'an 西安
+
+- Which panel should I use?
+
+  There are three panels for zero-input right now. zero-input panel are based
+  on dbus service, so it is easy to implement and easy to plug-and-play.
+
+  zero-panel is a gtk3 app implemented in C to show candidates. It has good
+  performance and theme support. You can customize it using gtk ui files and
+  css files. You can include images in the panel. But it didn't work in
+  wayland at the moment, because positioning window on wayland is non-trivial.
+
+  minibuffer panel, started by (zero-input-panel-minibuffer-init), is a native
+  elisp program that use Emacs minibuffer to show candidates. It works
+  everywhere Emacs runs, including ttys, X and Wayland.
+
+  posframe panel, started by (zero-input-panel-posframe-init), is a native
+  elisp program that uses [[https://github.com/tumashu/posframe][posframe]] to show candidates. It works in X and
+  Wayland.
+
+  You can choose whatever works for you. My recommendation would be
+
+  - use zero-panel if mostly running Emacs in X.
+  - use posframe panel if you ever run Emacs in Wayland.
+  - use minibuffer panel if you are stuck on tty.
+
+  Note that all three can be installed at the same time, but only one may be
+  actively running. You can switch panel on the fly while Emacs is running.
+
+  To switch to zero-panel (when zero-panel is installed),
+  #+begin_src elisp
+    (zero-input-panel-quit)
+  #+end_src
+
+  To switch to posframe panel,
+  #+begin_src elisp
+    (zero-input-panel-quit)
+    (zero-input-panel-posframe-init)
+  #+end_src
+
+  To switch to minibuffer panel,
+  #+begin_src elisp
+    (zero-input-panel-quit)
+    (zero-input-panel-minibuffer-init)
+  #+end_src
 
 * Zero Framework features
 - Chinese punctuation mapping. Type the char will insert the corresponding
@@ -120,6 +164,14 @@ reporting issue easier.
 
   serves as an example of how to use zero framework to create new input
   methods.
+
+- zero-input-panel-minibuffer.el
+
+  a zero-panel dbus service implemented using Emacs minibuffer.
+
+- zero-input-panel-posframe.el
+
+  a zero-panel dbus service implemented using [[https://github.com/tumashu/posframe][posframe]] package.
 
 * License
 zero-el is under Apache License 2.0

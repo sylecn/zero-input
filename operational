@@ -114,12 +114,23 @@ cd ~/lisp/elisp/zero/
   press F1 and start typing.
 
 - make a git commit in master branch.
-- copy zero-input.el and optional feature files over to pkg branch.
+- to make a release for zero-input package,
+
+  copy zero-input.el to pkg branch.
   cp zero-input.el ../zero-pkg/
-  cp zero-input-panel-posframe.el ../zero-pkg/
-  cp zero-input-panel-minibuffer.el ../zero-pkg/
 
   make a git commit in pkg branch.
+  tag it if it is a stable release.
+
+- push commits.
+  push tags if it is a stable release.
+
+*** how to make a release for zero-input-panel-posframe package
+- update version comment in zero-input-panel-posframe.el
+
+  cp zero-input-panel-posframe.el ../zero-posframe/
+
+  make a git commit in posframe branch.
   tag it if it is a stable release.
 
 - push commits.
@@ -196,23 +207,6 @@ may show in the wrong instance.
 
 * current                                                             :entry:
 ** 
-** 2024-05-26 make a release on melpa.
-- DONE should zero-input-panel-minibuffer.el be included in zero-input.el?
-  it doesn't require any other package.
-  could be a built-in feature.
-
-- should zero-input-panel-posframe.el be a separate package?
-  one file per package is cooler.
-
-  https://github.com/melpa/melpa?tab=readme-ov-file#example-multiple-packages-in-one-repository
-
-  yeah, should create a new package.
-  zero-input-panel-posframe
-
-  create a pull request.
-
-- update blog post, add some screenshot of different panels.
-
 ** 2021-08-08 create a panel for wayland display server.
 currently zero-panel doesn't position itself correctly in wayland on debian 11
 bullseye.
@@ -257,6 +251,25 @@ I don't know it should recommend or suggest.
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
 I can't run them in git pre-commit hook.
 * done                                                                :entry:
+** 2024-05-26 make a release on melpa.
+- DONE should zero-input-panel-minibuffer.el be included in zero-input.el?
+  it doesn't require any other package.
+  could be a built-in feature.
+
+- DONE should zero-input-panel-posframe.el be a separate package? yes.
+  one file per package is cooler.
+
+  https://github.com/melpa/melpa?tab=readme-ov-file#example-multiple-packages-in-one-repository
+
+  yeah, should create a new package.
+  zero-input-panel-posframe
+
+  create a pull request.
+
+  where are metadata added? auto parse from README file and source file?
+
+- MOVED update blog post, add some screenshot of different panels.
+
 ** 2024-05-26 fix package lint issues
 6 issues found:
 
