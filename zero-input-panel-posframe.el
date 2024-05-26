@@ -25,6 +25,8 @@
 ;; To use this panel, install posframe package, then add in your
 ;; ~/.emacs.d/init.el file,
 ;;
+;;   (require 'zero-input)
+;;   ;; other user configurations
 ;;   (when (locate-library "posframe")
 ;;     (require 'zero-input-panel-posframe)
 ;;     (zero-input-panel-posframe-init))
