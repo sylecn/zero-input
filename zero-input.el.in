@@ -14,7 +14,7 @@
 
 ;; Version: PKG_VERSION
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
-;; Package-Requires: ((emacs "24.3") (s "1.2.0"))
+;; Package-Requires: ((emacs "24.4") (s "1.2.0"))
 
 ;;; Commentary:
 
@@ -67,6 +67,7 @@ INCLUDE_ZERO_INPUT_FRAMEWORK_EL
 INCLUDE_ZERO_INPUT_TABLE_EL
 INCLUDE_ZERO_INPUT_PINYIN_SERVICE_EL
 INCLUDE_ZERO_INPUT_PINYIN_EL
+INCLUDE_ZERO_INPUT_PANEL_MINIBUFFER_EL
 
 (provide 'zero-input)
 

@@ -1,5 +1,11 @@
 2024-05-26  Yuanle Song  <sylecn@gmail.com>
 
+	zero-input v2.10.1
+	- include `zero-input-panel-minibuffer.el' in zero-panel.el for
+	  distribution. zero-input now requires Emacs 24.4+.
+
+2024-05-26  Yuanle Song  <sylecn@gmail.com>
+
 	zero-input v2.10.0
 	- add an optional panel based on Emacs minibuffer.
 	  it provides a panel that works everywhere Emacs runs. see

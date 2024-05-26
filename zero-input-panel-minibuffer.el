@@ -22,7 +22,8 @@
 ;;
 ;; To use this panel, add in your ~/.emacs.d/init.el file,
 ;;
-;;   (require 'zero-input-panel-minibuffer)
+;;   (require 'zero-input)
+;;   ;; other user configurations
 ;;   (zero-input-panel-minibuffer-init)
 ;;
 ;; If the service failed to start, quit the running zero-input panel service

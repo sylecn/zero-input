@@ -80,6 +80,7 @@ def main():
         "zero-input-table.el",
         "zero-input-pinyin-service.el",
         "zero-input-pinyin.el",
+        "zero-input-panel-minibuffer.el",
         ])
     with open('zero-input.el', 'r', encoding="utf-8") as fin:
         old_content = fin.read()

@@ -23,7 +23,6 @@ dist-check: build
 	@echo "testing byte-compile is clean..."
 	$(EMACS) -Q --batch -l $(S_EL) -l ./byte-compile-flags.el --eval='(byte-compile-file "zero-input.el")'
 	$(EMACS) -Q --batch -l $(S_EL) -l $(POSFRAME_EL) -l ./byte-compile-flags.el -l ./zero-input.el --eval='(byte-compile-file "zero-input-panel-posframe.el")'
-	$(EMACS) -Q --batch -l $(S_EL) -l $(POSFRAME_EL) -l ./byte-compile-flags.el -l ./zero-input.el --eval='(byte-compile-file "zero-input-panel-minibuffer.el")'
 	@echo "running unit tests..."
 	$(EMACS) -Q --batch -l $(S_EL) -l $(POSFRAME_EL) \
 		-l zero-input.el \
@@ -34,7 +33,6 @@ dist-check: build
 		-l zero-input-table.el \
 		-l zero-input-table-test.el \
 		-l zero-input-panel-posframe.el \
-		-l zero-input-panel-minibuffer.el \
 		-f ert-run-tests-batch-and-exit
 #====================
 # other make targets

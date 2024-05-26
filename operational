@@ -102,14 +102,13 @@ cd ~/lisp/elisp/zero/
   (global-set-key (kbd "<f1>") 'zero-input-mode)
   (zero-input-set-default-im "pinyin")
 
+  ;; to test minibuffer panel
+  (zero-input-panel-minibuffer-init)
+
   ;; to test posframe panel
   (load-file "~/.emacs.d/elpa/posframe-1.4.3/posframe.el")
   (byte-compile-file "~/lisp/elisp/zero/zero-input-panel-posframe.el" t)
   (zero-input-panel-posframe-init)
-
-  ;; to test minibuffer panel
-  (byte-compile-file "~/lisp/elisp/zero/zero-input-panel-minibuffer.el" t)
-  (zero-input-panel-minibuffer-init)
 
   now in some buffer,
   press F1 and start typing.
@@ -197,6 +196,21 @@ may show in the wrong instance.
 
 * current                                                             :entry:
 ** 
+** 2024-05-26 make a release on melpa.
+- DONE should zero-input-panel-minibuffer.el be included in zero-input.el?
+  it doesn't require any other package.
+  could be a built-in feature.
+
+- should zero-input-panel-posframe.el be a separate package?
+  one file per package is cooler.
+
+  https://github.com/melpa/melpa?tab=readme-ov-file#example-multiple-packages-in-one-repository
+
+  yeah, should create a new package.
+  zero-input-posframe-panel
+
+  create a pull request.
+
 ** 2021-08-08 create a panel for wayland display server.
 currently zero-panel doesn't position itself correctly in wayland on debian 11
 bullseye.
