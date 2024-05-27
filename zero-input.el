@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 2.10.2
+;; Version: 2.10.3
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
 ;; Package-Requires: ((emacs "24.4") (s "1.2.0"))
 
@@ -253,7 +253,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.10.2")
+(setq zero-input-version "2.10.3")
 
 (defvar zero-input-panel-is-ephemeral nil
   "Stores whether the panel service is ephemeral or not.
@@ -405,10 +405,13 @@ N is number of pages you want to fetch in initial fetch.")
   zero-input-preedit-str)
 (defvar-local zero-input-build-candidates-func
   'zero-input-build-candidates-default
-  "Contains a function to build candidates from preedit-str.  The function accepts param preedit-str, fetch-size, returns candidate list.")
+  "Contains a function to build candidates from preedit-str.
+The function accepts param preedit-str, fetch-size, returns candidate list.")
 (defvar-local zero-input-build-candidates-async-func
   'zero-input-build-candidates-async-default
-  "Contains a function to build candidates from preedit-str.  The function accepts param preedit-str, fetch-size, and a complete-func that should be called on returned candidate list.")
+  "Contains a function to build candidates from preedit-str.
+The function accepts param preedit-str, fetch-size, and a
+complete-func that should be called on returned candidate list.")
 (defvar-local zero-input-can-start-sequence-func
   'zero-input-can-start-sequence-default
   "Contains a function to decide whether a char can start a preedit sequence.")
@@ -435,7 +438,8 @@ This allow input method to override default logic.")
   "Whether to enable debug.
 if t, `zero-input-debug' will output debug msg in *zero-input-debug* buffer")
 (defvar zero-input-debug-buffer-max-size 30000
-  "Max characters in *zero-input-debug* buffer.  If reached, first half data will be deleted.")
+  "Max characters in *zero-input-debug* buffer.
+If reached, first half data will be deleted.")
 
 (defun zero-input-debug (string &rest objects)
   "Log debug message in *zero-input-debug* buffer.
@@ -568,11 +572,16 @@ If there is no full-width char for CH, return it unchanged."
   (concat (mapcar 'zero-input-convert-ch-to-full-width s)))
 
 (defun zero-input-convert-str-to-full-width-maybe (s)
-  "If in `zero-input-full-width-p', convert char in S to their full-width char; otherwise, return s unchanged."
+  "Auto convert char in S to full-width.
+
+When `zero-input-full-width-p' is t, do convert; otherwise, return s unchanged."
   (if zero-input-full-width-p (zero-input-convert-str-to-full-width s) s))
 
 (defun zero-input-insert-full-width-char (ch)
-  "If in `zero-input-full-width-p', insert full-width char for given CH and return true, otherwise just return nil."
+  "Insert full-width char for CH.
+
+When `zero-input-full-width-p' is t, insert full-width char for
+given char CH and return true, otherwise just return nil."
   (when zero-input-full-width-p
     (let ((full-width-ch (zero-input-convert-ch-to-full-width ch)))
       (insert full-width-ch)
@@ -608,7 +617,10 @@ Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
    (t nil)))
 
 (defun zero-input-handle-punctuation (ch)
-  "If CH is a punctuation character, insert mapped Chinese punctuation and return true; otherwise, return false."
+  "Handle punctuation.
+
+If char CH is a punctuation character, insert mapped Chinese
+punctuation and return true; otherwise, return false."
   (let ((str (zero-input-convert-punctuation ch)))
     (when str
       (insert str)
@@ -730,7 +742,9 @@ N is the argument passed to `self-insert-command'."
    (t zero-input-initial-fetch-size)))
 
 (defun zero-input-preedit-str-changed ()
-  "Called when preedit str is changed and not empty.  Update and show candidate list."
+  "Update and show candidate list.
+
+Called when preedit str is changed and not empty."
   (setq zero-input-fetch-size 0)
   (setq zero-input-current-page 0)
   (let ((new-fetch-size (zero-input-get-initial-fetch-size)))
@@ -840,7 +854,8 @@ N is the argument passed to `self-insert-command'."
        (t nil)))))
 
 (defun zero-input-buffer-list-changed ()
-  "A hook function, run when buffer list has changed.  This includes user has switched buffer."
+  "A hook function, run when buffer list has changed.
+For example, this will run when user has switched buffer."
   (if (eq (car (buffer-list)) zero-input-buffer)
       (zero-input-focus-in)))
 
@@ -1142,7 +1157,8 @@ IM-NAME (a string) should be a registered input method in zero-input."
 ;;=====================
 
 (defun zero-input-table-sort-key (lhs rhs)
-  "A predicate function to sort candidates.  Return t if LHS should sort before RHS."
+  "A predicate function to sort candidates.
+Return t if LHS should sort before RHS."
   (string< (car lhs) (car rhs)))
 
 (defun zero-input-table-build-candidates (preedit-str &optional _fetch-size)
@@ -1329,12 +1345,13 @@ blob/master/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml"
 (setq zero-input-pinyin-use-async-fetch nil)
 
 (defvar-local zero-input-pinyin-state nil
-  "Zero-input-pinyin internal state.  could be nil or
-`zero-input-pinyin--state-im-partial-commit'.")
+  "Zero-input-pinyin internal state.
+Could be nil or `zero-input-pinyin--state-im-partial-commit'.")
 (defconst zero-input-pinyin--state-im-partial-commit 'IM-PARTIAL-COMMIT)
 
 (defvar zero-input-pinyin-used-preedit-str-lengths nil
-  "Accompany `zero-input-candidates', marks how many preedit-str chars are used for each candidate.")
+  "Marks how many preedit-str chars are used for each candidate.
+Accompany `zero-input-candidates'.")
 (defvar zero-input-pinyin-candidates-pinyin-indices nil
   "Store GetCandidates dbus method candidates_pinyin_indices field.")
 (defvar zero-input-pinyin-pending-str "")
@@ -1524,7 +1541,8 @@ Otherwise, just return nil."
 (defun zero-input-pinyin-page-down ()
   "Handle page down for zero-input-pinyin.
 
-This is different from zero-input-framework because I need to support partial commit"
+This is different from zero-input-framework because I need to
+support partial commit"
   (let ((len (length zero-input-candidates))
 	(new-fetch-size (1+ (* zero-input-candidates-per-page (+ 2 zero-input-current-page)))))
     ;; (zero-input-debug

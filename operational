@@ -1627,6 +1627,7 @@ https://github.com/melpa/melpa/blob/master/CONTRIBUTING.org#preparing-a-pull-req
     fixed.
 
 * wontfix                                                             :entry:
+** 2024-05-27 emacs lisp docstring longer than 80 how to mark it as harmless for one function
 ** 2024-05-25 zero-input bug:
 haikeyi
 =

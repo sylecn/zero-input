@@ -59,12 +59,13 @@ blob/master/com.emacsos.zero.ZeroPinyinService1.ZeroPinyinServiceInterface.xml"
 (setq zero-input-pinyin-use-async-fetch nil)
 
 (defvar-local zero-input-pinyin-state nil
-  "Zero-input-pinyin internal state.  could be nil or
-`zero-input-pinyin--state-im-partial-commit'.")
+  "Zero-input-pinyin internal state.
+Could be nil or `zero-input-pinyin--state-im-partial-commit'.")
 (defconst zero-input-pinyin--state-im-partial-commit 'IM-PARTIAL-COMMIT)
 
 (defvar zero-input-pinyin-used-preedit-str-lengths nil
-  "Accompany `zero-input-candidates', marks how many preedit-str chars are used for each candidate.")
+  "Marks how many preedit-str chars are used for each candidate.
+Accompany `zero-input-candidates'.")
 (defvar zero-input-pinyin-candidates-pinyin-indices nil
   "Store GetCandidates dbus method candidates_pinyin_indices field.")
 (defvar zero-input-pinyin-pending-str "")
@@ -254,7 +255,8 @@ Otherwise, just return nil."
 (defun zero-input-pinyin-page-down ()
   "Handle page down for zero-input-pinyin.
 
-This is different from zero-input-framework because I need to support partial commit"
+This is different from zero-input-framework because I need to
+support partial commit"
   (let ((len (length zero-input-candidates))
 	(new-fetch-size (1+ (* zero-input-candidates-per-page (+ 2 zero-input-current-page)))))
     ;; (zero-input-debug

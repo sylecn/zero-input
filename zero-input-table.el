@@ -45,7 +45,8 @@
 ;;=====================
 
 (defun zero-input-table-sort-key (lhs rhs)
-  "A predicate function to sort candidates.  Return t if LHS should sort before RHS."
+  "A predicate function to sort candidates.
+Return t if LHS should sort before RHS."
   (string< (car lhs) (car rhs)))
 
 (defun zero-input-table-build-candidates (preedit-str &optional _fetch-size)

@@ -133,7 +133,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.10.2")
+(setq zero-input-version "2.10.3")
 
 (defvar zero-input-panel-is-ephemeral nil
   "Stores whether the panel service is ephemeral or not.
@@ -285,10 +285,13 @@ N is number of pages you want to fetch in initial fetch.")
   zero-input-preedit-str)
 (defvar-local zero-input-build-candidates-func
   'zero-input-build-candidates-default
-  "Contains a function to build candidates from preedit-str.  The function accepts param preedit-str, fetch-size, returns candidate list.")
+  "Contains a function to build candidates from preedit-str.
+The function accepts param preedit-str, fetch-size, returns candidate list.")
 (defvar-local zero-input-build-candidates-async-func
   'zero-input-build-candidates-async-default
-  "Contains a function to build candidates from preedit-str.  The function accepts param preedit-str, fetch-size, and a complete-func that should be called on returned candidate list.")
+  "Contains a function to build candidates from preedit-str.
+The function accepts param preedit-str, fetch-size, and a
+complete-func that should be called on returned candidate list.")
 (defvar-local zero-input-can-start-sequence-func
   'zero-input-can-start-sequence-default
   "Contains a function to decide whether a char can start a preedit sequence.")
@@ -315,7 +318,8 @@ This allow input method to override default logic.")
   "Whether to enable debug.
 if t, `zero-input-debug' will output debug msg in *zero-input-debug* buffer")
 (defvar zero-input-debug-buffer-max-size 30000
-  "Max characters in *zero-input-debug* buffer.  If reached, first half data will be deleted.")
+  "Max characters in *zero-input-debug* buffer.
+If reached, first half data will be deleted.")
 
 (defun zero-input-debug (string &rest objects)
   "Log debug message in *zero-input-debug* buffer.
@@ -448,11 +452,16 @@ If there is no full-width char for CH, return it unchanged."
   (concat (mapcar 'zero-input-convert-ch-to-full-width s)))
 
 (defun zero-input-convert-str-to-full-width-maybe (s)
-  "If in `zero-input-full-width-p', convert char in S to their full-width char; otherwise, return s unchanged."
+  "Auto convert char in S to full-width.
+
+When `zero-input-full-width-p' is t, do convert; otherwise, return s unchanged."
   (if zero-input-full-width-p (zero-input-convert-str-to-full-width s) s))
 
 (defun zero-input-insert-full-width-char (ch)
-  "If in `zero-input-full-width-p', insert full-width char for given CH and return true, otherwise just return nil."
+  "Insert full-width char for CH.
+
+When `zero-input-full-width-p' is t, insert full-width char for
+given char CH and return true, otherwise just return nil."
   (when zero-input-full-width-p
     (let ((full-width-ch (zero-input-convert-ch-to-full-width ch)))
       (insert full-width-ch)
@@ -488,7 +497,10 @@ Return CH's Chinese punctuation if CH is converted.  Return nil otherwise."
    (t nil)))
 
 (defun zero-input-handle-punctuation (ch)
-  "If CH is a punctuation character, insert mapped Chinese punctuation and return true; otherwise, return false."
+  "Handle punctuation.
+
+If char CH is a punctuation character, insert mapped Chinese
+punctuation and return true; otherwise, return false."
   (let ((str (zero-input-convert-punctuation ch)))
     (when str
       (insert str)
@@ -610,7 +622,9 @@ N is the argument passed to `self-insert-command'."
    (t zero-input-initial-fetch-size)))
 
 (defun zero-input-preedit-str-changed ()
-  "Called when preedit str is changed and not empty.  Update and show candidate list."
+  "Update and show candidate list.
+
+Called when preedit str is changed and not empty."
   (setq zero-input-fetch-size 0)
   (setq zero-input-current-page 0)
   (let ((new-fetch-size (zero-input-get-initial-fetch-size)))
@@ -720,7 +734,8 @@ N is the argument passed to `self-insert-command'."
        (t nil)))))
 
 (defun zero-input-buffer-list-changed ()
-  "A hook function, run when buffer list has changed.  This includes user has switched buffer."
+  "A hook function, run when buffer list has changed.
+For example, this will run when user has switched buffer."
   (if (eq (car (buffer-list)) zero-input-buffer)
       (zero-input-focus-in)))
 
