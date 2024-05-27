@@ -1,4 +1,4 @@
-;;; zero-input-panel-posframe.el --- posframe based zero-input panel implementation. -*- lexical-binding: t -*-
+;;; zero-input-panel-posframe.el --- Posframe based zero-input panel implementation -*- lexical-binding: t -*-
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
-;; Version: 1.0.0
+;; Version: 1.0.1
 ;; Package-Requires: ((emacs "24.4") (zero-input "2.9.0") (posframe "1.4.3"))
 
 ;;; Commentary:
