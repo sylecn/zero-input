@@ -8,7 +8,11 @@ default: dist
 # multiple file
 #===============
 check:
-	$(EMACS) -Q --batch -l zero-input-reload-all.el -f zero-input-rebuild -l zero-input-table.el -l zero-input-table-test.el -f ert-run-tests-batch
+	$(EMACS) -Q --batch \
+		-l zero-input-reload-all.el -f zero-input-rebuild \
+		-l zero-input-table.el \
+		-l zero-input-table-test.el \
+		-f ert-run-tests-batch-and-exit
 zip:
 	git archive -o zero-input-el-$(VERSION).zip --prefix=zero-input/ HEAD
 #==========================

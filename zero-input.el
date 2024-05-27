@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; Version: 2.10.1
+;; Version: 2.10.2
 ;; URL: https://gitlab.emacsos.com/sylecn/zero-el
 ;; Package-Requires: ((emacs "24.4") (s "1.2.0"))
 
@@ -253,7 +253,7 @@ If item is not in lst, return nil."
 
 ;; zero-input-el version
 (defvar zero-input-version nil "Zero package version.")
-(setq zero-input-version "2.10.1")
+(setq zero-input-version "2.10.2")
 
 (defvar zero-input-panel-is-ephemeral nil
   "Stores whether the panel service is ephemeral or not.
@@ -1701,20 +1701,6 @@ off.")
 			       (zero-input-panel-minibuffer--zip-pair
 				(cl-loop for i from 1 to 10 collect i)
 				candidates)) " "))
-
-(ert-deftest zero-input-panel-minibuffer-make-string ()
-  (should (equal
-	   (zero-input-panel-minibuffer--zip-pair '(1 2 3 4 5 6) '("a" "b" "c"))
-	   '((1 . "a") (2 . "b") (3 . "c"))))
-  (should (equal
-	   (zero-input-panel-minibuffer--zip-pair '(1 2 3 4 5 6) '())
-	   nil))
-  (should (equal
-	   (zero-input-panel-minibuffer-make-string '("a" "b" "c"))
-	   "1.a 2.b 3.c"))
-  (should (equal
-	   (zero-input-panel-minibuffer-make-string '("a" "b" "c" "d"))
-	   "1.a 2.b 3.c 4.d")))
 
 (defun zero-input-panel-minibuffer-show-candidates (preedit-str _candidate-count candidates hints)
   "Show CANDIDATES using minibuffer package.

@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2024-05-26>
+Time-stamp: <2024-05-27>
 #+STARTUP: content
 * notes                                                               :entry:
 ** 2019-04-01 zero-el a Chinese IM framework in emacs; FSM              :doc:
@@ -251,6 +251,20 @@ I don't know it should recommend or suggest.
 ** 2019-10-23 checkdoc and package-lint can't ignore some non-issues.
 I can't run them in git pre-commit hook.
 * done                                                                :entry:
+** 2024-05-27 separate tests from zero-input-panel-minibuffer.el
+- problems
+  - Error: error ("Test ‘zero-input-panel-minibuffer-make-string’ redefined (or loaded twice)")
+    what's going on here?
+    fixed. zero-input-rebuild will byte compile and load the files.
+
+    nope. still same error.
+
+    I think I know why.
+    (package-initialize)
+    this line may load the old zero-input-panel-minibuffer.
+    yes. that fix it.
+
+** 2024-05-26 I have to use a new git repo. otherwise the tag version will conflict.
 ** 2024-05-26 make a release on melpa.
 - DONE should zero-input-panel-minibuffer.el be included in zero-input.el?
   it doesn't require any other package.

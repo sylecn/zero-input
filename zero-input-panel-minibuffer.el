@@ -72,20 +72,6 @@ off.")
 				(cl-loop for i from 1 to 10 collect i)
 				candidates)) " "))
 
-(ert-deftest zero-input-panel-minibuffer-make-string ()
-  (should (equal
-	   (zero-input-panel-minibuffer--zip-pair '(1 2 3 4 5 6) '("a" "b" "c"))
-	   '((1 . "a") (2 . "b") (3 . "c"))))
-  (should (equal
-	   (zero-input-panel-minibuffer--zip-pair '(1 2 3 4 5 6) '())
-	   nil))
-  (should (equal
-	   (zero-input-panel-minibuffer-make-string '("a" "b" "c"))
-	   "1.a 2.b 3.c"))
-  (should (equal
-	   (zero-input-panel-minibuffer-make-string '("a" "b" "c" "d"))
-	   "1.a 2.b 3.c 4.d")))
-
 (defun zero-input-panel-minibuffer-show-candidates (preedit-str _candidate-count candidates hints)
   "Show CANDIDATES using minibuffer package.
 Argument PREEDIT-STR user typed characters.
