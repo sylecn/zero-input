@@ -13,6 +13,12 @@ check:
 		-l zero-input-table.el \
 		-l zero-input-table-test.el \
 		-f ert-run-tests-batch-and-exit
+	$(EMACS) -Q --batch \
+		-l $(S_EL) \
+		-l $(POSFRAME_EL) \
+		-l ./byte-compile-flags.el \
+		-l ./zero-input.el \
+		--eval='(byte-compile-file "zero-input-panel-posframe.el")'
 zip:
 	git archive -o zero-input-el-$(VERSION).zip --prefix=zero-input/ HEAD
 #==========================
@@ -30,13 +36,14 @@ dist-check: build
 	@echo "running unit tests..."
 	$(EMACS) -Q --batch -l $(S_EL) -l $(POSFRAME_EL) \
 		-l zero-input.el \
+		-l zero-input-panel-posframe.el \
 		-l zero-input-panel-test.el \
 		-l zero-input-pinyin-service-test.el \
 		-l zero-input-framework-test.el \
 		-l zero-input-pinyin-test.el \
 		-l zero-input-table.el \
 		-l zero-input-table-test.el \
-		-l zero-input-panel-posframe.el \
+		-l zero-input-panel-minibuffer-test.el \
 		-f ert-run-tests-batch-and-exit
 #====================
 # other make targets

@@ -34,7 +34,8 @@
 ;;; Code:
 
 (require 'dbus)
-(require 'zero-input)
+(require 'zero-input-framework)
+(require 'zero-input-panel)
 
 ;; utils
 

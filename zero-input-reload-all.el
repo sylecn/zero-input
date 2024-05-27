@@ -16,13 +16,16 @@
 
 ;;; Code:
 
-(defun zero-input-rebuild (&optional source-dir)
-  "Rebuild zero-input-el.
+(defun zero-input-rebuild-zero-input (&optional source-dir)
+  "Rebuild zero-input package.
 
 SOURCE-DIR where to find the zero source dir."
   (interactive)
-  ;; for loading s
-  (package-initialize)
+  ;; load dependency
+  (let ((s-maybe (file-expand-wildcards "~/.emacs.d/elpa/s*/s.el")))
+    (if (null s-maybe)
+	(user-error "Package s is required for building zero-input")
+      (load-file (car s-maybe))))
   (let ((source-dir (or source-dir "~/lisp/elisp/zero/")))
     (load-file (concat source-dir "byte-compile-flags.el"))
     (dolist (f '("zero-input-quickdial.el"
@@ -34,11 +37,36 @@ SOURCE-DIR where to find the zero source dir."
 		 "zero-input-pinyin-service-test.el"
 		 "zero-input-pinyin.el"
 		 "zero-input-pinyin-test.el"
-		 "zero-input-panel-posframe.el"
 		 "zero-input-panel-minibuffer.el"
 		 "zero-input-panel-minibuffer-test.el"
 		 ))
       (byte-compile-file (concat source-dir f) t))))
+
+(defun zero-input-rebuild-posframe (&optional source-dir)
+  "Rebuild zero-input-panel-posframe.
+
+SOURCE-DIR where to find the zero source dir."
+  (interactive)
+  ;; load dependency
+  (zero-input-rebuild-zero-input)
+  ;; use multiple file build of zero-input, just provide it.
+  (provide 'zero-input)
+  (let ((posframe-maybe (file-expand-wildcards "~/.emacs.d/elpa/posframe*/posframe.el")))
+    (if (null posframe-maybe)
+	(user-error "Package posframe is required for building zero-input"))
+    (load-file (car posframe-maybe)))
+  (let ((source-dir (or source-dir "~/lisp/elisp/zero/")))
+    (load-file (concat source-dir "byte-compile-flags.el"))
+    (dolist (f '("zero-input-panel-posframe.el"
+		 ))
+      (byte-compile-file (concat source-dir f) t))))
+
+(defun zero-input-rebuild (&optional source-dir)
+  "Rebuild zero-input and zero-input-panel-posframe.
+
+SOURCE-DIR where to find the zero source dir."
+  (interactive)
+  (zero-input-rebuild-posframe))
 
 (defun zero-input-reload-all (&optional source-dir)
   "Recompile and load all zero files.
@@ -58,9 +86,9 @@ Optional argument SOURCE-DIR path to zero-input source dir."
 		 "zero-input-pinyin-test.elc"
 		 "zero-input-table.el"
 		 "zero-input-table-test.el"
-		 "zero-input-panel-posframe.elc"
 		 "zero-input-panel-minibuffer.elc"
 		 "zero-input-panel-minibuffer-test.elc"
+		 "zero-input-panel-posframe.elc"
 		 ))
       (load-file (concat source-dir f)))))
 
