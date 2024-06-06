@@ -1,6 +1,6 @@
 * COMMENT -*- mode: org -*-
 #+Date: 2019-10-08
-Time-stamp: <2024-05-27>
+Time-stamp: <2024-06-07>
 #+STARTUP: content
 * notes                                                               :entry:
 ** 2019-04-01 zero-el a Chinese IM framework in emacs; FSM              :doc:
@@ -1627,6 +1627,25 @@ https://github.com/melpa/melpa/blob/master/CONTRIBUTING.org#preparing-a-pull-req
     fixed.
 
 * wontfix                                                             :entry:
+** 2024-05-27 there is a tool by riscy, to test package before uploading to melpa.
+- riscy/melpazoid: A bundle of CI scripts for testing Emacs packages, primarily submissions to MELPA.
+  https://github.com/riscy/melpazoid
+
+  try it,
+  cd ~/fromsource/melpazoid/
+  HTTPS_PROXY=http://192.168.2.12:7890/ MELPA_PR_URL=https://github.com/melpa/melpa/pull/9037 make
+- it runs tests in container.
+
+  hangs inside GFW.
+  no progress log.
+
+- try pull image first.
+
+  docker pull ubuntu:22.04
+  ubuntu 22.04 52882761a72a   4 weeks ago    77.9MB
+
+  still hangs.
+
 ** 2024-05-27 emacs lisp docstring longer than 80 how to mark it as harmless for one function
 ** 2024-05-25 zero-input bug:
 haikeyi
